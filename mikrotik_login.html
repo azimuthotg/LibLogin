@@ -291,7 +291,11 @@
                 apiUrl += `?router_id=${ROUTER_ID}`;
             }
 
-            fetch(apiUrl)
+            fetch(apiUrl, {
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.imageUrl) {

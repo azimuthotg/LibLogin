@@ -151,3 +151,10 @@ REST_FRAMEWORK = {
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# CSRF settings for ngrok
+CSRF_TRUSTED_ORIGINS = [
+    'https://79613aa20270.ngrok-free.app',
+    'https://*.ngrok-free.app',
+    'https://*.ngrok.io',
+]
