@@ -238,17 +238,112 @@
             background: #d1ecf1;
             color: #0c5460;
         }
+
+        /* Debug Panel (มุมขวาบน) */
+        .debug-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .debug-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .debug-header:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+
+        .debug-content {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            transition: max-height 0.3s ease;
+        }
+
+        .debug-content.collapsed {
+            max-height: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .debug-content .server-info,
+        .debug-content .status-box {
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+
+        .debug-content h3 {
+            font-size: 0.9rem;
+        }
+
+        /* Logo */
+        .logo {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        /* Subtitle English */
+        .subtitle-en {
+            color: #95a5a6;
+            font-size: 0.8rem;
+            margin-bottom: 30px;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            font-size: 0.8rem;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+
+        /* ปรับ Login Box ให้ดูเป็นทางการ */
+        .login-box h1 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .login-box .subtitle {
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .debug-panel {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="login-background"></div>
     <div class="overlay"></div>
 
-    <div class="login-container">
-        <div class="login-box">
-            <h1>🧪 ทดสอบ LibLogin Production</h1>
-            <p class="subtitle">ทดสอบการเชื่อมต่อกับ Production Server</p>
-
+    <!-- Debug Panel (มุมขวาบน - ซ่อนได้) -->
+    <div class="debug-panel" id="debugPanel">
+        <div class="debug-header" onclick="toggleDebug()">
+            🔧 Debug Info <span id="debugToggle">▼</span>
+        </div>
+        <div class="debug-content" id="debugContent">
             <div class="server-info">
                 <h3>📡 ข้อมูล Server</h3>
                 <p><strong>Server IP:</strong> 202.29.55.222</p>
@@ -264,24 +359,36 @@
                     <p>กำลังโหลดข้อมูล...</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Login Card (เหมือนจริง - สำหรับ Production) -->
+    <div class="login-container">
+        <div class="login-box">
+            <!-- Logo (ถ้ามี) -->
+            <img src="img/logo.svg" alt="NPU Logo" class="logo" onerror="this.style.display='none'">
+
+            <h1>ยินดีต้อนรับ</h1>
+            <p class="subtitle">สำนักวิทยบริการ มหาวิทยาลัยนครพนม</p>
+            <p class="subtitle-en">Office of Academic Resources, Nakhon Phanom University</p>
 
             <form onsubmit="event.preventDefault(); testLogin();">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="ทดสอบ username" value="testuser" required>
+                    <input type="text" id="username" placeholder="ชื่อผู้ใช้" value="testuser" required autofocus>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="ทดสอบ password" value="testpass" required>
+                    <input type="password" id="password" placeholder="รหัสผ่าน" value="testpass" required>
                 </div>
 
-                <button type="submit">เข้าสู่ระบบ (ทดสอบ)</button>
+                <button type="submit">เข้าสู่ระบบ</button>
             </form>
 
             <div class="footer">
-                <p><strong>หมายเหตุ:</strong> หน้านี้เป็นการทดสอบการเชื่อมต่อ API กับ Production Server</p>
-                <p><small>IP: 202.29.55.222 | Port: 8291</small></p>
+                <p>ติดต่อเจ้าหน้าที่ หากมีปัญหาในการเข้าใช้งาน</p>
+                <p class="contact-info">โทร. 042-111-222 | อีเมล: support@npu.ac.th</p>
             </div>
         </div>
     </div>
@@ -364,11 +471,24 @@
                 });
         }
 
+        function toggleDebug() {
+            const content = document.getElementById('debugContent');
+            const toggle = document.getElementById('debugToggle');
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                toggle.textContent = '▼';
+            } else {
+                content.classList.add('collapsed');
+                toggle.textContent = '▶';
+            }
+        }
+
         function testLogin() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            alert(`✅ ระบบทำงานปกติ!\n\nนี่คือหน้าทดสอบ\n\nUsername: ${username}\nPassword: ${password}\n\nถ้าเห็นรูปพื้นหลัง = API ทำงาน ✓`);
+            alert(`✅ ระบบทำงานปกติ!\n\nนี่คือหน้าทดสอบ\n\nUsername: ${username}\nPassword: ${password}\n\nถ้าเห็นรูปพื้นหลัง = API ทำงาน ✓\n\nการ์ด Login นี้จะเหมือนกับที่แสดงบน MikroTik จริง`);
         }
 
         // Load on page ready
@@ -381,6 +501,10 @@
             console.log('='.repeat(60));
 
             loadBackgroundImage();
+
+            // เปิด Debug Panel เริ่มต้น
+            // ถ้าต้องการปิดเริ่มต้น ให้ uncomment บรรทัดด้านล่าง
+            // toggleDebug();
         });
     </script>
 </body>
