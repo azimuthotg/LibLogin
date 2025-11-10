@@ -1,0 +1,180 @@
+{% extends 'webapp/base.html' %}
+
+{% block title %}System Settings - LibLogin{% endblock %}
+
+{% block page_title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-gear"></i> Library Information
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="library_name" class="form-label">Library Name *</label>
+                            <input type="text" class="form-control" id="library_name" name="library_name"
+                                   value="{{ settings.library_name|default:'Library Login System' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contact_info" class="form-label">Contact Information</label>
+                            <textarea class="form-control" id="contact_info" name="contact_info" rows="4"
+                                      placeholder="Enter contact information, support hours, etc.">{{ settings.contact_info|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="default_router_id" class="form-label">Default Router ID</label>
+                            <input type="text" class="form-control" id="default_router_id" name="default_router_id"
+                                   value="{{ settings.default_router_id|default:'' }}"
+                                   placeholder="Default router identifier">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                This router ID will be used as default if not specified
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="logo" class="form-label">Library Logo</label>
+                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Upload a logo for your library (PNG, JPG, SVG recommended)
+                            </small>
+
+                            {% if settings.logo %}
+                            <div class="mt-3">
+                                <p class="mb-2"><strong>Current Logo:</strong></p>
+                                <img src="{{ settings.logo.url }}" alt="Current Logo"
+                                     style="max-height: 100px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if user.is_superuser %}
+            <div class="card mt-4">
+                <div class="card-header bg-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Advanced Settings
+                </div>
+                <div class="card-body">
+                    <h6>Database Information</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Total Images:</strong> {{ total_images }}</li>
+                        <li><strong>Total Users:</strong> {{ total_users }}</li>
+                        <li><strong>Storage Used:</strong> <span id="storageSize">Calculating...</span></li>
+                    </ul>
+
+                    <hr>
+
+                    <h6>API Configuration</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Public API Endpoint:</label>
+                        <input type="text" class="form-control font-monospace" readonly
+                               value="{{ request.scheme }}://{{ request.get_host }}/api/login-background/">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Admin API Endpoint:</label>
+                        <input type="text" class="form-control font-monospace" readonly
+                               value="{{ request.scheme }}://{{ request.get_host }}/api/backgrounds/">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> Help & Documentation
+                </div>
+                <div class="card-body">
+                    <h6>MikroTik Integration</h6>
+                    <p class="small">To integrate with MikroTik Hotspot, add this JavaScript to your login.html:</p>
+
+                    <pre class="bg-light p-3 rounded" style="font-size: 0.75rem;"><code>&lt;script&gt;
+fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?router_id=YOUR_ID')
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      document.body.style.backgroundImage =
+        `url($${data.imageUrl})`;
+    }
+  });
+&lt;/script&gt;</code></pre>
+
+                    <button class="btn btn-sm btn-outline-primary w-100" onclick="copyCode()">
+                        <i class="bi bi-clipboard"></i> Copy Code
+                    </button>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="bi bi-question-circle"></i> Quick Tips
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li class="mb-2">Use router-specific backgrounds for different locations</li>
+                        <li class="mb-2">Recommended image size: 1920x1080 pixels</li>
+                        <li class="mb-2">Images are automatically optimized on upload</li>
+                        <li class="mb-2">Only one background can be active per router at a time</li>
+                        <li>Use the API endpoint in your MikroTik configuration</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="bi bi-shield-check"></i> Security
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li class="mb-2">Change default admin password</li>
+                        <li class="mb-2">Only authorized users can manage images</li>
+                        <li class="mb-2">API endpoint is CORS-enabled for MikroTik</li>
+                        <li>Regular backups recommended</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyCode() {
+        const code = document.querySelector('pre code').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-success');
+
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-primary');
+            }, 2000);
+        });
+    }
+
+    // Calculate storage size (placeholder - would need backend support)
+    document.getElementById('storageSize')?.textContent = 'N/A';
+</script>
+{% endblock %}

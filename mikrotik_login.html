@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library WiFi Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background Image - Will be loaded from API */
+        #login-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-image: url('img/default-background.jpg');
+            transition: background-image 0.5s ease-in-out;
+            z-index: -1;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        /* Container */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Login Box */
+        .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Logo */
+        .logo {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        /* Title */
+        h1 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        /* Loading indicator */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        /* Error message */
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div id="login-background"></div>
+    <div class="overlay"></div>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <p>Loading background...</p>
+    </div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="login-box">
+            <!-- Logo (optional) -->
+            <img src="img/logo.svg" alt="Library Logo" class="logo" onerror="this.style.display='none'">
+
+            <h1>ยินดีต้อนรับ</h1>
+            <p class="subtitle">เข้าสู่ระบบ WiFi ห้องสมุด</p>
+
+            <!-- Error Message -->
+            <div class="error-message" id="errorMessage"></div>
+
+            <!-- Login Form (MikroTik) -->
+            <form name="login" action="$(link-login-only)" method="post">
+                <input type="hidden" name="dst" value="$(link-orig)" />
+                <input type="hidden" name="popup" value="true" />
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" required>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
+                </div>
+            </form>
+
+            <div class="footer">
+                <p>ติดต่อเจ้าหน้าที่ หากมีปัญหาในการเข้าใช้งาน</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====================================
+        // Configuration - แก้ไขส่วนนี้
+        // ====================================
+        const API_BASE_URL = 'http://YOUR_SERVER_IP:8000';  // เปลี่ยนเป็น IP ของเซิร์ฟเวอร์ Backend
+        const ROUTER_ID = '';  // ใส่ router_id ถ้าต้องการใช้รูปพื้นหลังเฉพาะ router นี้ (เว้นว่างสำหรับ default)
+
+        // ====================================
+        // Fetch Background Image from API
+        // ====================================
+        function loadBackgroundImage() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            loadingIndicator.classList.add('show');
+
+            // Build API URL
+            let apiUrl = `${API_BASE_URL}/api/login-background/`;
+            if (ROUTER_ID) {
+                apiUrl += `?router_id=${ROUTER_ID}`;
+            }
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.imageUrl) {
+                        // Set background image
+                        const bgElement = document.getElementById('login-background');
+                        bgElement.style.backgroundImage = `url(${data.imageUrl})`;
+                        console.log('Background loaded:', data.title);
+                    } else {
+                        console.warn('No active background found, using default');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading background:', error);
+                    // Use default background on error
+                })
+                .finally(() => {
+                    loadingIndicator.classList.remove('show');
+                });
+        }
+
+        // ====================================
+        // Handle MikroTik Error Messages
+        // ====================================
+        function checkMikrotikError() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (error) {
+                let message = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+
+                // Decode MikroTik error messages
+                if (error === 'invalid username or password') {
+                    message = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                } else if (error === 'user is already connected') {
+                    message = 'ผู้ใช้นี้เชื่อมต่ออยู่แล้ว';
+                }
+
+                errorMessage.textContent = message;
+                errorMessage.classList.add('show');
+            }
+        }
+
+        // ====================================
+        // Initialize
+        // ====================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBackgroundImage();
+            checkMikrotikError();
+
+            // Reload background every 5 minutes (optional)
+            setInterval(loadBackgroundImage, 5 * 60 * 1000);
+        });
+
+        // ====================================
+        // Auto-resize for mobile
+        // ====================================
+        function adjustHeight() {
+            document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+        }
+        window.addEventListener('resize', adjustHeight);
+        adjustHeight();
+    </script>
+</body>
+</html>

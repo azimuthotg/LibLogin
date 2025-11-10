@@ -1,0 +1,157 @@
+{% extends 'webapp/base.html' %}
+
+{% block title %}Login - LibLogin Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-card {
+        max-width: 450px;
+        width: 100%;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        padding: 40px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .login-header i {
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .login-header h2 {
+        color: #2c3e50;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .login-header p {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-login {
+        padding: 12px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        font-weight: bold;
+        transition: transform 0.2s;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-shield-lock"></i>
+            <h2>LibLogin Management</h2>
+            <p>เข้าสู่ระบบจัดการหน้า Login ของห้องสมุด</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="id_username" class="form-label">
+                    <i class="bi bi-person"></i> Username
+                </label>
+                <input type="text"
+                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                       id="id_username"
+                       name="username"
+                       placeholder="Enter your username"
+                       required
+                       autofocus>
+                {% if form.username.errors %}
+                <div class="invalid-feedback">
+                    {{ form.username.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_password" class="form-label">
+                    <i class="bi bi-lock"></i> Password
+                </label>
+                <input type="password"
+                       class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                       id="id_password"
+                       name="password"
+                       placeholder="Enter your password"
+                       required>
+                {% if form.password.errors %}
+                <div class="invalid-feedback">
+                    {{ form.password.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <button type="submit" class="btn btn-login w-100">
+                <i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ
+            </button>
+        </form>
+
+        <div class="text-center mt-4 text-muted" style="font-size: 0.85rem;">
+            <p class="mb-0">
+                <i class="bi bi-info-circle"></i>
+                สำหรับบรรณารักษ์และผู้ดูแลระบบเท่านั้น
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

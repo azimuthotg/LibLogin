@@ -1,0 +1,236 @@
+{% extends 'webapp/base.html' %}
+
+{% block title %}Dashboard - LibLogin Management{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Images</h6>
+                            <h2 class="mt-2 mb-0">{{ total_images }}</h2>
+                        </div>
+                        <i class="bi bi-images" style="font-size: 3rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Active Images</h6>
+                            <h2 class="mt-2 mb-0">{{ active_images }}</h2>
+                        </div>
+                        <i class="bi bi-check-circle" style="font-size: 3rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Routers</h6>
+                            <h2 class="mt-2 mb-0">{{ total_routers }}</h2>
+                        </div>
+                        <i class="bi bi-router" style="font-size: 3rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Users</h6>
+                            <h2 class="mt-2 mb-0">{{ total_users }}</h2>
+                        </div>
+                        <i class="bi bi-people" style="font-size: 3rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-clock-history"></i> Recent Background Images
+                </div>
+                <div class="card-body">
+                    {% if recent_images %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Preview</th>
+                                    <th>Title</th>
+                                    <th>Router ID</th>
+                                    <th>Status</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for image in recent_images %}
+                                <tr>
+                                    <td>
+                                        <img src="{{ image.image.url }}" alt="{{ image.title }}"
+                                             style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                    </td>
+                                    <td>{{ image.title }}</td>
+                                    <td>
+                                        {% if image.router_id %}
+                                        <span class="badge bg-info">{{ image.router_id }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Default</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if image.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ image.uploaded_at|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'backgrounds' %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-2">No background images uploaded yet</p>
+                        <a href="{% url 'backgrounds' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Upload Your First Image
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'backgrounds' %}" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Upload New Background
+                        </a>
+                        <a href="{% url 'backgrounds' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-images"></i> Manage Backgrounds
+                        </a>
+                        {% if user.is_staff %}
+                        <a href="{% url 'settings' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-gear"></i> System Settings
+                        </a>
+                        <a href="/admin/" class="btn btn-outline-dark" target="_blank">
+                            <i class="bi bi-shield-lock"></i> Admin Panel
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> System Information
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <strong>Logged in as:</strong><br>
+                            <span class="text-muted">{{ user.username }}</span>
+                            {% if user.is_staff %}
+                            <span class="badge bg-warning text-dark ms-1">Admin</span>
+                            {% endif %}
+                        </li>
+                        <li class="mb-2">
+                            <strong>Email:</strong><br>
+                            <span class="text-muted">{{ user.email|default:"Not set" }}</span>
+                        </li>
+                        <li class="mb-0">
+                            <strong>Last login:</strong><br>
+                            <span class="text-muted">{{ user.last_login|date:"d/m/Y H:i" }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Endpoint Info -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-code-slash"></i> API Endpoint for MikroTik
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Public API Endpoint:</strong></p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control font-monospace" id="apiEndpoint"
+                               value="{{ request.scheme }}://{{ request.get_host }}/api/login-background/" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyEndpoint()">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Use this URL in your MikroTik login.html to fetch the background image.
+                        Add <code>?router_id=YOUR_ID</code> for router-specific backgrounds.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyEndpoint() {
+        const endpoint = document.getElementById('apiEndpoint');
+        endpoint.select();
+        document.execCommand('copy');
+
+        // Show feedback
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-success');
+
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-secondary');
+        }, 2000);
+    }
+</script>
+{% endblock %}
