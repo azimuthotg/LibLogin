@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 from api.models import BackgroundImage, SystemSettings
 
 
@@ -150,3 +151,122 @@ def settings_view(request):
         'total_users': total_users,
     }
     return render(request, 'webapp/settings.html', context)
+
+
+# ============================================================================
+# MikroTik Hotspot Views (Public - No Authentication Required)
+# ============================================================================
+
+@csrf_exempt
+def hotspot_login(request):
+    """
+    Hotspot Login Page for MikroTik
+    URL: /hotspot/login/
+    Receives parameters from MikroTik and displays login page
+    """
+    # Get system settings
+    settings = SystemSettings.objects.first()
+
+    # Get MikroTik parameters
+    context = {
+        'link_login': request.GET.get('link-login', ''),
+        'link_login_only': request.GET.get('link-login-only', ''),
+        'link_orig': request.GET.get('link-orig', 'http://www.google.com'),
+        'mac': request.GET.get('mac', ''),
+        'ip': request.GET.get('ip', ''),
+        'username': request.GET.get('username', ''),
+        'error': request.GET.get('error', ''),
+        'trial': request.GET.get('trial', ''),
+        'chap_id': request.GET.get('chap-id', ''),
+        'chap_challenge': request.GET.get('chap-challenge', ''),
+        'popup': request.GET.get('popup', 'false'),
+        'router_id': request.GET.get('router_id', ''),
+
+        # System settings
+        'library_name': settings.library_name if settings else 'Library WiFi System',
+        'contact_info': settings.contact_info if settings else '',
+        'logo_url': settings.logo.url if settings and settings.logo else None,
+    }
+
+    return render(request, 'webapp/hotspot_login.html', context)
+
+
+@csrf_exempt
+def hotspot_logout(request):
+    """
+    Hotspot Logout Page
+    URL: /hotspot/logout/
+    Shows logout success message and redirects
+    """
+    settings = SystemSettings.objects.first()
+
+    context = {
+        'link_status': request.GET.get('link-status', ''),
+        'link_orig': request.GET.get('link-orig', ''),
+        'mac': request.GET.get('mac', ''),
+        'ip': request.GET.get('ip', ''),
+        'username': request.GET.get('username', ''),
+        'logout_id': request.GET.get('logout-id', ''),
+        'erase_cookie': request.GET.get('erase-cookie', 'false'),
+
+        # System settings
+        'library_name': settings.library_name if settings else 'Library WiFi System',
+        'contact_info': settings.contact_info if settings else '',
+        'logo_url': settings.logo.url if settings and settings.logo else None,
+    }
+
+    return render(request, 'webapp/hotspot_logout.html', context)
+
+
+@csrf_exempt
+def hotspot_status(request):
+    """
+    Hotspot Status Page
+    URL: /hotspot/status/
+    Shows connection status and usage information
+    """
+    settings = SystemSettings.objects.first()
+
+    context = {
+        'link_status': request.GET.get('link-status', ''),
+        'link_logout': request.GET.get('link-logout', ''),
+        'link_orig': request.GET.get('link-orig', ''),
+        'mac': request.GET.get('mac', ''),
+        'ip': request.GET.get('ip', ''),
+        'username': request.GET.get('username', ''),
+        'uptime': request.GET.get('uptime', '0'),
+        'session_time_left': request.GET.get('session-time-left', '0'),
+        'bytes_in': request.GET.get('bytes-in', '0'),
+        'bytes_out': request.GET.get('bytes-out', '0'),
+        'refresh_timeout': request.GET.get('refresh-timeout', '30'),
+
+        # System settings
+        'library_name': settings.library_name if settings else 'Library WiFi System',
+        'contact_info': settings.contact_info if settings else '',
+        'logo_url': settings.logo.url if settings and settings.logo else None,
+    }
+
+    return render(request, 'webapp/hotspot_status.html', context)
+
+
+@csrf_exempt
+def hotspot_error(request):
+    """
+    Hotspot Error Page
+    URL: /hotspot/error/
+    Shows error messages from MikroTik
+    """
+    settings = SystemSettings.objects.first()
+
+    context = {
+        'error': request.GET.get('error', 'Unknown error occurred'),
+        'link_status': request.GET.get('link-status', ''),
+        'link_login': request.GET.get('link-login', ''),
+
+        # System settings
+        'library_name': settings.library_name if settings else 'Library WiFi System',
+        'contact_info': settings.contact_info if settings else '',
+        'logo_url': settings.logo.url if settings and settings.logo else None,
+    }
+
+    return render(request, 'webapp/hotspot_error.html', context)
