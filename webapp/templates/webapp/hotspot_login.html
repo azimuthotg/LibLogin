@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Login - {{ library_name }}</title>
+    <link rel="stylesheet" href="{% static 'css/hotspot.css' %}">
+</head>
+<body>
+    <!-- Background (โหลดจาก API) -->
+    <div id="login-background"></div>
+    <div class="overlay"></div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="login-box">
+            <!-- Logo -->
+            {% if logo_url %}
+            <img src="{{ logo_url }}" alt="Logo" class="logo">
+            {% else %}
+            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo" onerror="this.style.display='none'">
+            {% endif %}
+
+            <h1>ยินดีต้อนรับ</h1>
+            <p class="subtitle">{{ library_name }}</p>
+            <p class="subtitle-en">Office of Academic Resources, Nakhon Phanom University</p>
+
+            <!-- Error Message -->
+            {% if error %}
+            <div class="error-message">
+                {% if error == 'invalid username or password' %}
+                    ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+                {% elif error == 'user is already connected' %}
+                    ผู้ใช้นี้เชื่อมต่ออยู่แล้ว
+                {% elif error == 'no address available' %}
+                    ไม่มี IP Address ว่างในขณะนี้
+                {% elif error == 'uptime limit reached' %}
+                    เวลาการใช้งานหมดแล้ว
+                {% elif error == 'radius timeout' %}
+                    ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้
+                {% else %}
+                    {{ error }}
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- MikroTik Login Form -->
+            <form name="login" action="{{ link_login_only }}" method="post">
+                <input type="hidden" name="dst" value="{{ link_orig }}" />
+                <input type="hidden" name="popup" value="{{ popup }}" />
+                {% if chap_id %}
+                <input type="hidden" name="chap-id" value="{{ chap_id }}" />
+                {% endif %}
+                {% if chap_challenge %}
+                <input type="hidden" name="chap-challenge" value="{{ chap_challenge }}" />
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username"
+                           value="{{ username }}"
+                           placeholder="ชื่อผู้ใช้"
+                           required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password"
+                           placeholder="รหัสผ่าน"
+                           required>
+                </div>
+
+                <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
+            </form>
+
+            <div class="footer">
+                <p>ติดต่อเจ้าหน้าที่ หากมีปัญหาในการเข้าใช้งาน</p>
+                {% if contact_info %}
+                <p class="contact-info">{{ contact_info }}</p>
+                {% else %}
+                <p class="contact-info">โทร. 042-111-222 | อีเมล: support@npu.ac.th</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = window.location.origin;
+        const ROUTER_ID = '{{ router_id }}';
+
+        // Load background image from API
+        function loadBackgroundImage() {
+            let apiUrl = API_BASE_URL + '/api/login-background/';
+            if (ROUTER_ID) {
+                apiUrl += '?router_id=' + ROUTER_ID;
+            }
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.imageUrl) {
+                        document.getElementById('login-background').style.backgroundImage =
+                            'url(' + data.imageUrl + ')';
+                        console.log('Background loaded:', data.title);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading background:', error);
+                });
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', loadBackgroundImage);
+    </script>
+</body>
+</html>

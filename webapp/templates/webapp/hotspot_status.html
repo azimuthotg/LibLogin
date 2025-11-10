@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Status - {{ library_name }}</title>
+    <link rel="stylesheet" href="{% static 'css/hotspot.css' %}">
+    {% if refresh_timeout %}
+    <meta http-equiv="refresh" content="{{ refresh_timeout }}">
+    {% endif %}
+</head>
+<body>
+    <div id="login-background"></div>
+    <div class="overlay"></div>
+
+    <div class="login-container">
+        <div class="login-box status-box-wide">
+            {% if logo_url %}
+            <img src="{{ logo_url }}" alt="Logo" class="logo-small">
+            {% else %}
+            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo-small" onerror="this.style.display='none'">
+            {% endif %}
+
+            <h1>สถานะการเชื่อมต่อ</h1>
+            <p class="subtitle">{{ library_name }}</p>
+
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Username</div>
+                    <div class="status-value">{{ username|default:"ไม่ระบุ" }}</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-label">IP Address</div>
+                    <div class="status-value">{{ ip|default:"ไม่ระบุ" }}</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-label">MAC Address</div>
+                    <div class="status-value">{{ mac|default:"ไม่ระบุ" }}</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-label">เวลาที่ใช้งาน</div>
+                    <div class="status-value" id="uptime">{{ uptime|default:"0" }}</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-label">Download</div>
+                    <div class="status-value" id="bytes-in">{{ bytes_in|default:"0" }}</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-label">Upload</div>
+                    <div class="status-value" id="bytes-out">{{ bytes_out|default:"0" }}</div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                {% if link_logout %}
+                <a href="{{ link_logout }}" class="btn-danger">ออกจากระบบ</a>
+                {% endif %}
+                {% if link_status %}
+                <a href="{{ link_status }}" class="btn-secondary">รีเฟรช</a>
+                {% endif %}
+            </div>
+
+            <div class="footer">
+                <p class="auto-refresh">หน้านี้จะรีเฟรชอัตโนมัติทุก {{ refresh_timeout|default:"30" }} วินาที</p>
+                <p class="contact-info">{{ contact_info|default:"ติดต่อเจ้าหน้าที่หากมีปัญหา" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+
+        function loadBackgroundImage() {
+            fetch(API_BASE_URL + '/api/login-background/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.imageUrl) {
+                        document.getElementById('login-background').style.backgroundImage =
+                            'url(' + data.imageUrl + ')';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Format bytes to human readable
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Format uptime to HH:MM:SS
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return hours.toString().padStart(2, '0') + ':' +
+                   minutes.toString().padStart(2, '0') + ':' +
+                   secs.toString().padStart(2, '0');
+        }
+
+        // Update display
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBackgroundImage();
+
+            // Format bytes
+            const bytesIn = parseInt('{{ bytes_in|default:"0" }}');
+            const bytesOut = parseInt('{{ bytes_out|default:"0" }}');
+            const uptime = parseInt('{{ uptime|default:"0" }}');
+
+            if (document.getElementById('bytes-in')) {
+                document.getElementById('bytes-in').textContent = formatBytes(bytesIn);
+            }
+            if (document.getElementById('bytes-out')) {
+                document.getElementById('bytes-out').textContent = formatBytes(bytesOut);
+            }
+            if (document.getElementById('uptime')) {
+                document.getElementById('uptime').textContent = formatUptime(uptime);
+            }
+        });
+    </script>
+</body>
+</html>

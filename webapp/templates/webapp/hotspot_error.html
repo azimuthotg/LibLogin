@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - {{ library_name }}</title>
+    <link rel="stylesheet" href="{% static 'css/hotspot.css' %}">
+</head>
+<body>
+    <div id="login-background"></div>
+    <div class="overlay"></div>
+
+    <div class="login-container">
+        <div class="login-box">
+            {% if logo_url %}
+            <img src="{{ logo_url }}" alt="Logo" class="logo">
+            {% else %}
+            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo" onerror="this.style.display='none'">
+            {% endif %}
+
+            <div class="error-icon">✕</div>
+
+            <h1>เกิดข้อผิดพลาด</h1>
+            <p class="subtitle">{{ library_name }}</p>
+
+            <div class="error-message-big">
+                {{ error }}
+            </div>
+
+            <div class="error-help">
+                <h3>แนะนำการแก้ไข:</h3>
+                <ul>
+                    <li>ตรวจสอบชื่อผู้ใช้และรหัสผ่าน</li>
+                    <li>ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</li>
+                    <li>ลองออกจากระบบแล้วเข้าใหม่อีกครั้ง</li>
+                    <li>ติดต่อเจ้าหน้าที่หากปัญหายังคงอยู่</li>
+                </ul>
+            </div>
+
+            <div class="button-group">
+                {% if link_login %}
+                <a href="{{ link_login }}" class="btn-login">กลับสู่หน้า Login</a>
+                {% endif %}
+                {% if link_status %}
+                <a href="{{ link_status }}" class="btn-secondary">ตรวจสอบสถานะ</a>
+                {% endif %}
+            </div>
+
+            <div class="footer">
+                <p>ติดต่อเจ้าหน้าที่ หากมีปัญหาในการเข้าใช้งาน</p>
+                {% if contact_info %}
+                <p class="contact-info">{{ contact_info }}</p>
+                {% else %}
+                <p class="contact-info">โทร. 042-111-222 | อีเมล: support@npu.ac.th</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+
+        function loadBackgroundImage() {
+            fetch(API_BASE_URL + '/api/login-background/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.imageUrl) {
+                        document.getElementById('login-background').style.backgroundImage =
+                            'url(' + data.imageUrl + ')';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', loadBackgroundImage);
+    </script>
+</body>
+</html>
