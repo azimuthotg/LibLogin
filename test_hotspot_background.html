@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hotspot Background API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .test-section h2 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button.secondary {
+            background: #2196F3;
+        }
+
+        button.secondary:hover {
+            background: #0b7dda;
+        }
+
+        .result-box {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .result-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .preview-section {
+            margin-top: 20px;
+        }
+
+        #background-preview {
+            width: 100%;
+            height: 400px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background-color: #e0e0e0;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status.error {
+            background: #f44336;
+            color: white;
+        }
+
+        .status.info {
+            background: #2196F3;
+            color: white;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 ทดสอบ Hotspot Background API</h1>
+
+        <!-- API Test Section -->
+        <div class="test-section">
+            <h2>1. ทดสอบ API Endpoints</h2>
+            <div class="info-text">
+                เซิร์ฟเวอร์: <strong>http://202.29.55.222:8291</strong>
+            </div>
+
+            <div class="button-group">
+                <button onclick="testAPI('default')">ทดสอบ API (Default)</button>
+                <button onclick="testAPI('mt1')" class="secondary">ทดสอบ API (router_id=mt1)</button>
+                <button onclick="testAPI('mt2')" class="secondary">ทดสอบ API (router_id=mt2)</button>
+            </div>
+
+            <div id="api-result" class="result-box" style="display:none;">
+                <pre id="api-result-content"></pre>
+            </div>
+        </div>
+
+        <!-- Background Preview Section -->
+        <div class="test-section">
+            <h2>2. แสดงตัวอย่างพื้นหลัง</h2>
+            <div class="info-text">
+                พื้นหลังจะแสดงด้านล่างเมื่อดึงข้อมูลสำเร็จ
+            </div>
+
+            <div class="button-group">
+                <button onclick="loadBackground('default')">โหลดพื้นหลัง (Default)</button>
+                <button onclick="loadBackground('mt1')" class="secondary">โหลดพื้นหลัง (MT1)</button>
+                <button onclick="loadBackground('mt2')" class="secondary">โหลดพื้นหลัง (MT2)</button>
+                <button onclick="clearBackground()" style="background:#f44336;">ล้างพื้นหลัง</button>
+            </div>
+
+            <div class="preview-section">
+                <div id="background-preview">
+                    ไม่มีพื้นหลัง
+                </div>
+            </div>
+
+            <div id="preview-info" style="margin-top:10px; color:#666; font-size:14px;"></div>
+        </div>
+
+        <!-- Console Log Section -->
+        <div class="test-section">
+            <h2>3. Console Log</h2>
+            <div class="info-text">
+                ข้อความ log จะแสดงที่นี่ (เปิด Developer Console เพื่อดูเพิ่มเติม)
+            </div>
+            <div id="console-log" class="result-box">
+                <pre id="console-log-content">พร้อมทดสอบ...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_SERVER = 'http://202.29.55.222:8291';
+        const API_ENDPOINT = '/api/login-background/';
+
+        // Logging function
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('th-TH');
+            const logContent = document.getElementById('console-log-content');
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logContent.textContent += `\n[${timestamp}] ${prefix} ${message}`;
+            logContent.parentElement.scrollTop = logContent.parentElement.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Test API endpoint
+        async function testAPI(routerType) {
+            log(`เริ่มทดสอบ API (${routerType})...`);
+
+            let apiUrl = API_SERVER + API_ENDPOINT;
+            if (routerType !== 'default') {
+                apiUrl += `?router_id=${routerType}`;
+            }
+
+            const resultBox = document.getElementById('api-result');
+            const resultContent = document.getElementById('api-result-content');
+
+            try {
+                log(`กำลังเรียก: ${apiUrl}`);
+                const response = await fetch(apiUrl);
+
+                log(`Response Status: ${response.status} ${response.statusText}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                resultBox.style.display = 'block';
+                resultContent.textContent = JSON.stringify(data, null, 2);
+
+                if (data.success) {
+                    log(`✅ API ทำงานสำเร็จ! รูป: ${data.title || 'ไม่มีชื่อ'}`, 'success');
+                } else {
+                    log(`⚠️ API ตอบกลับแต่ไม่มีรูป: ${data.message}`, 'error');
+                }
+
+            } catch (error) {
+                log(`❌ เกิดข้อผิดพลาด: ${error.message}`, 'error');
+                resultBox.style.display = 'block';
+                resultContent.textContent = `Error: ${error.message}\n\nกรุณาตรวจสอบ:\n1. Django server รันอยู่ที่ 202.29.55.222:8291 หรือไม่\n2. CORS configuration ถูกต้องหรือไม่\n3. มีรูปที่ active อยู่ในฐานข้อมูลหรือไม่`;
+            }
+        }
+
+        // Load background preview
+        async function loadBackground(routerType) {
+            log(`กำลังโหลดพื้นหลัง (${routerType})...`);
+
+            let apiUrl = API_SERVER + API_ENDPOINT;
+            if (routerType !== 'default') {
+                apiUrl += `?router_id=${routerType}`;
+            }
+
+            const preview = document.getElementById('background-preview');
+            const previewInfo = document.getElementById('preview-info');
+
+            try {
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.imageUrl) {
+                    preview.style.backgroundImage = `url("${data.imageUrl}")`;
+                    preview.textContent = '';
+                    previewInfo.innerHTML = `
+                        <span class="status success">สำเร็จ</span>
+                        <strong>ชื่อ:</strong> ${data.title || 'ไม่มีชื่อ'}<br>
+                        <strong>URL:</strong> ${data.imageUrl}
+                    `;
+                    log(`✅ โหลดพื้นหลังสำเร็จ: ${data.title}`, 'success');
+                } else {
+                    throw new Error(data.message || 'No active background found');
+                }
+
+            } catch (error) {
+                preview.style.backgroundImage = 'none';
+                preview.style.backgroundColor = '#ffebee';
+                preview.textContent = '❌ โหลดไม่สำเร็จ';
+                previewInfo.innerHTML = `
+                    <span class="status error">ล้มเหลว</span>
+                    ${error.message}
+                `;
+                log(`❌ โหลดพื้นหลังล้มเหลว: ${error.message}`, 'error');
+            }
+        }
+
+        // Clear background preview
+        function clearBackground() {
+            const preview = document.getElementById('background-preview');
+            const previewInfo = document.getElementById('preview-info');
+
+            preview.style.backgroundImage = 'none';
+            preview.style.backgroundColor = '#e0e0e0';
+            preview.textContent = 'ไม่มีพื้นหลัง';
+            previewInfo.innerHTML = '';
+
+            log('ล้างพื้นหลังแล้ว');
+        }
+
+        // Auto-load default background on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            log('หน้าเว็บโหลดเสร็จแล้ว พร้อมทดสอบ', 'success');
+        });
+    </script>
+</body>
+</html>

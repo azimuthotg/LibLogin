@@ -141,10 +141,13 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'ngrok-skip-browser-warning',  # Allow ngrok header
 ]
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://192.168.1.1",  # MikroTik IP
-# ]
+# MikroTik IPs that will access the API
+CORS_ALLOWED_ORIGINS = [
+    "http://202.29.55.180",      # MikroTik #1
+    "http://202.29.55.30",       # MikroTik #2
+    "http://202.29.55.222:8291", # Django Server (self)
+    "http://localhost:8291",     # Local testing
+]
 
 # Media files (uploaded images)
 MEDIA_URL = '/media/'
