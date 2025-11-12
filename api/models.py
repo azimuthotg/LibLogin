@@ -39,6 +39,29 @@ class BackgroundImage(models.Model):
                 img.save(img_path, optimize=True, quality=85)
 
 
+class SlideContent(models.Model):
+    """Model for storing slide show content on login page"""
+    icon = models.CharField(max_length=10, default="📚", help_text="Emoji icon (e.g., 📚, 📖, 💻)")
+    title = models.CharField(max_length=255, help_text="Slide title")
+    description = models.TextField(help_text="Slide description")
+    router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID for specific device (blank = all routers)")
+    order = models.IntegerField(default=0, help_text="Display order (lower numbers shown first)")
+    is_active = models.BooleanField(default=True, help_text="Show this slide")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_slides')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Slide Content"
+        verbose_name_plural = "Slide Contents"
+
+    def __str__(self):
+        router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"
+        status = "✓" if self.is_active else "✗"
+        return f"{status} {self.title}{router_info}"
+
+
 class SystemSettings(models.Model):
     """Model for storing system settings"""
     library_name = models.CharField(max_length=255, default="Library Login System")

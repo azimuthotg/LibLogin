@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.contrib.auth.models import User
-from .models import BackgroundImage, SystemSettings
+from .models import BackgroundImage, SystemSettings, SlideContent
 from .serializers import (
     BackgroundImageSerializer,
     BackgroundImageUploadSerializer,
@@ -118,3 +118,63 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_slide_content(request):
+    """
+    Public API endpoint to get slide show content
+    Supports router_id parameter for device-specific slides
+    Returns all active slides ordered by 'order' field
+    """
+    router_id = request.GET.get('router_id', None)
+
+    try:
+        # Get active slides for specific router
+        if router_id:
+            slides = SlideContent.objects.filter(
+                router_id=router_id,
+                is_active=True
+            )
+        else:
+            # Get default slides (no router_id)
+            slides = SlideContent.objects.filter(
+                router_id__isnull=True,
+                is_active=True
+            )
+
+        # If no router-specific slides found, try default slides
+        if router_id and not slides.exists():
+            slides = SlideContent.objects.filter(
+                router_id__isnull=True,
+                is_active=True
+            )
+
+        if slides.exists():
+            slide_data = []
+            for slide in slides:
+                slide_data.append({
+                    'icon': slide.icon,
+                    'title': slide.title,
+                    'description': slide.description
+                })
+
+            return Response({
+                'success': True,
+                'slides': slide_data,
+                'count': len(slide_data)
+            })
+        else:
+            return Response({
+                'success': False,
+                'message': 'No active slides found',
+                'slides': []
+            }, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e),
+            'slides': []
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

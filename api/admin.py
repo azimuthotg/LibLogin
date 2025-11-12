@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import BackgroundImage, SystemSettings
+from .models import BackgroundImage, SystemSettings, SlideContent
 
 
 @admin.register(BackgroundImage)
@@ -65,4 +65,37 @@ class SystemSettingsAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(SlideContent)
+class SlideContentAdmin(admin.ModelAdmin):
+    list_display = ['icon', 'title', 'router_id_display', 'order', 'is_active', 'created_by', 'created_at']
+    list_filter = ['is_active', 'router_id', 'created_at']
+    search_fields = ['title', 'description', 'router_id']
+    list_editable = ['order', 'is_active']
+    ordering = ['order', 'created_at']
+
+    fieldsets = (
+        ('Slide Content', {
+            'fields': ('icon', 'title', 'description')
+        }),
+        ('Display Settings', {
+            'fields': ('router_id', 'order', 'is_active')
+        }),
+        ('Metadata', {
+            'fields': ('created_by', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    readonly_fields = ['created_at', 'updated_at']
+
+    def router_id_display(self, obj):
+        return obj.router_id if obj.router_id else "All Routers"
+    router_id_display.short_description = 'Router'
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # If creating new object
+            obj.created_by = request.user
         super().save_model(request, obj, form, change)
