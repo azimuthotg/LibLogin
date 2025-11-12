@@ -4,7 +4,10 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from api.models import BackgroundImage, SystemSettings
+import os
+from django.conf import settings as django_settings
 
 
 def login_view(request):
@@ -270,3 +273,15 @@ def hotspot_error(request):
     }
 
     return render(request, 'webapp/hotspot_error.html', context)
+
+
+def test_hotspot_background(request):
+    """Serve test_hotspot_background.html static file"""
+    file_path = os.path.join(django_settings.BASE_DIR, 'test_hotspot_background.html')
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return HttpResponse(content, content_type='text/html')
+    except FileNotFoundError:
+        return HttpResponse('Test file not found', status=404)

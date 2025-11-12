@@ -16,4 +16,7 @@ urlpatterns = [
     path('hotspot/logout/', views.hotspot_logout, name='hotspot_logout'),
     path('hotspot/status/', views.hotspot_status, name='hotspot_status'),
     path('hotspot/error/', views.hotspot_error, name='hotspot_error'),
+
+    # Test Pages
+    path('test_hotspot_background.html', views.test_hotspot_background, name='test_hotspot_background'),
 ]
