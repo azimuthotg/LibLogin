@@ -67,8 +67,7 @@
         }
 
         .slide-icon {
-            width: 120px;
-            height: 120px;
+            font-size: 100px;
             margin-bottom: 30px;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
@@ -92,6 +91,7 @@
             display: flex;
             gap: 12px;
             margin-top: 30px;
+            justify-content: center;
         }
 
         .dot {
@@ -274,7 +274,7 @@
         <!-- Left Panel: Slide Show -->
         <div class="left-panel">
             <div class="slide-content">
-                <img id="slide-icon" class="slide-icon" src="img/user.svg" alt="Icon">
+                <div id="slide-icon" class="slide-icon">📚</div>
                 <h2 id="slide-title" class="slide-title">ยินดีต้อนรับสู่ห้องสมุด</h2>
                 <p id="slide-description" class="slide-description">
                     ระบบ WiFi ฟรีสำหรับนักศึกษาและบุคลากร เชื่อมต่อได้ทุกที่ทุกเวลาในบริเวณห้องสมุด
@@ -415,17 +415,17 @@
             // Slide Data (Hard-coded for Phase 1)
             const slides = [
                 {
-                    icon: 'img/user.svg',
+                    icon: '📚',
                     title: 'ยินดีต้อนรับสู่ห้องสมุด',
                     description: 'ระบบ WiFi ฟรีสำหรับนักศึกษาและบุคลากร เชื่อมต่อได้ทุกที่ทุกเวลาในบริเวณห้องสมุด'
                 },
                 {
-                    icon: 'img/password.svg',
+                    icon: '📖',
                     title: 'เข้าถึงทรัพยากรออนไลน์',
                     description: 'หนังสืออิเล็กทรอนิกส์ วารสาร และฐานข้อมูลวิชาการกว่า 100,000 รายการ พร้อมให้บริการ'
                 },
                 {
-                    icon: 'img/user.svg',
+                    icon: '💻',
                     title: 'เรียนรู้ได้ทุกที่',
                     description: 'พื้นที่เรียนรู้ที่ทันสมัย พร้อมบริการ WiFi ความเร็วสูง รองรับการเรียนรู้ในยุคดิจิทัล'
                 }
@@ -442,7 +442,7 @@
                 content.style.opacity = '0';
 
                 setTimeout(function() {
-                    document.getElementById('slide-icon').src = slide.icon;
+                    document.getElementById('slide-icon').textContent = slide.icon;
                     document.getElementById('slide-title').textContent = slide.title;
                     document.getElementById('slide-description').textContent = slide.description;
 
