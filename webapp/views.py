@@ -285,3 +285,15 @@ def test_hotspot_background(request):
         return HttpResponse(content, content_type='text/html')
     except FileNotFoundError:
         return HttpResponse('Test file not found', status=404)
+
+
+def hotspot_login_html(request):
+    """Serve hotspot/login.html static file for testing"""
+    file_path = os.path.join(django_settings.BASE_DIR, 'hotspot', 'login.html')
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return HttpResponse(content, content_type='text/html')
+    except FileNotFoundError:
+        return HttpResponse('Login.html file not found', status=404)

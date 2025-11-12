@@ -19,4 +19,5 @@ urlpatterns = [
 
     # Test Pages
     path('test_hotspot_background.html', views.test_hotspot_background, name='test_hotspot_background'),
+    path('hotspot/login.html', views.hotspot_login_html, name='hotspot_login_html'),
 ]
