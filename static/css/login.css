@@ -201,9 +201,10 @@ body {
     display: flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 10px;
-    padding: 5px 15px;
+    border-radius: 8px;
+    padding: 3px 12px;
     transition: all 0.3s;
+    margin-bottom: 12px;
 }
 
 .login-card label:focus-within {
@@ -212,18 +213,19 @@ body {
 }
 
 .login-card .ico {
-    width: 24px;
-    height: 24px;
-    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
     opacity: 0.6;
+    flex-shrink: 0;
 }
 
 .login-card input[type="text"],
 .login-card input[type="password"] {
     border: none;
     background: transparent;
-    padding: 12px 5px;
-    font-size: 16px;
+    padding: 8px 5px;
+    font-size: 14px;
     flex: 1;
     outline: none;
     color: #000;
@@ -239,14 +241,15 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 16px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 1px;
+    margin-top: 5px;
 }
 
 .login-card input[type="submit"]:hover {
