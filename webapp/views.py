@@ -297,3 +297,19 @@ def hotspot_login_html(request):
         return HttpResponse(content, content_type='text/html')
     except FileNotFoundError:
         return HttpResponse('Login.html file not found', status=404)
+
+
+def login_css(request):
+    """Serve combined CSS file with cache headers"""
+    file_path = os.path.join(django_settings.BASE_DIR, 'static', 'css', 'login.css')
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        response = HttpResponse(content, content_type='text/css')
+        # Cache for 1 hour (3600 seconds)
+        response['Cache-Control'] = 'public, max-age=3600'
+        return response
+    except FileNotFoundError:
+        return HttpResponse('/* CSS file not found */', content_type='text/css', status=404)
