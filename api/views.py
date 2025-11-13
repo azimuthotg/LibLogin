@@ -245,10 +245,11 @@ def get_template_config(request):
             else:
                 slides = SlideContent.objects.filter(router_id__isnull=True, is_active=True)
 
-            slides_data = SlideContentSerializer(slides, many=True).data
+            slides_data = SlideContentSerializer(slides, many=True, context={'request': request}).data
             response_data['slides'] = [
                 {
                     'icon': slide['icon'],
+                    'icon_image_url': slide['icon_image_url'],
                     'title': slide['title'],
                     'description': slide['description']
                 }
@@ -264,10 +265,11 @@ def get_template_config(request):
             else:
                 cards = CardContent.objects.filter(router_id__isnull=True, is_active=True)
 
-            cards_data = CardContentSerializer(cards, many=True).data
+            cards_data = CardContentSerializer(cards, many=True, context={'request': request}).data
             response_data['cards'] = [
                 {
                     'icon': card['icon'],
+                    'icon_image_url': card['icon_image_url'],
                     'title': card['title'],
                     'description': card['description']
                 }

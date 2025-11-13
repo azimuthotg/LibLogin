@@ -71,23 +71,39 @@ class TemplateConfigSerializer(serializers.ModelSerializer):
 class SlideContentSerializer(serializers.ModelSerializer):
     """Serializer for SlideContent model"""
     created_by = UserSerializer(read_only=True)
+    icon_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = SlideContent
-        fields = ['id', 'icon', 'title', 'description', 'router_id', 'order',
-                  'is_active', 'created_by', 'created_at', 'updated_at']
+        fields = ['id', 'icon', 'icon_image', 'icon_image_url', 'title', 'description',
+                  'router_id', 'order', 'is_active', 'created_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_icon_image_url(self, obj):
+        """Return full URL for the icon image"""
+        request = self.context.get('request')
+        if obj.icon_image and request:
+            return request.build_absolute_uri(obj.icon_image.url)
+        return None
 
 
 class CardContentSerializer(serializers.ModelSerializer):
     """Serializer for CardContent model"""
     created_by = UserSerializer(read_only=True)
+    icon_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = CardContent
-        fields = ['id', 'icon', 'title', 'description', 'router_id', 'order',
-                  'is_active', 'created_by', 'created_at', 'updated_at']
+        fields = ['id', 'icon', 'icon_image', 'icon_image_url', 'title', 'description',
+                  'router_id', 'order', 'is_active', 'created_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_icon_image_url(self, obj):
+        """Return full URL for the icon image"""
+        request = self.context.get('request')
+        if obj.icon_image and request:
+            return request.build_absolute_uri(obj.icon_image.url)
+        return None
 
 
 class TemplateConfigFullSerializer(serializers.Serializer):

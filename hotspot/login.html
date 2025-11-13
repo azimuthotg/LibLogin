@@ -17,19 +17,18 @@
     <!-- Layer 2: Split Screen Layout -->
     <div class="split-container">
 
-        <!-- Left Panel: Slide Show -->
-        <div class="left-panel">
+        <!-- Left Panel: Dynamic Component -->
+        <div class="left-panel" id="left-panel">
+            <!-- Content will be dynamically loaded based on template config -->
             <div class="slide-content">
                 <div id="slide-icon" class="slide-icon">📚</div>
-                <h2 id="slide-title" class="slide-title">ยินดีต้อนรับสู่ห้องสมุด</h2>
+                <h2 id="slide-title" class="slide-title">Loading...</h2>
                 <p id="slide-description" class="slide-description">
-                    ระบบ WiFi ฟรีสำหรับนักศึกษาและบุคลากร เชื่อมต่อได้ทุกที่ทุกเวลาในบริเวณห้องสมุด
+                    กำลังโหลดข้อมูล...
                 </p>
 
-                <div class="dots">
-                    <span class="dot active" onclick="changeSlide(0)"></span>
-                    <span class="dot" onclick="changeSlide(1)"></span>
-                    <span class="dot" onclick="changeSlide(2)"></span>
+                <div class="dots" id="slide-dots">
+                    <!-- Dots will be generated dynamically -->
                 </div>
             </div>
         </div>
@@ -159,40 +158,73 @@
         })();
     </script>
 
-    <!-- Slide Show Script -->
+    <!-- Dynamic Template Loading Script -->
     <script>
         (function() {
-            // Slide Data (Hard-coded for Phase 1)
-            const slides = [
-                {
-                    icon: '📚',
-                    title: 'ยินดีต้อนรับสู่ห้องสมุด',
-                    description: 'ระบบ WiFi ฟรีสำหรับนักศึกษาและบุคลากร เชื่อมต่อได้ทุกที่ทุกเวลาในบริเวณห้องสมุด'
-                },
-                {
-                    icon: '📖',
-                    title: 'เข้าถึงทรัพยากรออนไลน์',
-                    description: 'หนังสืออิเล็กทรอนิกส์ วารสาร และฐานข้อมูลวิชาการกว่า 100,000 รายการ พร้อมให้บริการ'
-                },
-                {
-                    icon: '💻',
-                    title: 'เรียนรู้ได้ทุกที่',
-                    description: 'พื้นที่เรียนรู้ที่ทันสมัย พร้อมบริการ WiFi ความเร็วสูง รองรับการเรียนรู้ในยุคดิจิทัล'
-                }
-            ];
+            const API_SERVER = 'http://202.29.55.222:8291';
+            const TEMPLATE_API = '/api/template-config/';
 
+            let slides = [];
+            let cards = [];
             let currentSlide = 0;
+            let slideInterval = null;
+
+            // Get router_id from URL parameter
+            function getRouterID() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('router_id') || null;
+            }
+
+            // Initialize slideshow component
+            function initSlideshow(slidesData) {
+                slides = slidesData;
+                if (slides.length === 0) return;
+
+                const leftPanel = document.getElementById('left-panel');
+                leftPanel.innerHTML = `
+                    <div class="slide-content">
+                        <div id="slide-icon" class="slide-icon"></div>
+                        <h2 id="slide-title" class="slide-title"></h2>
+                        <p id="slide-description" class="slide-description"></p>
+                        <div class="dots" id="slide-dots"></div>
+                    </div>
+                `;
+
+                // Generate dots
+                const dotsContainer = document.getElementById('slide-dots');
+                slides.forEach(function(_, index) {
+                    const dot = document.createElement('span');
+                    dot.className = 'dot' + (index === 0 ? ' active' : '');
+                    dot.onclick = function() { changeSlide(index); };
+                    dotsContainer.appendChild(dot);
+                });
+
+                // Show first slide
+                showSlide(0);
+
+                // Auto-change slides every 5 seconds
+                slideInterval = setInterval(function() {
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    showSlide(currentSlide);
+                }, 5000);
+            }
 
             // Show specific slide
             function showSlide(index) {
                 const slide = slides[index];
-
-                // Update content with fade effect
                 const content = document.querySelector('.slide-content');
                 content.style.opacity = '0';
 
                 setTimeout(function() {
-                    document.getElementById('slide-icon').textContent = slide.icon;
+                    const iconElement = document.getElementById('slide-icon');
+
+                    // Use image if available, otherwise use emoji
+                    if (slide.icon_image_url) {
+                        iconElement.innerHTML = '<img src="' + slide.icon_image_url + '" alt="icon" style="width: 80px; height: 80px; object-fit: contain;">';
+                    } else {
+                        iconElement.textContent = slide.icon || '📚';
+                    }
+
                     document.getElementById('slide-title').textContent = slide.title;
                     document.getElementById('slide-description').textContent = slide.description;
 
@@ -215,14 +247,98 @@
                 showSlide(currentSlide);
             };
 
-            // Auto-change slides every 5 seconds
-            setInterval(function() {
-                currentSlide = (currentSlide + 1) % slides.length;
-                showSlide(currentSlide);
-            }, 5000);
+            // Initialize fullbg component (no content overlay)
+            function initFullBg() {
+                const leftPanel = document.getElementById('left-panel');
+                leftPanel.innerHTML = ''; // Empty - just show background
+            }
 
-            // Initialize first slide
-            showSlide(0);
+            // Initialize card gallery component
+            function initCardGallery(cardsData) {
+                console.log('initCardGallery called with', cardsData.length, 'cards');
+                cards = cardsData;
+                if (cards.length === 0) {
+                    console.warn('No cards data, skipping card gallery');
+                    return;
+                }
+
+                const leftPanel = document.getElementById('left-panel');
+                let cardsHTML = '<div class="card-gallery">';
+
+                cards.forEach(function(card) {
+                    let iconHTML;
+                    if (card.icon_image_url) {
+                        iconHTML = '<img src="' + card.icon_image_url + '" alt="icon" style="width: 60px; height: 60px; object-fit: contain;">';
+                    } else {
+                        iconHTML = '<span style="font-size: 3rem;">' + (card.icon || '📚') + '</span>';
+                    }
+
+                    cardsHTML += `
+                        <div class="info-card">
+                            <div class="card-icon">` + iconHTML + `</div>
+                            <h3 class="card-title">` + card.title + `</h3>
+                            <p class="card-description">` + card.description + `</p>
+                        </div>
+                    `;
+                });
+
+                cardsHTML += '</div>';
+                leftPanel.innerHTML = cardsHTML;
+                console.log('Card gallery HTML set successfully');
+            }
+
+            // Load template configuration
+            function loadTemplateConfig() {
+                const routerID = getRouterID();
+                let apiUrl = API_SERVER + TEMPLATE_API;
+
+                if (routerID) {
+                    apiUrl += '?router_id=' + encodeURIComponent(routerID);
+                }
+
+                console.log('Fetching template config from:', apiUrl);
+
+                fetch(apiUrl)
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('API response not OK: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        if (data.success) {
+                            console.log('Template loaded:', data.template_name);
+                            console.log('Component type:', data.left_panel_component);
+
+                            // Initialize component based on type
+                            if (data.left_panel_component === 'slideshow') {
+                                initSlideshow(data.slides || []);
+                            } else if (data.left_panel_component === 'fullbg') {
+                                initFullBg();
+                            } else if (data.left_panel_component === 'cardgallery') {
+                                initCardGallery(data.cards || []);
+                            }
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error loading template config:', error);
+                        // Fallback to default slideshow
+                        initSlideshow([
+                            {
+                                icon: '📚',
+                                title: 'ยินดีต้อนรับสู่ห้องสมุด',
+                                description: 'ระบบ WiFi ฟรีสำหรับนักศึกษาและบุคลากร'
+                            }
+                        ]);
+                    });
+            }
+
+            // Load template when page is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadTemplateConfig);
+            } else {
+                loadTemplateConfig();
+            }
         })();
     </script>
 </body>
