@@ -39,6 +39,44 @@ class BackgroundImage(models.Model):
                 img.save(img_path, optimize=True, quality=85)
 
 
+class TemplateConfig(models.Model):
+    """Model for configuring login page templates"""
+    COMPONENT_CHOICES = [
+        ('slideshow', 'Slideshow (Icons + Text + Dots)'),
+        ('fullbg', 'Full Background (No Text Overlay)'),
+        ('cardgallery', 'Card Gallery (Grid of Cards)'),
+    ]
+
+    template_name = models.CharField(max_length=255, help_text="Template name for identification")
+    left_panel_component = models.CharField(
+        max_length=50,
+        choices=COMPONENT_CHOICES,
+        default='slideshow',
+        help_text="Component type for left panel"
+    )
+    router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID (blank = all routers)")
+    is_active = models.BooleanField(default=False, help_text="Set as active template for this router")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_templates')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "Template Configuration"
+        verbose_name_plural = "Template Configurations"
+
+    def __str__(self):
+        router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"
+        status = "✓" if self.is_active else "✗"
+        return f"{status} {self.template_name}{router_info} - {self.get_left_panel_component_display()}"
+
+    def save(self, *args, **kwargs):
+        # If this template is set as active, deactivate all other templates for the same router
+        if self.is_active:
+            TemplateConfig.objects.filter(router_id=self.router_id, is_active=True).exclude(id=self.id).update(is_active=False)
+        super().save(*args, **kwargs)
+
+
 class SlideContent(models.Model):
     """Model for storing slide show content on login page"""
     icon = models.CharField(max_length=10, default="📚", help_text="Emoji icon (e.g., 📚, 📖, 💻)")
@@ -55,6 +93,29 @@ class SlideContent(models.Model):
         ordering = ['order', 'created_at']
         verbose_name = "Slide Content"
         verbose_name_plural = "Slide Contents"
+
+    def __str__(self):
+        router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"
+        status = "✓" if self.is_active else "✗"
+        return f"{status} {self.title}{router_info}"
+
+
+class CardContent(models.Model):
+    """Model for storing card content for card gallery component"""
+    icon = models.CharField(max_length=10, default="📚", help_text="Emoji icon (e.g., 📚, 💻, 🎓)")
+    title = models.CharField(max_length=255, help_text="Card title")
+    description = models.TextField(help_text="Card description")
+    router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID (blank = all routers)")
+    order = models.IntegerField(default=0, help_text="Display order (lower numbers shown first)")
+    is_active = models.BooleanField(default=True, help_text="Show this card")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_cards')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Card Content"
+        verbose_name_plural = "Card Contents"
 
     def __str__(self):
         router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"

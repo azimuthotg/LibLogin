@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import BackgroundImage, SystemSettings
+from .models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -54,3 +54,46 @@ class SystemSettingsSerializer(serializers.ModelSerializer):
         if obj.logo and request:
             return request.build_absolute_uri(obj.logo.url)
         return None
+
+
+class TemplateConfigSerializer(serializers.ModelSerializer):
+    """Serializer for TemplateConfig model"""
+    created_by = UserSerializer(read_only=True)
+    component_display = serializers.CharField(source='get_left_panel_component_display', read_only=True)
+
+    class Meta:
+        model = TemplateConfig
+        fields = ['id', 'template_name', 'left_panel_component', 'component_display',
+                  'router_id', 'is_active', 'created_by', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class SlideContentSerializer(serializers.ModelSerializer):
+    """Serializer for SlideContent model"""
+    created_by = UserSerializer(read_only=True)
+
+    class Meta:
+        model = SlideContent
+        fields = ['id', 'icon', 'title', 'description', 'router_id', 'order',
+                  'is_active', 'created_by', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class CardContentSerializer(serializers.ModelSerializer):
+    """Serializer for CardContent model"""
+    created_by = UserSerializer(read_only=True)
+
+    class Meta:
+        model = CardContent
+        fields = ['id', 'icon', 'title', 'description', 'router_id', 'order',
+                  'is_active', 'created_by', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class TemplateConfigFullSerializer(serializers.Serializer):
+    """Combined serializer for template configuration with all related content"""
+    template_name = serializers.CharField()
+    left_panel_component = serializers.CharField()
+    slides = SlideContentSerializer(many=True, required=False)
+    cards = CardContentSerializer(many=True, required=False)
+    background = serializers.DictField(required=False)

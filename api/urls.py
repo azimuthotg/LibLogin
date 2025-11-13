@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     get_background_image,
     get_slide_content,
+    get_template_config,
     BackgroundImageViewSet,
     SystemSettingsViewSet,
     UserViewSet
@@ -20,6 +21,9 @@ urlpatterns = [
 
     # Public endpoint for MikroTik to fetch slide content
     path('slide-content/', get_slide_content, name='slide-content'),
+
+    # Public endpoint for MikroTik to fetch complete template configuration
+    path('template-config/', get_template_config, name='template-config'),
 
     # Include router URLs
     path('', include(router.urls)),
