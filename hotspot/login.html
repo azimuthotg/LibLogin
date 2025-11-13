@@ -6,8 +6,8 @@
     <meta http-equiv="pragma" content="no-cache" />
     <meta http-equiv="expires" content="-1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Internet hotspot - Log in</title>
-    <link rel="stylesheet" href="http://202.29.55.222:8291/css/login.css?v=2">
+    <title>Internet hotspot - Log in</title>-
+    <link rel="stylesheet" href="http://202.29.55.222:8291/css/login.css?v=6">
 </head>
 
 <body>
@@ -76,13 +76,11 @@
 
                     <!-- Username Input -->
                     <label>
-                        <img class="ico" src="http://202.29.55.222:8291/static/img/user.svg" alt="User" />
                         <input name="username" type="text" value="$(username)" placeholder="Username" required />
                     </label>
 
                     <!-- Password Input -->
                     <label>
-                        <img class="ico" src="http://202.29.55.222:8291/static/img/password.svg" alt="Password" />
                         <input name="password" type="password" placeholder="Password" required />
                     </label>
 
@@ -90,10 +88,7 @@
                     <input type="submit" value="เชื่อมต่อ" />
                 </form>
 
-                <p class="info bt">
-                    <strong>LibLogin: ระบบส่งเสริมการประชาสัมพันธ์</strong><br>
-                    สำนักวิทยบริการ มหาวิทยาลัยนครพนม
-                </p>
+                <p class="info bt">สำนักวิทยบริการ มหาวิทยาลัยนครพนม</p>
             </div>
         </div>
 
@@ -102,7 +97,8 @@
     <!-- Dynamic Background Loading Script -->
     <script>
         (function() {
-            // Configuration
+            // Configuration - Point to Django API Server
+            // TODO: Change this to your Django server IP/domain
             const API_SERVER = 'http://202.29.55.222:8291';
             const API_ENDPOINT = '/api/login-background/';
 
@@ -161,6 +157,7 @@
     <!-- Dynamic Template Loading Script -->
     <script>
         (function() {
+            // Configuration - Point to Django API Server
             const API_SERVER = 'http://202.29.55.222:8291';
             const TEMPLATE_API = '/api/template-config/';
 
@@ -177,6 +174,7 @@
 
             // Initialize slideshow component
             function initSlideshow(slidesData) {
+                console.log('initSlideshow called with', slidesData.length, 'slides');
                 slides = slidesData;
                 if (slides.length === 0) return;
 

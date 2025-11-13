@@ -201,10 +201,10 @@ body {
     display: flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 3px 12px;
+    border-radius: 6px;
+    padding: 0 12px;
     transition: all 0.3s;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .login-card label:focus-within {
@@ -222,14 +222,16 @@ body {
 
 .login-card input[type="text"],
 .login-card input[type="password"] {
-    border: none;
-    background: transparent;
-    padding: 8px 5px;
-    font-size: 14px;
-    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+    width: 100% !important;
+    height: 32px !important;
+    margin-bottom: 0 !important;
     outline: none;
     color: #000;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .login-card input[type="text"]::placeholder,

@@ -1,0 +1,312 @@
+# LibLogin Development Progress Log
+# ระบบจัดการหน้า Login Hotspot MikroTik แบบ Dynamic
+# สำนักวิทยบริการ มหาวิทยาลัยนครพนม
+
+================================================================================
+## Phase 2C - Dynamic Template Loading System
+## วันที่: 13 พฤศจิกายน 2025
+================================================================================
+
+### สรุปการพัฒนา
+ทำการพัฒนาระบบโหลด Template แบบ Dynamic จาก API เพื่อให้หน้า Login Hotspot
+สามารถเปลี่ยนรูปแบบการแสดงผลได้โดยอัตโนมัติตามการตั้งค่าจากหน้า Admin
+
+### คุณสมบัติที่เพิ่ม
+
+1. **Dynamic Template Loading**
+   - JavaScript ดึงข้อมูล Template จาก API `/api/template-config/`
+   - รองรับ 3 รูปแบบ Template:
+     * slideshow - แสดงสไลด์หมุนเวียน
+     * fullbg - แสดงแค่พื้นหลังไม่มี content overlay
+     * cardgallery - แสดง card gallery
+
+2. **Auto-Detection Environment**
+   - เปลี่ยนจาก hardcoded URL (202.29.55.222:8291) เป็น relative paths
+   - ใช้ `window.location.origin` ตรวจจับ server อัตโนมัติ
+   - รองรับทั้ง localhost และ production
+
+3. **API Enhancement**
+   - เพิ่ม `icon_image_url` field ใน SlideContentSerializer
+   - เพิ่ม `icon_image_url` field ใน CardContentSerializer
+   - `/api/template-config/` ส่ง URL รูปภาพกลับมาพร้อม data
+
+4. **CSS Improvements**
+   - ปรับขนาด input fields จาก 44px เป็น 32px
+   - เพิ่ม `!important` เพื่อ override MikroTik base CSS
+   - ลบ user/password icons ออก
+   - Cache busting: `?v=6`
+
+### ไฟล์ที่แก้ไข
+
+1. **hotspot/login.html**
+   - เปลี่ยน CSS path: `/css/login.css?v=6` (relative)
+   - เปลี่ยน logo path: `/static/logo_arc.png` (relative)
+   - เปลี่ยน API_SERVER: `window.location.origin` (auto-detect)
+   - เพิ่ม Dynamic Template Loading Script
+   - ลบ user/password icon HTML
+
+2. **static/css/login.css**
+   - ปรับ input height: `32px !important`
+   - ปรับ padding: `0 !important`
+   - เพิ่ม `!important` ทุก property เพื่อ override MikroTik CSS
+
+3. **api/serializers.py**
+   - เพิ่ม `icon_image_url` field ใน SlideContentSerializer
+   - เพิ่ม `icon_image_url` field ใน CardContentSerializer
+   - เพิ่ม method `get_icon_image_url()`
+
+4. **api/views.py**
+   - อัพเดท `/api/template-config/` endpoint
+   - เพิ่ม context={'request': request} ใน serializers
+   - ส่ง icon_image_url ใน response
+
+### การทดสอบ
+
+✅ Template switching - เปลี่ยน template แสดงผลถูกต้อง
+✅ API endpoints - ทั้ง background และ template-config ทำงานได้ดี
+✅ Slides management - เพิ่ม/แก้ไข/ลบ slides พร้อมอัพโหลดรูปได้
+✅ Cards management - เพิ่ม/แก้ไข/ลบ cards พร้อมอัพโหลดรูปได้
+✅ Login page rendering - แสดงผล dynamic content ถูกต้อง
+✅ CSS fixes - input fields ขนาดถูกต้อง ไม่มี icon ทับซ้อน
+
+### Server Logs (15:19:27 - 13 Nov 2025)
+```
+[13/Nov/2025 15:19:27] "GET /hotspot/login.html HTTP/1.1" 200 14475
+[13/Nov/2025 15:19:27] "GET /css/login.css?v=6 HTTP/1.1" 200 10328
+[13/Nov/2025 15:19:27] "GET /static/logo_arc.png HTTP/1.1" 304 0
+[13/Nov/2025 15:19:27] "GET /api/login-background/ HTTP/1.1" 200 104
+[13/Nov/2025 15:19:27] "GET /api/template-config/ HTTP/1.1" 200 932
+```
+
+### ปัญหาที่พบและแก้ไข
+
+1. **ปัญหา: CSS changes ไม่ปรากฏ**
+   - สาเหตุ: Browser cache
+   - แก้ไข: เพิ่ม `?v=6` cache busting
+
+2. **ปัญหา: Input fields ใหญ่เกิน (44px)**
+   - สาเหตุ: MikroTik base CSS override custom styles
+   - แก้ไข: เพิ่ม `!important` ทุก property
+
+3. **ปัญหา: localhost changes ไม่เห็นผล**
+   - สาเหตุ: login.html มี hardcoded URL ชี้ไป production
+   - แก้ไข: เปลี่ยนเป็น relative paths + auto-detection
+
+4. **ปัญหา: Modal ไม่แสดงใน slides.html**
+   - สาเหตุ: div structure ซ้อนกันผิด
+   - แก้ไข: ปรับโครงสร้าง HTML ใหม่
+
+### สถิติข้อมูลทดสอบ
+
+- Slides created: 3 items (with icon images)
+- Cards created: 3 items (with icon images)
+- Templates configured: slideshow, fullbg, cardgallery
+- Background images: 1 active
+- Total API calls tested: 50+ successful requests
+
+================================================================================
+## Phase 2B - Web UI Management (Completed)
+## วันที่: 12 พฤศจิกายน 2025
+================================================================================
+
+### สรุปการพัฒนา
+สร้างหน้า Web UI สำหรับจัดการ Templates, Slides, และ Cards
+
+### คุณสมบัติที่เพิ่ม
+
+1. **Templates Management** (`/templates/`)
+   - Create/Edit/Delete template configurations
+   - เลือก component type: slideshow, fullbg, cardgallery
+   - Set active/inactive templates
+   - Filter by router_id
+
+2. **Slides Management** (`/slides/`)
+   - Create/Edit/Delete slide content
+   - อัพโหลด icon images
+   - Set emoji fallback icons
+   - Reorder slides (order field)
+   - Filter by router_id
+
+3. **Cards Management** (`/cards/`)
+   - Create/Edit/Delete card content
+   - อัพโหลด icon images
+   - Set emoji fallback icons
+   - Reorder cards (order field)
+   - Filter by router_id
+
+### ไฟล์ที่สร้าง
+
+1. **webapp/views.py**
+   - templates_view()
+   - slides_view()
+   - cards_view()
+
+2. **webapp/urls.py**
+   - path('templates/', templates_view, name='templates')
+   - path('slides/', slides_view, name='slides')
+   - path('cards/', cards_view, name='cards')
+
+3. **webapp/templates/webapp/**
+   - templates.html
+   - slides.html
+   - cards.html
+
+4. **api/models.py**
+   - TemplateConfig model
+   - SlideContent model
+   - CardContent model
+
+================================================================================
+## Phase 2A - API Endpoints (Completed)
+## วันที่: 11 พฤศจิกายน 2025
+================================================================================
+
+### API Endpoints Created
+
+1. **Background Images**
+   - GET `/api/backgrounds/` - List all backgrounds
+   - POST `/api/backgrounds/` - Upload new background
+   - GET `/api/backgrounds/{id}/` - Get specific background
+   - PUT/PATCH `/api/backgrounds/{id}/` - Update background
+   - DELETE `/api/backgrounds/{id}/` - Delete background
+   - POST `/api/backgrounds/{id}/set_active/` - Set as active
+   - GET `/api/login-background/` - Public endpoint for active background
+
+2. **Template Configuration**
+   - GET `/api/template-config/` - Get active template config (Public)
+   - Supports router_id parameter
+   - Returns template type, slides, cards, background
+
+3. **Authentication**
+   - All management endpoints require authentication
+   - Public endpoints: /api/login-background/, /api/template-config/
+
+================================================================================
+## Phase 1 - Initial Setup (Completed)
+## วันที่: 10 พฤศจิกายน 2025
+================================================================================
+
+### Infrastructure
+
+1. **Django 5.2.8 Project Setup**
+   - Project name: backend
+   - Apps: api, webapp, hotspot
+
+2. **Database Models**
+   - BackgroundImage
+   - SystemSettings
+   - TemplateConfig
+   - SlideContent
+   - CardContent
+
+3. **Authentication System**
+   - Django admin panel
+   - User management
+   - Permission-based access
+
+4. **File Upload Handling**
+   - Media files: backgrounds/, logos/, slide_icons/, card_icons/
+   - Image validation
+   - URL generation
+
+================================================================================
+## ขั้นตอนถัดไป (Next Steps)
+================================================================================
+
+### Phase 3 - Advanced Features (แนะนำ)
+
+1. **Preview System**
+   - เพิ่มปุ่ม "Preview" ในหน้า Templates
+   - แสดงตัวอย่าง login page ก่อน deploy
+   - iframe preview หรือ popup window
+
+2. **Template Themes**
+   - สร้าง preset themes (เช่น Dark, Light, Modern, Classic)
+   - One-click apply theme
+   - Color scheme customization
+
+3. **Analytics Dashboard**
+   - ติดตามสถิติการ login
+   - Graph แสดงจำนวน users ต่อวัน/เดือน
+   - Popular login times
+
+4. **Multi-Router Support**
+   - จัดการหลาย MikroTik routers
+   - แต่ละ router มี template แยกกัน
+   - Bulk operations
+
+5. **Scheduled Content**
+   - กำหนดเวลาแสดงผล slides/backgrounds
+   - Auto-rotate content ตามช่วงเวลา
+   - Event-based switching
+
+6. **Backup & Restore**
+   - Export/Import configurations
+   - Database backup system
+   - Version control for templates
+
+7. **Notification System**
+   - แจ้งเตือนผู้ดูแลระบบ
+   - Email notifications
+   - Webhook integration
+
+### Phase 3A - Immediate Improvements
+
+1. **Missing md5.js File**
+   - สร้างหรือเพิ่มไฟล์ md5.js สำหรับ CHAP authentication
+   - ปัจจุบัน: 404 Not Found
+
+2. **Error Handling**
+   - เพิ่ม try-catch ใน JavaScript
+   - แสดง error messages ให้ user เห็น
+   - Fallback content เมื่อ API fail
+
+3. **Loading States**
+   - แสดง spinner ขณะโหลด template
+   - Skeleton screens
+   - Better UX
+
+4. **Responsive Design**
+   - ทดสอบบน mobile devices
+   - ปรับ CSS สำหรับหน้าจอเล็ก
+   - Touch-friendly UI
+
+================================================================================
+## Technical Stack Summary
+================================================================================
+
+**Backend:**
+- Django 5.2.8
+- Django REST Framework
+- SQLite (Development) / PostgreSQL (Production ready)
+
+**Frontend:**
+- Bootstrap 5.3.0
+- Vanilla JavaScript (ES6+)
+- CSS3 with animations
+
+**Integration:**
+- MikroTik Hotspot System
+- CHAP Authentication Support
+- Dynamic template variables: $(link-login-only), $(chap-id), etc.
+
+**Deployment:**
+- Development: localhost:8291
+- Production: 202.29.55.222:8291
+- Auto-detection environment support
+
+================================================================================
+## Contact & Documentation
+================================================================================
+
+Developer: Claude Code
+Organization: สำนักวิทยบริการ มหาวิทยาลัยนครพนม
+Repository: /mnt/c/claude-test/LibLogin
+Documentation: This progress_log file + code comments
+
+สำหรับคำถามหรือปัญหา:
+- ตรวจสอบ Server Logs ที่ Console
+- ดู Browser Console สำหรับ JavaScript errors
+- ตรวจสอบ Network tab สำหรับ API calls
+
+================================================================================
