@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
-from api.models import BackgroundImage, SystemSettings
+from api.models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent
 import os
 from django.conf import settings as django_settings
 
@@ -313,3 +313,74 @@ def login_css(request):
         return response
     except FileNotFoundError:
         return HttpResponse('/* CSS file not found */', content_type='text/css', status=404)
+
+
+# ============================================================================
+# Template Management Views
+# ============================================================================
+
+@login_required
+def templates_view(request):
+    """Manage login page templates"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create':
+            # Create new template
+            template_name = request.POST.get('template_name')
+            left_panel_component = request.POST.get('left_panel_component')
+            router_id = request.POST.get('router_id') or None
+            is_active = request.POST.get('is_active') == 'on'
+            
+            if template_name and left_panel_component:
+                TemplateConfig.objects.create(
+                    template_name=template_name,
+                    left_panel_component=left_panel_component,
+                    router_id=router_id,
+                    is_active=is_active,
+                    created_by=request.user
+                )
+                messages.success(request, f'Template "{template_name}" created successfully!')
+            else:
+                messages.error(request, 'Please provide template name and component type.')
+        
+        elif action == 'update':
+            # Update existing template
+            template_id = request.POST.get('template_id')
+            template = get_object_or_404(TemplateConfig, pk=template_id)
+            
+            template.template_name = request.POST.get('template_name')
+            template.left_panel_component = request.POST.get('left_panel_component')
+            template.router_id = request.POST.get('router_id') or None
+            template.is_active = request.POST.get('is_active') == 'on'
+            template.save()
+            
+            messages.success(request, f'Template "{template.template_name}" updated successfully!')
+        
+        elif action == 'delete':
+            # Delete template
+            template_id = request.POST.get('template_id')
+            template = get_object_or_404(TemplateConfig, pk=template_id)
+            template_name = template.template_name
+            template.delete()
+            messages.success(request, f'Template "{template_name}" deleted successfully!')
+        
+        elif action == 'set_active':
+            # Set template as active
+            template_id = request.POST.get('template_id')
+            template = get_object_or_404(TemplateConfig, pk=template_id)
+            template.is_active = True
+            template.save()
+            messages.success(request, f'Template "{template.template_name}" is now active!')
+        
+        return redirect('templates')
+    
+    # GET request - display templates
+    templates = TemplateConfig.objects.all().order_by('-updated_at')
+    
+    context = {
+        'templates': templates,
+        'component_choices': TemplateConfig.COMPONENT_CHOICES,
+    }
+    
+    return render(request, 'webapp/templates.html', context)
