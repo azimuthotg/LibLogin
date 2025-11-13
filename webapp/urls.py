@@ -10,6 +10,8 @@ urlpatterns = [
     path('backgrounds/<int:pk>/set-active/', views.set_active_view, name='set_active'),
     path('backgrounds/<int:pk>/delete/', views.delete_background_view, name='delete_background'),
     path('templates/', views.templates_view, name='templates'),
+    path('slides/', views.slides_view, name='slides'),
+    path('cards/', views.cards_view, name='cards'),
     path('settings/', views.settings_view, name='settings'),
 
     # MikroTik Hotspot Pages (Public)

@@ -384,3 +384,143 @@ def templates_view(request):
     }
     
     return render(request, 'webapp/templates.html', context)
+
+
+@login_required
+def slides_view(request):
+    """Manage slide content for slideshow component"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create':
+            # Create new slide
+            icon = request.POST.get('icon', '')
+            icon_image = request.FILES.get('icon_image')
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            router_id = request.POST.get('router_id') or None
+            order = request.POST.get('order', 0)
+            is_active = request.POST.get('is_active') == 'on'
+
+            if title and description and (icon or icon_image):
+                SlideContent.objects.create(
+                    icon=icon,
+                    icon_image=icon_image,
+                    title=title,
+                    description=description,
+                    router_id=router_id,
+                    order=order,
+                    is_active=is_active,
+                    created_by=request.user
+                )
+                messages.success(request, f'Slide "{title}" created successfully!')
+            else:
+                messages.error(request, 'Please provide title, description, and either icon or image.')
+        
+        elif action == 'update':
+            # Update existing slide
+            slide_id = request.POST.get('slide_id')
+            slide = get_object_or_404(SlideContent, pk=slide_id)
+
+            slide.icon = request.POST.get('icon', '')
+            icon_image = request.FILES.get('icon_image')
+            if icon_image:
+                slide.icon_image = icon_image
+
+            slide.title = request.POST.get('title')
+            slide.description = request.POST.get('description')
+            slide.router_id = request.POST.get('router_id') or None
+            slide.order = request.POST.get('order', 0)
+            slide.is_active = request.POST.get('is_active') == 'on'
+            slide.save()
+
+            messages.success(request, f'Slide "{slide.title}" updated successfully!')
+        
+        elif action == 'delete':
+            # Delete slide
+            slide_id = request.POST.get('slide_id')
+            slide = get_object_or_404(SlideContent, pk=slide_id)
+            title = slide.title
+            slide.delete()
+            messages.success(request, f'Slide "{title}" deleted successfully!')
+        
+        return redirect('slides')
+    
+    # GET request - display slides
+    slides = SlideContent.objects.all().order_by('order', 'created_at')
+
+    context = {
+        'slides': slides,
+    }
+
+    return render(request, 'webapp/slides.html', context)
+
+
+@login_required
+def cards_view(request):
+    """Manage card content for card gallery component"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create':
+            # Create new card
+            icon = request.POST.get('icon', '')
+            icon_image = request.FILES.get('icon_image')
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            router_id = request.POST.get('router_id') or None
+            order = request.POST.get('order', 0)
+            is_active = request.POST.get('is_active') == 'on'
+
+            if title and description and (icon or icon_image):
+                CardContent.objects.create(
+                    icon=icon,
+                    icon_image=icon_image,
+                    title=title,
+                    description=description,
+                    router_id=router_id,
+                    order=order,
+                    is_active=is_active,
+                    created_by=request.user
+                )
+                messages.success(request, f'Card "{title}" created successfully!')
+            else:
+                messages.error(request, 'Please provide title, description, and either icon or image.')
+
+        elif action == 'update':
+            # Update existing card
+            card_id = request.POST.get('card_id')
+            card = get_object_or_404(CardContent, pk=card_id)
+
+            card.icon = request.POST.get('icon', '')
+            icon_image = request.FILES.get('icon_image')
+            if icon_image:
+                card.icon_image = icon_image
+
+            card.title = request.POST.get('title')
+            card.description = request.POST.get('description')
+            card.router_id = request.POST.get('router_id') or None
+            card.order = request.POST.get('order', 0)
+            card.is_active = request.POST.get('is_active') == 'on'
+            card.save()
+
+            messages.success(request, f'Card "{card.title}" updated successfully!')
+
+        elif action == 'delete':
+            # Delete card
+            card_id = request.POST.get('card_id')
+            card = get_object_or_404(CardContent, pk=card_id)
+            title = card.title
+            card.delete()
+            messages.success(request, f'Card "{title}" deleted successfully!')
+
+        return redirect('cards')
+
+    # GET request - display cards
+    cards = CardContent.objects.all().order_by('order', 'created_at')
+
+    context = {
+        'cards': cards,
+    }
+
+    return render(request, 'webapp/cards.html', context)

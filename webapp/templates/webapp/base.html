@@ -131,6 +131,16 @@
                             <i class="bi bi-palette"></i> Templates
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'slides' %}active{% endif %}" href="{% url 'slides' %}">
+                            <i class="bi bi-collection"></i> Slide Content
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}" href="{% url 'cards' %}">
+                            <i class="bi bi-grid-3x3"></i> Card Content
+                        </a>
+                    </li>
                     {% if user.is_staff %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'settings' %}">

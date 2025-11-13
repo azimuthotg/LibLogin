@@ -79,7 +79,8 @@ class TemplateConfig(models.Model):
 
 class SlideContent(models.Model):
     """Model for storing slide show content on login page"""
-    icon = models.CharField(max_length=10, default="📚", help_text="Emoji icon (e.g., 📚, 📖, 💻)")
+    icon = models.CharField(max_length=10, default="📚", blank=True, help_text="Emoji icon (e.g., 📚, 📖, 💻) - optional if using image")
+    icon_image = models.ImageField(upload_to='slide_icons/', blank=True, null=True, help_text="Icon image file (recommended size: 100x100px)")
     title = models.CharField(max_length=255, help_text="Slide title")
     description = models.TextField(help_text="Slide description")
     router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID for specific device (blank = all routers)")
@@ -99,10 +100,17 @@ class SlideContent(models.Model):
         status = "✓" if self.is_active else "✗"
         return f"{status} {self.title}{router_info}"
 
+    def get_icon_display(self):
+        """Return icon image URL if exists, otherwise return emoji"""
+        if self.icon_image:
+            return self.icon_image.url
+        return self.icon
+
 
 class CardContent(models.Model):
     """Model for storing card content for card gallery component"""
-    icon = models.CharField(max_length=10, default="📚", help_text="Emoji icon (e.g., 📚, 💻, 🎓)")
+    icon = models.CharField(max_length=10, default="📚", blank=True, help_text="Emoji icon (e.g., 📚, 💻, 🎓) - optional if using image")
+    icon_image = models.ImageField(upload_to='card_icons/', blank=True, null=True, help_text="Icon image file (recommended size: 100x100px)")
     title = models.CharField(max_length=255, help_text="Card title")
     description = models.TextField(help_text="Card description")
     router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID (blank = all routers)")
@@ -121,6 +129,12 @@ class CardContent(models.Model):
         router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"
         status = "✓" if self.is_active else "✗"
         return f"{status} {self.title}{router_info}"
+
+    def get_icon_display(self):
+        """Return icon image URL if exists, otherwise return emoji"""
+        if self.icon_image:
+            return self.icon_image.url
+        return self.icon
 
 
 class SystemSettings(models.Model):
