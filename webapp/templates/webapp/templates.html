@@ -37,12 +37,14 @@
                             <i class="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul class="dropdown-menu">
+                            {% if template.is_active %}
                             <li>
                                 <a class="dropdown-item" href="#" onclick="previewTemplate({{ template.id }}, '{{ template.router_id|default:'' }}')">
                                     <i class="bi bi-eye"></i> Preview
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
+                            {% endif %}
                             <li>
                                 <a class="dropdown-item" href="#" onclick="editTemplate({{ template.id }}, '{{ template.template_name }}', '{{ template.left_panel_component }}', '{{ template.router_id|default:'' }}', {{ template.is_active|lower }})">
                                     <i class="bi bi-pencil"></i> Edit
