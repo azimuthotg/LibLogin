@@ -103,14 +103,17 @@
             const MAX_RETRIES = 3;
             const RETRY_DELAY = 2000; // 2 seconds
 
+            // === HARDCODED HOTSPOT NAME ===
+            // Set this to match the folder name (e.g., 'hotspot', 'hotspot_lib', 'hotspot_ai', 'hotspot_office')
+            const HOTSPOT_NAME = 'hotspot_lib';
+            // ===============================
+
             let retryCount = 0;
 
-            // Get hotspot name from URL path
-            // Examples: /hotspot/login.html → "hotspot", /hotspot_lib/login.html → "hotspot_lib"
+            // Get hotspot name - now returns hardcoded value
             function getHotspotName() {
-                const path = window.location.pathname;
-                const match = path.match(/\/(hotspot[^\/]*)\//);
-                return match ? match[1] : null;
+                console.log('[Hotspot Detection] Using hardcoded hotspot_name:', HOTSPOT_NAME);
+                return HOTSPOT_NAME;
             }
 
             // Load background image from Django API with retry logic
