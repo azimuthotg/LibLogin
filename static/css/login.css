@@ -360,3 +360,42 @@ body {
         padding: 30px 25px;
     }
 }
+
+/* ========================================
+   Loading & Error States
+   ======================================== */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.05);
+    }
+}
+
+.loading-state {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.error-state {
+    color: #ff6b6b;
+}
+
+/* Fade-in animation for content */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

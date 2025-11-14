@@ -38,6 +38,12 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li>
+                                <a class="dropdown-item" href="#" onclick="previewTemplate({{ template.id }}, '{{ template.router_id|default:'' }}')">
+                                    <i class="bi bi-eye"></i> Preview
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
                                 <a class="dropdown-item" href="#" onclick="editTemplate({{ template.id }}, '{{ template.template_name }}', '{{ template.left_panel_component }}', '{{ template.router_id|default:'' }}', {{ template.is_active|lower }})">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
@@ -222,22 +228,123 @@
     </div>
 </div>
 
-<script>
-function editTemplate(id, name, component, routerId, isActive) {
-    document.getElementById('editTemplateId').value = id;
-    document.getElementById('editTemplateName').value = name;
-    document.getElementById('editComponentType').value = component;
-    document.getElementById('editRouterId').value = routerId;
-    document.getElementById('editIsActive').checked = isActive;
+<!-- Preview Template Modal -->
+<div class="modal fade" id="previewTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-eye"></i> Template Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="previewLoading" class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">กำลังโหลดตัวอย่าง...</p>
+                </div>
+                <iframe id="previewIframe"
+                        style="width: 100%; height: calc(100vh - 60px); border: none; display: none;">
+                </iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
+<script>
+function previewTemplate(templateId, routerId) {
+    try {
+        console.log('[Preview] Loading template preview:', templateId, 'router:', routerId);
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('previewTemplateModal'));
+        modal.show();
+
+        // Show loading, hide iframe
+        document.getElementById('previewLoading').style.display = 'block';
+        const iframe = document.getElementById('previewIframe');
+        iframe.style.display = 'none';
+
+        // Build preview URL with template_id parameter
+        let previewUrl = '/hotspot/login.html?template_id=' + encodeURIComponent(templateId);
+        if (routerId) {
+            previewUrl += '&router_id=' + encodeURIComponent(routerId);
+        }
+
+        console.log('[Preview] Loading URL:', previewUrl);
+
+        // Load iframe
+        iframe.onload = function() {
+            console.log('[Preview] ✓ Iframe loaded');
+            document.getElementById('previewLoading').style.display = 'none';
+            iframe.style.display = 'block';
+        };
+
+        iframe.onerror = function() {
+            console.error('[Preview] ✗ Iframe load error');
+            document.getElementById('previewLoading').innerHTML = '<p class="text-danger">เกิดข้อผิดพลาดในการโหลดตัวอย่าง</p>';
+        };
+
+        iframe.src = previewUrl;
+
+    } catch (error) {
+        console.error('[Preview Template Error]', error);
+        showToast('ไม่สามารถแสดงตัวอย่างได้', 'error');
+    }
+}
+
+function editTemplate(id, name, component, routerId, isActive) {
+    try {
+        document.getElementById('editTemplateId').value = id;
+        document.getElementById('editTemplateName').value = name;
+        document.getElementById('editComponentType').value = component;
+        document.getElementById('editRouterId').value = routerId;
+        document.getElementById('editIsActive').checked = isActive;
+
+        new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
+    } catch (error) {
+        console.error('[Edit Template Error]', error);
+        showToast('ไม่สามารถเปิดฟอร์มแก้ไขได้', 'error');
+    }
 }
 
 function deleteTemplate(id, name) {
-    document.getElementById('deleteTemplateId').value = id;
-    document.getElementById('deleteTemplateName').textContent = name;
+    try {
+        document.getElementById('deleteTemplateId').value = id;
+        document.getElementById('deleteTemplateName').textContent = name;
 
-    new bootstrap.Modal(document.getElementById('deleteTemplateModal')).show();
+        new bootstrap.Modal(document.getElementById('deleteTemplateModal')).show();
+    } catch (error) {
+        console.error('[Delete Template Error]', error);
+        showToast('ไม่สามารถเปิดฟอร์มลบได้', 'error');
+    }
 }
+
+// Add form validation and error handling
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(function(form) {
+        const action = form.querySelector('input[name="action"]');
+        if (action) {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
+                    setTimeout(function() { submitBtn.disabled = false; }, 3000);
+                }
+            });
+        }
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === '1') {
+        showToast('ดำเนินการสำเร็จ', 'success');
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
 </script>
 {% endblock %}

@@ -264,22 +264,71 @@
 
 <script>
 function editSlide(id, icon, title, description, routerId, order, isActive) {
-    document.getElementById('editSlideId').value = id;
-    document.getElementById('editIcon').value = icon;
-    document.getElementById('editTitle').value = title;
-    document.getElementById('editDescription').value = description;
-    document.getElementById('editRouterId').value = routerId;
-    document.getElementById('editOrder').value = order;
-    document.getElementById('editIsActive').checked = isActive;
+    try {
+        document.getElementById('editSlideId').value = id;
+        document.getElementById('editIcon').value = icon;
+        document.getElementById('editTitle').value = title;
+        document.getElementById('editDescription').value = description;
+        document.getElementById('editRouterId').value = routerId;
+        document.getElementById('editOrder').value = order;
+        document.getElementById('editIsActive').checked = isActive;
 
-    new bootstrap.Modal(document.getElementById('editSlideModal')).show();
+        new bootstrap.Modal(document.getElementById('editSlideModal')).show();
+    } catch (error) {
+        console.error('[Edit Slide Error]', error);
+        showToast('ไม่สามารถเปิดฟอร์มแก้ไขได้', 'error');
+    }
 }
 
 function deleteSlide(id, title) {
-    document.getElementById('deleteSlideId').value = id;
-    document.getElementById('deleteSlideTitle').textContent = title;
+    try {
+        document.getElementById('deleteSlideId').value = id;
+        document.getElementById('deleteSlideTitle').textContent = title;
 
-    new bootstrap.Modal(document.getElementById('deleteSlideModal')).show();
+        new bootstrap.Modal(document.getElementById('deleteSlideModal')).show();
+    } catch (error) {
+        console.error('[Delete Slide Error]', error);
+        showToast('ไม่สามารถเปิดฟอร์มลบได้', 'error');
+    }
 }
+
+// Add form validation and error handling
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submissions
+    const forms = document.querySelectorAll('form');
+    forms.forEach(function(form) {
+        const action = form.querySelector('input[name="action"]');
+        if (action) {
+            form.addEventListener('submit', function(e) {
+                const actionType = action.value;
+                const submitBtn = form.querySelector('button[type="submit"]');
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    setTimeout(function() {
+                        submitBtn.disabled = false;
+                    }, 3000);
+                }
+
+                // Add loading indicator
+                if (submitBtn && submitBtn.textContent) {
+                    const originalText = submitBtn.textContent;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
+                }
+
+                console.log('[Form Submit] Action:', actionType);
+            });
+        }
+    });
+
+    // Show success message if present in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === '1') {
+        showToast('ดำเนินการสำเร็จ', 'success');
+        // Remove success parameter from URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+});
 </script>
 {% endblock %}

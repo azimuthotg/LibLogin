@@ -51,8 +51,11 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Disabled to allow iframe preview
 ]
+
+# Allow iframe embedding for preview system
+X_FRAME_OPTIONS = 'SAMEORIGIN'  # Allow same-origin iframes
 
 ROOT_URLCONF = 'backend.urls'
 

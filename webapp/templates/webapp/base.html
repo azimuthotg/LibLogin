@@ -200,6 +200,11 @@
             </main>
         </div>
     </div>
+
+    <!-- Toast Container for Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 9999;">
+        <!-- Toasts will be dynamically added here -->
+    </div>
     {% endblock %}
 
     <!-- Bootstrap JS -->
@@ -212,6 +217,108 @@
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             dateElement.textContent = new Date().toLocaleDateString('th-TH', options);
         }
+
+        // Toast Notification System
+        function showToast(message, type = 'info', duration = 5000) {
+            const toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                console.error('Toast container not found');
+                return;
+            }
+
+            // Map type to Bootstrap color classes
+            const typeMap = {
+                'success': 'bg-success text-white',
+                'error': 'bg-danger text-white',
+                'warning': 'bg-warning text-dark',
+                'info': 'bg-info text-white'
+            };
+
+            const iconMap = {
+                'success': 'bi-check-circle-fill',
+                'error': 'bi-exclamation-circle-fill',
+                'warning': 'bi-exclamation-triangle-fill',
+                'info': 'bi-info-circle-fill'
+            };
+
+            const toastClass = typeMap[type] || typeMap['info'];
+            const iconClass = iconMap[type] || iconMap['info'];
+
+            // Create unique ID for toast
+            const toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+            // Create toast element
+            const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center ${toastClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${iconClass} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            // Add toast to container
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+            // Initialize and show toast
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: duration
+            });
+
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+
+            toast.show();
+        }
+
+        // Global error handler for fetch requests
+        window.handleFetchError = function(error, customMessage) {
+            console.error('[Error]', error);
+            const message = customMessage || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+            showToast(message, 'error');
+        };
+
+        // Form submission handler with error handling
+        window.handleFormSubmit = function(formElement, onSuccess) {
+            formElement.addEventListener('submit', function(e) {
+                const submitButton = formElement.querySelector('button[type="submit"]');
+
+                try {
+                    // Disable submit button to prevent double submission
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        const originalText = submitButton.innerHTML;
+                        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
+
+                        // Re-enable after 3 seconds (fallback)
+                        setTimeout(function() {
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                submitButton.innerHTML = originalText;
+                            }
+                        }, 3000);
+                    }
+
+                    if (onSuccess) {
+                        onSuccess(e);
+                    }
+                } catch (error) {
+                    console.error('[Form Submit Error]', error);
+                    showToast('เกิดข้อผิดพลาดในการส่งฟอร์ม', 'error');
+
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                }
+            });
+        };
     </script>
 
     {% block extra_js %}{% endblock %}
