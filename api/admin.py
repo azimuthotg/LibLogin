@@ -5,15 +5,15 @@ from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfi
 
 @admin.register(BackgroundImage)
 class BackgroundImageAdmin(admin.ModelAdmin):
-    list_display = ['title', 'image_preview', 'router_id', 'is_active', 'uploaded_by', 'uploaded_at']
-    list_filter = ['is_active', 'router_id', 'uploaded_at']
-    search_fields = ['title', 'router_id']
+    list_display = ['title', 'image_preview', 'hotspot_name', 'is_active', 'uploaded_by', 'uploaded_at']
+    list_filter = ['is_active', 'hotspot_name', 'uploaded_at']
+    search_fields = ['title', 'hotspot_name']
     readonly_fields = ['uploaded_at', 'updated_at', 'image_preview']
     list_editable = ['is_active']
 
     fieldsets = (
         ('Image Information', {
-            'fields': ('title', 'image', 'image_preview', 'router_id')
+            'fields': ('title', 'image', 'image_preview', 'hotspot_name')
         }),
         ('Status', {
             'fields': ('is_active',)
@@ -38,7 +38,7 @@ class BackgroundImageAdmin(admin.ModelAdmin):
 
 @admin.register(SystemSettings)
 class SystemSettingsAdmin(admin.ModelAdmin):
-    list_display = ['library_name', 'default_router_id', 'updated_at', 'updated_by']
+    list_display = ['library_name', 'default_hotspot_name', 'updated_at', 'updated_by']
     readonly_fields = ['updated_at', 'logo_preview']
 
     fieldsets = (
@@ -49,7 +49,7 @@ class SystemSettingsAdmin(admin.ModelAdmin):
             'fields': ('logo', 'logo_preview')
         }),
         ('Settings', {
-            'fields': ('default_router_id',)
+            'fields': ('default_hotspot_name',)
         }),
         ('Metadata', {
             'fields': ('updated_at', 'updated_by'),
@@ -70,9 +70,9 @@ class SystemSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(SlideContent)
 class SlideContentAdmin(admin.ModelAdmin):
-    list_display = ['icon', 'title', 'router_id_display', 'order', 'is_active', 'created_by', 'created_at']
-    list_filter = ['is_active', 'router_id', 'created_at']
-    search_fields = ['title', 'description', 'router_id']
+    list_display = ['icon', 'title', 'hotspot_name_display', 'order', 'is_active', 'created_by', 'created_at']
+    list_filter = ['is_active', 'hotspot_name', 'created_at']
+    search_fields = ['title', 'description', 'hotspot_name']
     list_editable = ['order', 'is_active']
     ordering = ['order', 'created_at']
 
@@ -81,7 +81,7 @@ class SlideContentAdmin(admin.ModelAdmin):
             'fields': ('icon', 'title', 'description')
         }),
         ('Display Settings', {
-            'fields': ('router_id', 'order', 'is_active')
+            'fields': ('hotspot_name', 'order', 'is_active')
         }),
         ('Metadata', {
             'fields': ('created_by', 'created_at', 'updated_at'),
@@ -91,9 +91,9 @@ class SlideContentAdmin(admin.ModelAdmin):
 
     readonly_fields = ['created_at', 'updated_at']
 
-    def router_id_display(self, obj):
-        return obj.router_id if obj.router_id else "All Routers"
-    router_id_display.short_description = 'Router'
+    def hotspot_name_display(self, obj):
+        return obj.hotspot_name if obj.hotspot_name else "All Hotspots"
+    hotspot_name_display.short_description = 'Hotspot'
 
     def save_model(self, request, obj, form, change):
         if not change:  # If creating new object
@@ -103,9 +103,9 @@ class SlideContentAdmin(admin.ModelAdmin):
 
 @admin.register(TemplateConfig)
 class TemplateConfigAdmin(admin.ModelAdmin):
-    list_display = ['template_name', 'left_panel_component', 'router_id_display', 'is_active', 'created_by', 'updated_at']
-    list_filter = ['left_panel_component', 'is_active', 'router_id', 'created_at']
-    search_fields = ['template_name', 'router_id']
+    list_display = ['template_name', 'left_panel_component', 'hotspot_name_display', 'is_active', 'created_by', 'updated_at']
+    list_filter = ['left_panel_component', 'is_active', 'hotspot_name', 'created_at']
+    search_fields = ['template_name', 'hotspot_name']
     list_editable = ['is_active']
     ordering = ['-updated_at']
 
@@ -114,8 +114,8 @@ class TemplateConfigAdmin(admin.ModelAdmin):
             'fields': ('template_name', 'left_panel_component')
         }),
         ('Assignment', {
-            'fields': ('router_id', 'is_active'),
-            'description': 'Assign this template to a specific router or leave blank for all routers. Only one template can be active per router.'
+            'fields': ('hotspot_name', 'is_active'),
+            'description': 'Assign this template to a specific hotspot or leave blank for all hotspots. Only one template can be active per hotspot.'
         }),
         ('Metadata', {
             'fields': ('created_by', 'created_at', 'updated_at'),
@@ -125,9 +125,9 @@ class TemplateConfigAdmin(admin.ModelAdmin):
 
     readonly_fields = ['created_at', 'updated_at']
 
-    def router_id_display(self, obj):
-        return obj.router_id if obj.router_id else "All Routers"
-    router_id_display.short_description = 'Router'
+    def hotspot_name_display(self, obj):
+        return obj.hotspot_name if obj.hotspot_name else "All Hotspots"
+    hotspot_name_display.short_description = 'Hotspot'
 
     def save_model(self, request, obj, form, change):
         if not change:  # If creating new object
@@ -137,9 +137,9 @@ class TemplateConfigAdmin(admin.ModelAdmin):
 
 @admin.register(CardContent)
 class CardContentAdmin(admin.ModelAdmin):
-    list_display = ['icon', 'title', 'router_id_display', 'order', 'is_active', 'created_by', 'created_at']
-    list_filter = ['is_active', 'router_id', 'created_at']
-    search_fields = ['title', 'description', 'router_id']
+    list_display = ['icon', 'title', 'hotspot_name_display', 'order', 'is_active', 'created_by', 'created_at']
+    list_filter = ['is_active', 'hotspot_name', 'created_at']
+    search_fields = ['title', 'description', 'hotspot_name']
     list_editable = ['order', 'is_active']
     ordering = ['order', 'created_at']
 
@@ -148,7 +148,7 @@ class CardContentAdmin(admin.ModelAdmin):
             'fields': ('icon', 'title', 'description')
         }),
         ('Display Settings', {
-            'fields': ('router_id', 'order', 'is_active'),
+            'fields': ('hotspot_name', 'order', 'is_active'),
             'description': 'Cards will be displayed in order from lowest to highest number.'
         }),
         ('Metadata', {
@@ -159,9 +159,9 @@ class CardContentAdmin(admin.ModelAdmin):
 
     readonly_fields = ['created_at', 'updated_at']
 
-    def router_id_display(self, obj):
-        return obj.router_id if obj.router_id else "All Routers"
-    router_id_display.short_description = 'Router'
+    def hotspot_name_display(self, obj):
+        return obj.hotspot_name if obj.hotspot_name else "All Hotspots"
+    hotspot_name_display.short_description = 'Hotspot'
 
     def save_model(self, request, obj, form, change):
         if not change:  # If creating new object

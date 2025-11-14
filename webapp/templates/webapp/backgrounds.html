@@ -92,8 +92,8 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="router_id" class="form-label">Router ID (Optional)</label>
-                                        <input type="text" class="form-control" id="router_id" name="router_id"
+                                        <label for="hotspot_name" class="form-label">Hotspot Name (Optional)</label>
+                                        <input type="text" class="form-control" id="hotspot_name" name="hotspot_name"
                                                placeholder="Leave empty for default background">
                                         <small class="text-muted">
                                             <i class="bi bi-info-circle"></i>
@@ -158,7 +158,7 @@
             {% for background in backgrounds %}
             <div class="col-md-4 col-lg-3 mb-4 image-item"
                  data-title="{{ background.title|lower }}"
-                 data-router="{{ background.router_id|default:'default'|lower }}"
+                 data-router="{{ background.hotspot_name|default:'default'|lower }}"
                  data-status="{% if background.is_active %}active{% else %}inactive{% endif %}">
                 <div class="card image-card">
                     {% if background.is_active %}
@@ -172,8 +172,8 @@
                     <div class="image-overlay">
                         <h6 class="mb-1">{{ background.title }}</h6>
                         <small>
-                            {% if background.router_id %}
-                            <i class="bi bi-router"></i> {{ background.router_id }}
+                            {% if background.hotspot_name %}
+                            <i class="bi bi-hdd-network"></i> {{ background.hotspot_name }}
                             {% else %}
                             <i class="bi bi-globe"></i> Default
                             {% endif %}

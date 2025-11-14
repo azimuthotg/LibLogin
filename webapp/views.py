@@ -48,8 +48,8 @@ def dashboard_view(request):
     total_users = User.objects.count()
 
     # Count unique routers
-    router_ids = BackgroundImage.objects.exclude(router_id__isnull=True).values_list('router_id', flat=True).distinct()
-    total_routers = len(set(router_ids))
+    hotspot_names = BackgroundImage.objects.exclude(hotspot_name__isnull=True).values_list('hotspot_name', flat=True).distinct()
+    total_routers = len(set(hotspot_names))
 
     context = {
         'recent_images': recent_images,
@@ -67,7 +67,7 @@ def backgrounds_view(request):
     if request.method == 'POST':
         # Handle image upload
         title = request.POST.get('title')
-        router_id = request.POST.get('router_id') or None
+        hotspot_name = request.POST.get('hotspot_name') or None
         is_active = request.POST.get('is_active') == 'on'
         image = request.FILES.get('image')
 
@@ -75,7 +75,7 @@ def backgrounds_view(request):
             background = BackgroundImage.objects.create(
                 title=title,
                 image=image,
-                router_id=router_id,
+                hotspot_name=hotspot_name,
                 is_active=is_active,
                 uploaded_by=request.user
             )
@@ -121,13 +121,13 @@ def settings_view(request):
     if request.method == 'POST':
         library_name = request.POST.get('library_name')
         contact_info = request.POST.get('contact_info')
-        default_router_id = request.POST.get('default_router_id') or ''
+        default_hotspot_name = request.POST.get('default_hotspot_name') or ''
         logo = request.FILES.get('logo')
 
         if settings:
             settings.library_name = library_name
             settings.contact_info = contact_info
-            settings.default_router_id = default_router_id
+            settings.default_hotspot_name = default_hotspot_name
             settings.updated_by = request.user
             if logo:
                 settings.logo = logo
@@ -137,7 +137,7 @@ def settings_view(request):
             settings = SystemSettings.objects.create(
                 library_name=library_name,
                 contact_info=contact_info,
-                default_router_id=default_router_id,
+                default_hotspot_name=default_hotspot_name,
                 logo=logo if logo else None,
                 updated_by=request.user
             )
@@ -183,7 +183,7 @@ def hotspot_login(request):
         'chap_id': request.GET.get('chap-id', ''),
         'chap_challenge': request.GET.get('chap-challenge', ''),
         'popup': request.GET.get('popup', 'false'),
-        'router_id': request.GET.get('router_id', ''),
+        'hotspot_name': request.GET.get('hotspot_name', ''),
 
         # System settings
         'library_name': settings.library_name if settings else 'Library WiFi System',
@@ -329,14 +329,14 @@ def templates_view(request):
             # Create new template
             template_name = request.POST.get('template_name')
             left_panel_component = request.POST.get('left_panel_component')
-            router_id = request.POST.get('router_id') or None
+            hotspot_name = request.POST.get('hotspot_name') or None
             is_active = request.POST.get('is_active') == 'on'
             
             if template_name and left_panel_component:
                 TemplateConfig.objects.create(
                     template_name=template_name,
                     left_panel_component=left_panel_component,
-                    router_id=router_id,
+                    hotspot_name=hotspot_name,
                     is_active=is_active,
                     created_by=request.user
                 )
@@ -351,7 +351,7 @@ def templates_view(request):
             
             template.template_name = request.POST.get('template_name')
             template.left_panel_component = request.POST.get('left_panel_component')
-            template.router_id = request.POST.get('router_id') or None
+            template.hotspot_name = request.POST.get('hotspot_name') or None
             template.is_active = request.POST.get('is_active') == 'on'
             template.save()
             
@@ -398,7 +398,7 @@ def slides_view(request):
             icon_image = request.FILES.get('icon_image')
             title = request.POST.get('title')
             description = request.POST.get('description')
-            router_id = request.POST.get('router_id') or None
+            hotspot_name = request.POST.get('hotspot_name') or None
             order = request.POST.get('order', 0)
             is_active = request.POST.get('is_active') == 'on'
 
@@ -408,7 +408,7 @@ def slides_view(request):
                     icon_image=icon_image,
                     title=title,
                     description=description,
-                    router_id=router_id,
+                    hotspot_name=hotspot_name,
                     order=order,
                     is_active=is_active,
                     created_by=request.user
@@ -429,7 +429,7 @@ def slides_view(request):
 
             slide.title = request.POST.get('title')
             slide.description = request.POST.get('description')
-            slide.router_id = request.POST.get('router_id') or None
+            slide.hotspot_name = request.POST.get('hotspot_name') or None
             slide.order = request.POST.get('order', 0)
             slide.is_active = request.POST.get('is_active') == 'on'
             slide.save()
@@ -468,7 +468,7 @@ def cards_view(request):
             icon_image = request.FILES.get('icon_image')
             title = request.POST.get('title')
             description = request.POST.get('description')
-            router_id = request.POST.get('router_id') or None
+            hotspot_name = request.POST.get('hotspot_name') or None
             order = request.POST.get('order', 0)
             is_active = request.POST.get('is_active') == 'on'
 
@@ -478,7 +478,7 @@ def cards_view(request):
                     icon_image=icon_image,
                     title=title,
                     description=description,
-                    router_id=router_id,
+                    hotspot_name=hotspot_name,
                     order=order,
                     is_active=is_active,
                     created_by=request.user
@@ -499,7 +499,7 @@ def cards_view(request):
 
             card.title = request.POST.get('title')
             card.description = request.POST.get('description')
-            card.router_id = request.POST.get('router_id') or None
+            card.hotspot_name = request.POST.get('hotspot_name') or None
             card.order = request.POST.get('order', 0)
             card.is_active = request.POST.get('is_active') == 'on'
             card.save()

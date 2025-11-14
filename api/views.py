@@ -26,37 +26,37 @@ logger = logging.getLogger(__name__)
 def get_background_image(request):
     """
     Public API endpoint to get the current active background image
-    Supports router_id parameter for device-specific backgrounds
+    Supports hotspot_name parameter for hotspot-specific backgrounds
     """
-    router_id = request.GET.get('router_id', None)
+    hotspot_name = request.GET.get('hotspot_name', None)
 
     try:
-        logger.info(f"[API] get_background_image called with router_id={router_id}")
+        logger.info(f"[API] get_background_image called with hotspot_name={hotspot_name}")
 
-        # Validate router_id if provided
-        if router_id and len(router_id) > 100:
-            logger.warning(f"[API] Invalid router_id length: {len(router_id)}")
+        # Validate hotspot_name if provided
+        if hotspot_name and len(hotspot_name) > 100:
+            logger.warning(f"[API] Invalid hotspot_name length: {len(hotspot_name)}")
             return Response({
                 'success': False,
-                'message': 'Invalid router_id parameter'
+                'message': 'Invalid hotspot_name parameter'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         background = None
 
-        # Try to get active background for specific router
-        if router_id:
+        # Try to get active background for specific hotspot
+        if hotspot_name:
             background = BackgroundImage.objects.filter(
-                router_id=router_id,
+                hotspot_name=hotspot_name,
                 is_active=True
             ).first()
 
             if background:
-                logger.info(f"[API] Found router-specific background: {background.title}")
+                logger.info(f"[API] Found hotspot-specific background: {background.title}")
 
-        # Fallback to default background (no router_id)
+        # Fallback to default background (no hotspot_name)
         if not background:
             background = BackgroundImage.objects.filter(
-                router_id__isnull=True,
+                hotspot_name__isnull=True,
                 is_active=True
             ).first()
 
@@ -121,12 +121,12 @@ class BackgroundImageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def by_router(self, request):
-        """Get images filtered by router_id"""
-        router_id = request.query_params.get('router_id', None)
-        if router_id:
-            images = self.queryset.filter(router_id=router_id)
+        """Get images filtered by hotspot_name"""
+        hotspot_name = request.query_params.get('hotspot_name', None)
+        if hotspot_name:
+            images = self.queryset.filter(hotspot_name=hotspot_name)
         else:
-            images = self.queryset.filter(router_id__isnull=True)
+            images = self.queryset.filter(hotspot_name__isnull=True)
 
         serializer = self.get_serializer(images, many=True)
         return Response(serializer.data)
@@ -160,29 +160,29 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 def get_slide_content(request):
     """
     Public API endpoint to get slide show content
-    Supports router_id parameter for device-specific slides
+    Supports hotspot_name parameter for device-specific slides
     Returns all active slides ordered by 'order' field
     """
-    router_id = request.GET.get('router_id', None)
+    hotspot_name = request.GET.get('hotspot_name', None)
 
     try:
-        # Get active slides for specific router
-        if router_id:
+        # Get active slides for specific hotspot
+        if hotspot_name:
             slides = SlideContent.objects.filter(
-                router_id=router_id,
+                hotspot_name=hotspot_name,
                 is_active=True
             )
         else:
-            # Get default slides (no router_id)
+            # Get default slides (no hotspot_name)
             slides = SlideContent.objects.filter(
-                router_id__isnull=True,
+                hotspot_name__isnull=True,
                 is_active=True
             )
 
-        # If no router-specific slides found, try default slides
-        if router_id and not slides.exists():
+        # If no hotspot-specific slides found, try default slides
+        if hotspot_name and not slides.exists():
             slides = SlideContent.objects.filter(
-                router_id__isnull=True,
+                hotspot_name__isnull=True,
                 is_active=True
             )
 
@@ -220,11 +220,11 @@ def get_slide_content(request):
 def get_template_config(request):
     """
     Public API endpoint to get complete template configuration
-    Returns template type, slides, cards, and background based on router_id or template_id
+    Returns template type, slides, cards, and background based on hotspot_name or template_id
 
     Parameters:
     - template_id: Specific template ID for preview (optional)
-    - router_id: Router ID for device-specific templates (optional)
+    - hotspot_name: Hotspot name for hotspot-specific templates (optional)
 
     Response format:
     {
@@ -236,18 +236,18 @@ def get_template_config(request):
         "background": {...}
     }
     """
-    router_id = request.GET.get('router_id', None)
+    hotspot_name = request.GET.get('hotspot_name', None)
     template_id = request.GET.get('template_id', None)
 
     try:
-        logger.info(f"[API] get_template_config called with router_id={router_id}, template_id={template_id}")
+        logger.info(f"[API] get_template_config called with hotspot_name={hotspot_name}, template_id={template_id}")
 
-        # Validate router_id if provided
-        if router_id and len(router_id) > 100:
-            logger.warning(f"[API] Invalid router_id length: {len(router_id)}")
+        # Validate hotspot_name if provided
+        if hotspot_name and len(hotspot_name) > 100:
+            logger.warning(f"[API] Invalid hotspot_name length: {len(hotspot_name)}")
             return Response({
                 'success': False,
-                'message': 'Invalid router_id parameter'
+                'message': 'Invalid hotspot_name parameter'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Get template config
@@ -265,20 +265,20 @@ def get_template_config(request):
                     'message': f'Template ID {template_id} not found'
                 }, status=status.HTTP_404_NOT_FOUND)
 
-        # Priority 2: Active template for specific router
-        elif router_id:
+        # Priority 2: Active template for specific hotspot
+        elif hotspot_name:
             template_config = TemplateConfig.objects.filter(
-                router_id=router_id,
+                hotspot_name=hotspot_name,
                 is_active=True
             ).first()
 
             if template_config:
-                logger.info(f"[API] Found router-specific template: {template_config.template_name}")
+                logger.info(f"[API] Found hotspot-specific template: {template_config.template_name}")
 
-        # Priority 3: Default active template (no router_id)
+        # Priority 3: Default active template (no hotspot_name)
         if not template_config:
             template_config = TemplateConfig.objects.filter(
-                router_id__isnull=True,
+                hotspot_name__isnull=True,
                 is_active=True
             ).first()
 
@@ -306,12 +306,12 @@ def get_template_config(request):
         # Get slides if component is slideshow
         if template_config.left_panel_component == 'slideshow':
             try:
-                if router_id:
-                    slides = SlideContent.objects.filter(router_id=router_id, is_active=True).order_by('order')
+                if hotspot_name:
+                    slides = SlideContent.objects.filter(hotspot_name=hotspot_name, is_active=True).order_by('order')
                     if not slides.exists():
-                        slides = SlideContent.objects.filter(router_id__isnull=True, is_active=True).order_by('order')
+                        slides = SlideContent.objects.filter(hotspot_name__isnull=True, is_active=True).order_by('order')
                 else:
-                    slides = SlideContent.objects.filter(router_id__isnull=True, is_active=True).order_by('order')
+                    slides = SlideContent.objects.filter(hotspot_name__isnull=True, is_active=True).order_by('order')
 
                 slides_data = SlideContentSerializer(slides, many=True, context={'request': request}).data
                 response_data['slides'] = [
@@ -331,12 +331,12 @@ def get_template_config(request):
         # Get cards if component is cardgallery
         elif template_config.left_panel_component == 'cardgallery':
             try:
-                if router_id:
-                    cards = CardContent.objects.filter(router_id=router_id, is_active=True).order_by('order')
+                if hotspot_name:
+                    cards = CardContent.objects.filter(hotspot_name=hotspot_name, is_active=True).order_by('order')
                     if not cards.exists():
-                        cards = CardContent.objects.filter(router_id__isnull=True, is_active=True).order_by('order')
+                        cards = CardContent.objects.filter(hotspot_name__isnull=True, is_active=True).order_by('order')
                 else:
-                    cards = CardContent.objects.filter(router_id__isnull=True, is_active=True).order_by('order')
+                    cards = CardContent.objects.filter(hotspot_name__isnull=True, is_active=True).order_by('order')
 
                 cards_data = CardContentSerializer(cards, many=True, context={'request': request}).data
                 response_data['cards'] = [
@@ -355,12 +355,12 @@ def get_template_config(request):
 
         # Get background image
         try:
-            if router_id:
-                background = BackgroundImage.objects.filter(router_id=router_id, is_active=True).first()
+            if hotspot_name:
+                background = BackgroundImage.objects.filter(hotspot_name=hotspot_name, is_active=True).first()
                 if not background:
-                    background = BackgroundImage.objects.filter(router_id__isnull=True, is_active=True).first()
+                    background = BackgroundImage.objects.filter(hotspot_name__isnull=True, is_active=True).first()
             else:
-                background = BackgroundImage.objects.filter(router_id__isnull=True, is_active=True).first()
+                background = BackgroundImage.objects.filter(hotspot_name__isnull=True, is_active=True).first()
 
             if background:
                 serializer = BackgroundImageSerializer(background, context={'request': request})

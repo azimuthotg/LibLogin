@@ -8,7 +8,7 @@ class BackgroundImage(models.Model):
     """Model for storing background images"""
     title = models.CharField(max_length=255)
     image = models.ImageField(upload_to='backgrounds/')
-    router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID for specific device")
+    hotspot_name = models.CharField(max_length=100, blank=True, null=True, help_text="Hotspot name (e.g., 'hotspot', 'hotspot_lib') - blank for all hotspots")
     is_active = models.BooleanField(default=False, help_text="Set as current background")
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_images')
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -21,9 +21,9 @@ class BackgroundImage(models.Model):
         return f"{self.title} - {'Active' if self.is_active else 'Inactive'}"
 
     def save(self, *args, **kwargs):
-        # If this image is set as active, deactivate all other images for the same router
+        # If this image is set as active, deactivate all other images for the same hotspot
         if self.is_active:
-            BackgroundImage.objects.filter(router_id=self.router_id, is_active=True).exclude(id=self.id).update(is_active=False)
+            BackgroundImage.objects.filter(hotspot_name=self.hotspot_name, is_active=True).exclude(id=self.id).update(is_active=False)
 
         super().save(*args, **kwargs)
 
@@ -54,8 +54,8 @@ class TemplateConfig(models.Model):
         default='slideshow',
         help_text="Component type for left panel"
     )
-    router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID (blank = all routers)")
-    is_active = models.BooleanField(default=False, help_text="Set as active template for this router")
+    hotspot_name = models.CharField(max_length=100, blank=True, null=True, help_text="Hotspot name (e.g., 'hotspot', 'hotspot_lib') - blank for all hotspots")
+    is_active = models.BooleanField(default=False, help_text="Set as active template for this hotspot")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_templates')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -66,14 +66,14 @@ class TemplateConfig(models.Model):
         verbose_name_plural = "Template Configurations"
 
     def __str__(self):
-        router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"
+        hotspot_info = f" ({self.hotspot_name})" if self.hotspot_name else " (All Hotspots)"
         status = "✓" if self.is_active else "✗"
-        return f"{status} {self.template_name}{router_info} - {self.get_left_panel_component_display()}"
+        return f"{status} {self.template_name}{hotspot_info} - {self.get_left_panel_component_display()}"
 
     def save(self, *args, **kwargs):
-        # If this template is set as active, deactivate all other templates for the same router
+        # If this template is set as active, deactivate all other templates for the same hotspot
         if self.is_active:
-            TemplateConfig.objects.filter(router_id=self.router_id, is_active=True).exclude(id=self.id).update(is_active=False)
+            TemplateConfig.objects.filter(hotspot_name=self.hotspot_name, is_active=True).exclude(id=self.id).update(is_active=False)
         super().save(*args, **kwargs)
 
 
@@ -83,7 +83,7 @@ class SlideContent(models.Model):
     icon_image = models.ImageField(upload_to='slide_icons/', blank=True, null=True, help_text="Icon image file (recommended size: 100x100px)")
     title = models.CharField(max_length=255, help_text="Slide title")
     description = models.TextField(help_text="Slide description")
-    router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID for specific device (blank = all routers)")
+    hotspot_name = models.CharField(max_length=100, blank=True, null=True, help_text="Hotspot name (e.g., 'hotspot', 'hotspot_lib') - blank for all hotspots")
     order = models.IntegerField(default=0, help_text="Display order (lower numbers shown first)")
     is_active = models.BooleanField(default=True, help_text="Show this slide")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_slides')
@@ -96,9 +96,9 @@ class SlideContent(models.Model):
         verbose_name_plural = "Slide Contents"
 
     def __str__(self):
-        router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"
+        hotspot_info = f" ({self.hotspot_name})" if self.hotspot_name else " (All Hotspots)"
         status = "✓" if self.is_active else "✗"
-        return f"{status} {self.title}{router_info}"
+        return f"{status} {self.title}{hotspot_info}"
 
     def get_icon_display(self):
         """Return icon image URL if exists, otherwise return emoji"""
@@ -113,7 +113,7 @@ class CardContent(models.Model):
     icon_image = models.ImageField(upload_to='card_icons/', blank=True, null=True, help_text="Icon image file (recommended size: 100x100px)")
     title = models.CharField(max_length=255, help_text="Card title")
     description = models.TextField(help_text="Card description")
-    router_id = models.CharField(max_length=100, blank=True, null=True, help_text="Router ID (blank = all routers)")
+    hotspot_name = models.CharField(max_length=100, blank=True, null=True, help_text="Hotspot name (e.g., 'hotspot', 'hotspot_lib') - blank for all hotspots")
     order = models.IntegerField(default=0, help_text="Display order (lower numbers shown first)")
     is_active = models.BooleanField(default=True, help_text="Show this card")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_cards')
@@ -126,9 +126,9 @@ class CardContent(models.Model):
         verbose_name_plural = "Card Contents"
 
     def __str__(self):
-        router_info = f" ({self.router_id})" if self.router_id else " (All Routers)"
+        hotspot_info = f" ({self.hotspot_name})" if self.hotspot_name else " (All Hotspots)"
         status = "✓" if self.is_active else "✗"
-        return f"{status} {self.title}{router_info}"
+        return f"{status} {self.title}{hotspot_info}"
 
     def get_icon_display(self):
         """Return icon image URL if exists, otherwise return emoji"""
@@ -142,7 +142,7 @@ class SystemSettings(models.Model):
     library_name = models.CharField(max_length=255, default="Library Login System")
     contact_info = models.TextField(blank=True, help_text="Contact information for support")
     logo = models.ImageField(upload_to='logos/', blank=True, null=True)
-    default_router_id = models.CharField(max_length=100, blank=True, help_text="Default router ID")
+    default_hotspot_name = models.CharField(max_length=100, blank=True, help_text="Default hotspot name")
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 

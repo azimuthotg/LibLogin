@@ -50,7 +50,7 @@
                             <td>{{ slide.description|truncatewords:15 }}</td>
                             <td>
                                 <span class="badge bg-secondary">
-                                    {{ slide.router_id|default:"All" }}
+                                    {{ slide.hotspot_name|default:"All" }}
                                 </span>
                             </td>
                             <td>
@@ -65,7 +65,7 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="editSlide({{ slide.id }}, '{{ slide.icon }}', '{{ slide.title }}', '{{ slide.description }}', '{{ slide.router_id|default:'' }}', {{ slide.order }}, {{ slide.is_active|lower }})" title="Edit">
+                                    <button class="btn btn-outline-primary" onclick="editSlide({{ slide.id }}, '{{ slide.icon }}', '{{ slide.title }}', '{{ slide.description }}', '{{ slide.hotspot_name|default:'' }}', {{ slide.order }}, {{ slide.is_active|lower }})" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn btn-outline-danger" onclick="deleteSlide({{ slide.id }}, '{{ slide.title }}')" title="Delete">
@@ -131,8 +131,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Router ID (Optional)</label>
-                                <input type="text" class="form-control" name="router_id"
+                                <label class="form-label">Hotspot Name (Optional)</label>
+                                <input type="text" class="form-control" name="hotspot_name"
                                        placeholder="Leave blank for all routers">
                             </div>
                         </div>
@@ -205,8 +205,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Router ID (Optional)</label>
-                                <input type="text" class="form-control" name="router_id" id="editRouterId">
+                                <label class="form-label">Hotspot Name (Optional)</label>
+                                <input type="text" class="form-control" name="hotspot_name" id="editRouterId">
                             </div>
                         </div>
                         <div class="col-md-6">

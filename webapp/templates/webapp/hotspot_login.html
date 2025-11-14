@@ -88,13 +88,13 @@
     <script>
         // API Configuration
         const API_BASE_URL = window.location.origin;
-        const ROUTER_ID = '{{ router_id }}';
+        const ROUTER_ID = '{{ hotspot_name }}';
 
         // Load background image from API
         function loadBackgroundImage() {
             let apiUrl = API_BASE_URL + '/api/login-background/';
             if (ROUTER_ID) {
-                apiUrl += '?router_id=' + ROUTER_ID;
+                apiUrl += '?hotspot_name=' + ROUTER_ID;
             }
 
             fetch(apiUrl)

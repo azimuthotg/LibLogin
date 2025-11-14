@@ -28,9 +28,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="default_router_id" class="form-label">Default Router ID</label>
-                            <input type="text" class="form-control" id="default_router_id" name="default_router_id"
-                                   value="{{ settings.default_router_id|default:'' }}"
+                            <label for="default_hotspot_name" class="form-label">Default Hotspot Name</label>
+                            <input type="text" class="form-control" id="default_hotspot_name" name="default_hotspot_name"
+                                   value="{{ settings.default_hotspot_name|default:'' }}"
                                    placeholder="Default router identifier">
                             <small class="text-muted">
                                 <i class="bi bi-info-circle"></i>
@@ -106,7 +106,7 @@
                     <p class="small">To integrate with MikroTik Hotspot, add this JavaScript to your login.html:</p>
 
                     <pre class="bg-light p-3 rounded" style="font-size: 0.75rem;"><code>&lt;script&gt;
-fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?router_id=YOUR_ID')
+fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?hotspot_name=YOUR_ID')
   .then(response => response.json())
   .then(data => {
     if (data.success) {

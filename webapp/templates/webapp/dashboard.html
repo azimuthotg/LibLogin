@@ -44,7 +44,7 @@
                             <h6 class="card-title mb-0">Routers</h6>
                             <h2 class="mt-2 mb-0">{{ total_routers }}</h2>
                         </div>
-                        <i class="bi bi-router" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <i class="bi bi-hdd-network" style="font-size: 3rem; opacity: 0.5;"></i>
                     </div>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                                 <tr>
                                     <th>Preview</th>
                                     <th>Title</th>
-                                    <th>Router ID</th>
+                                    <th>Hotspot Name</th>
                                     <th>Status</th>
                                     <th>Uploaded</th>
                                     <th>Actions</th>
@@ -95,8 +95,8 @@
                                     </td>
                                     <td>{{ image.title }}</td>
                                     <td>
-                                        {% if image.router_id %}
-                                        <span class="badge bg-info">{{ image.router_id }}</span>
+                                        {% if image.hotspot_name %}
+                                        <span class="badge bg-info">{{ image.hotspot_name }}</span>
                                         {% else %}
                                         <span class="badge bg-secondary">Default</span>
                                         {% endif %}
@@ -203,7 +203,7 @@
                     <small class="text-muted">
                         <i class="bi bi-info-circle"></i>
                         Use this URL in your MikroTik login.html to fetch the background image.
-                        Add <code>?router_id=YOUR_ID</code> for router-specific backgrounds.
+                        Add <code>?hotspot_name=YOUR_ID</code> for router-specific backgrounds.
                     </small>
                 </div>
             </div>

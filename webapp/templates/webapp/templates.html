@@ -39,14 +39,14 @@
                         <ul class="dropdown-menu">
                             {% if template.is_active %}
                             <li>
-                                <a class="dropdown-item" href="#" onclick="previewTemplate({{ template.id }}, '{{ template.router_id|default:'' }}')">
+                                <a class="dropdown-item" href="#" onclick="previewTemplate({{ template.id }}, '{{ template.hotspot_name|default:'' }}')">
                                     <i class="bi bi-eye"></i> Preview
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             {% endif %}
                             <li>
-                                <a class="dropdown-item" href="#" onclick="editTemplate({{ template.id }}, '{{ template.template_name }}', '{{ template.left_panel_component }}', '{{ template.router_id|default:'' }}', {{ template.is_active|lower }})">
+                                <a class="dropdown-item" href="#" onclick="editTemplate({{ template.id }}, '{{ template.template_name }}', '{{ template.left_panel_component }}', '{{ template.hotspot_name|default:'' }}', {{ template.is_active|lower }})">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
                             </li>
@@ -77,7 +77,7 @@
                         <span class="badge bg-primary">{{ template.get_left_panel_component_display }}</span>
                     </p>
                     <p class="mb-2">
-                        <strong>Router:</strong> {{ template.router_id|default:"All Routers" }}
+                        <strong>Router:</strong> {{ template.hotspot_name|default:"All Routers" }}
                     </p>
                     <p class="text-muted mb-0" style="font-size: 0.85rem;">
                         <i class="bi bi-person"></i> {{ template.created_by.username }}
@@ -128,8 +128,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Router ID (Optional)</label>
-                        <input type="text" class="form-control" name="router_id"
+                        <label class="form-label">Hotspot Name (Optional)</label>
+                        <input type="text" class="form-control" name="hotspot_name"
                                placeholder="Leave blank for all routers">
                         <small class="text-muted">Assign this template to a specific router</small>
                     </div>
@@ -181,8 +181,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Router ID (Optional)</label>
-                        <input type="text" class="form-control" name="router_id" id="editRouterId">
+                        <label class="form-label">Hotspot Name (Optional)</label>
+                        <input type="text" class="form-control" name="hotspot_name" id="editRouterId">
                     </div>
 
                     <div class="mb-3 form-check">
@@ -257,9 +257,9 @@
 </div>
 
 <script>
-function previewTemplate(templateId, routerId) {
+function previewTemplate(templateId, hotspotName) {
     try {
-        console.log('[Preview] Loading template preview:', templateId, 'router:', routerId);
+        console.log('[Preview] Loading template preview:', templateId, 'hotspot:', hotspotName);
 
         // Show modal
         const modal = new bootstrap.Modal(document.getElementById('previewTemplateModal'));
@@ -270,11 +270,10 @@ function previewTemplate(templateId, routerId) {
         const iframe = document.getElementById('previewIframe');
         iframe.style.display = 'none';
 
-        // Build preview URL with template_id parameter
-        let previewUrl = '/hotspot/login.html?template_id=' + encodeURIComponent(templateId);
-        if (routerId) {
-            previewUrl += '&router_id=' + encodeURIComponent(routerId);
-        }
+        // Build preview URL - use hotspot folder path
+        // If hotspot is specified, use /{hotspot}/login.html, otherwise use /hotspot/login.html (default)
+        const hotspotPath = hotspotName || 'hotspot';
+        let previewUrl = '/' + hotspotPath + '/login.html?template_id=' + encodeURIComponent(templateId);
 
         console.log('[Preview] Loading URL:', previewUrl);
 
@@ -298,12 +297,12 @@ function previewTemplate(templateId, routerId) {
     }
 }
 
-function editTemplate(id, name, component, routerId, isActive) {
+function editTemplate(id, name, component, hotspotName, isActive) {
     try {
         document.getElementById('editTemplateId').value = id;
         document.getElementById('editTemplateName').value = name;
         document.getElementById('editComponentType').value = component;
-        document.getElementById('editRouterId').value = routerId;
+        document.getElementById('editRouterId').value = hotspotName;
         document.getElementById('editIsActive').checked = isActive;
 
         new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
