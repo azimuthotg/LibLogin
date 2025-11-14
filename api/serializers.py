@@ -18,7 +18,7 @@ class BackgroundImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BackgroundImage
-        fields = ['id', 'title', 'image', 'image_url', 'router_id', 'is_active',
+        fields = ['id', 'title', 'image', 'image_url', 'hotspot_name', 'is_active',
                   'uploaded_by', 'uploaded_at', 'updated_at']
         read_only_fields = ['id', 'uploaded_at', 'updated_at']
 
@@ -34,7 +34,7 @@ class BackgroundImageUploadSerializer(serializers.ModelSerializer):
     """Serializer for uploading background images"""
     class Meta:
         model = BackgroundImage
-        fields = ['title', 'image', 'router_id', 'is_active']
+        fields = ['title', 'image', 'hotspot_name', 'is_active']
 
 
 class SystemSettingsSerializer(serializers.ModelSerializer):
@@ -45,7 +45,7 @@ class SystemSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemSettings
         fields = ['id', 'library_name', 'contact_info', 'logo', 'logo_url',
-                  'default_router_id', 'updated_at', 'updated_by']
+                  'default_hotspot_name', 'updated_at', 'updated_by']
         read_only_fields = ['id', 'updated_at']
 
     def get_logo_url(self, obj):
@@ -64,7 +64,7 @@ class TemplateConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = TemplateConfig
         fields = ['id', 'template_name', 'left_panel_component', 'component_display',
-                  'router_id', 'is_active', 'created_by', 'created_at', 'updated_at']
+                  'hotspot_name', 'is_active', 'created_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
@@ -76,7 +76,7 @@ class SlideContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SlideContent
         fields = ['id', 'icon', 'icon_image', 'icon_image_url', 'title', 'description',
-                  'router_id', 'order', 'is_active', 'created_by', 'created_at', 'updated_at']
+                  'hotspot_name', 'order', 'is_active', 'created_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_icon_image_url(self, obj):
@@ -95,7 +95,7 @@ class CardContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CardContent
         fields = ['id', 'icon', 'icon_image', 'icon_image_url', 'title', 'description',
-                  'router_id', 'order', 'is_active', 'created_by', 'created_at', 'updated_at']
+                  'hotspot_name', 'order', 'is_active', 'created_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_icon_image_url(self, obj):
