@@ -94,6 +94,24 @@
 
     </div>
 
+    <!-- Global Configuration -->
+    <script>
+        // === HARDCODED HOTSPOT NAME (GLOBAL) ===
+        // Set this to match the folder name (e.g., 'hotspot', 'hotspot_office', 'hotspot_lib', 'hotspot_ai')
+        window.HOTSPOT_NAME = 'hotspot_ai';
+
+        // Global helper function
+        window.getHotspotName = function() {
+            console.log('[Hotspot Detection] Using hardcoded hotspot_name:', window.HOTSPOT_NAME);
+            return window.HOTSPOT_NAME;
+        };
+
+        window.getTemplateID = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('template_id') || null;
+        };
+    </script>
+
     <!-- Dynamic Background Loading Script -->
     <script>
         (function() {
@@ -103,18 +121,7 @@
             const MAX_RETRIES = 3;
             const RETRY_DELAY = 2000; // 2 seconds
 
-            // === HARDCODED HOTSPOT NAME ===
-            // Set this to match the folder name (e.g., 'hotspot', 'hotspot_lib', 'hotspot_ai', 'hotspot_office')
-            const HOTSPOT_NAME = 'hotspot_ai';
-            // ===============================
-
             let retryCount = 0;
-
-            // Get hotspot name - now returns hardcoded value
-            function getHotspotName() {
-                console.log('[Hotspot Detection] Using hardcoded hotspot_name:', HOTSPOT_NAME);
-                return HOTSPOT_NAME;
-            }
 
             // Load background image from Django API with retry logic
             function loadBackgroundImage() {
@@ -203,12 +210,6 @@
             let isLoading = false;
             const CACHE_KEY = 'liblogin_template_cache';
             const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-            // Get template_id from URL parameter (for preview mode)
-            function getTemplateID() {
-                const urlParams = new URLSearchParams(window.location.search);
-                return urlParams.get('template_id') || null;
-            }
 
             // Cache helpers
             function getCachedData() {
