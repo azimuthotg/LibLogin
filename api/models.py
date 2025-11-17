@@ -137,12 +137,117 @@ class CardContent(models.Model):
         return self.icon
 
 
+class Hotspot(models.Model):
+    """Model for managing hotspot configurations and status"""
+    hotspot_name = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Technical hotspot name (e.g., 'hotspot', 'hotspot_lab', 'hotspot_office')"
+    )
+    display_name = models.CharField(
+        max_length=100,
+        help_text="Friendly display name (e.g., 'Default Hotspot', 'Laboratory')"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Optional description of this hotspot location/purpose"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Is this hotspot currently in use?"
+    )
+
+    # Connection status fields (updated by test_connection)
+    folder_exists = models.BooleanField(
+        default=False,
+        help_text="Does the hotspot_xxx folder exist?"
+    )
+    login_file_exists = models.BooleanField(
+        default=False,
+        help_text="Does login.html file exist in the folder?"
+    )
+    config_matched = models.BooleanField(
+        default=False,
+        help_text="Does window.HOTSPOT_NAME match the hotspot_name?"
+    )
+    last_checked = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last time connection was tested"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_hotspots'
+    )
+
+    class Meta:
+        ordering = ['hotspot_name']
+        verbose_name = "Hotspot"
+        verbose_name_plural = "Hotspots"
+
+    def __str__(self):
+        return f"{self.display_name} ({self.hotspot_name})"
+
+    @property
+    def status(self):
+        """Return connection status: ready, warning, error, or unchecked"""
+        if not self.last_checked:
+            return 'unchecked'
+        if self.folder_exists and self.login_file_exists and self.config_matched:
+            return 'ready'
+        elif self.folder_exists:
+            return 'warning'
+        return 'error'
+
+    @property
+    def status_icon(self):
+        """Return status icon emoji"""
+        status_icons = {
+            'ready': '🟢',
+            'warning': '🟡',
+            'error': '🔴',
+            'unchecked': '⚪'
+        }
+        return status_icons.get(self.status, '⚪')
+
+    def delete(self, *args, **kwargs):
+        """Override delete to cascade delete related content"""
+        # Delete related templates
+        TemplateConfig.objects.filter(hotspot_name=self.hotspot_name).delete()
+        # Delete related backgrounds
+        BackgroundImage.objects.filter(hotspot_name=self.hotspot_name).delete()
+        # Delete related slides
+        SlideContent.objects.filter(hotspot_name=self.hotspot_name).delete()
+        # Delete related cards
+        CardContent.objects.filter(hotspot_name=self.hotspot_name).delete()
+        # Delete the hotspot itself
+        super().delete(*args, **kwargs)
+
+
 class SystemSettings(models.Model):
     """Model for storing system settings"""
+    REFRESH_INTERVAL_CHOICES = [
+        (5, '5 minutes'),
+        (10, '10 minutes'),
+        (15, '15 minutes'),
+        (30, '30 minutes'),
+        (60, '60 minutes'),
+    ]
+
     library_name = models.CharField(max_length=255, default="Library Login System")
     contact_info = models.TextField(blank=True, help_text="Contact information for support")
     logo = models.ImageField(upload_to='logos/', blank=True, null=True)
     default_hotspot_name = models.CharField(max_length=100, blank=True, help_text="Default hotspot name")
+    hotspot_status_refresh_interval = models.IntegerField(
+        choices=REFRESH_INTERVAL_CHOICES,
+        default=10,
+        help_text="Auto-refresh interval for hotspot status (in minutes)"
+    )
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 

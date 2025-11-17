@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent
+from .models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent, Hotspot
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,6 +37,27 @@ class BackgroundImageUploadSerializer(serializers.ModelSerializer):
         fields = ['title', 'image', 'hotspot_name', 'is_active']
 
 
+class HotspotSerializer(serializers.ModelSerializer):
+    """Serializer for Hotspot model"""
+    created_by = UserSerializer(read_only=True)
+    status = serializers.ReadOnlyField()
+    status_icon = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Hotspot
+        fields = ['id', 'hotspot_name', 'display_name', 'description', 'is_active',
+                  'folder_exists', 'login_file_exists', 'config_matched', 'last_checked',
+                  'status', 'status_icon', 'created_by', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'folder_exists', 'login_file_exists', 'config_matched',
+                            'last_checked', 'created_at', 'updated_at', 'status', 'status_icon']
+
+
+class HotspotChoiceSerializer(serializers.Serializer):
+    """Serializer for hotspot choices (for dropdowns)"""
+    value = serializers.CharField()
+    label = serializers.CharField()
+
+
 class SystemSettingsSerializer(serializers.ModelSerializer):
     """Serializer for SystemSettings model"""
     updated_by = UserSerializer(read_only=True)
@@ -45,7 +66,8 @@ class SystemSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemSettings
         fields = ['id', 'library_name', 'contact_info', 'logo', 'logo_url',
-                  'default_hotspot_name', 'updated_at', 'updated_by']
+                  'default_hotspot_name', 'hotspot_status_refresh_interval',
+                  'updated_at', 'updated_by']
         read_only_fields = ['id', 'updated_at']
 
     def get_logo_url(self, obj):

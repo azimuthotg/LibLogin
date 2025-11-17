@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent
+from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot
 from .serializers import (
     BackgroundImageSerializer,
     BackgroundImageUploadSerializer,
@@ -13,7 +13,9 @@ from .serializers import (
     TemplateConfigSerializer,
     TemplateConfigFullSerializer,
     SlideContentSerializer,
-    CardContentSerializer
+    CardContentSerializer,
+    HotspotSerializer,
+    HotspotChoiceSerializer
 )
 import logging
 
@@ -390,4 +392,120 @@ def get_template_config(request):
         return Response({
             'success': False,
             'message': 'Internal server error. Please try again later.'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ===============================================
+# Hotspot Management API
+# ===============================================
+
+class HotspotViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing hotspots"""
+    queryset = Hotspot.objects.all()
+    serializer_class = HotspotSerializer
+    permission_classes = [IsAdminUser]
+
+    def perform_create(self, serializer):
+        """Set created_by when creating a hotspot"""
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def test_connection(self, request, pk=None):
+        """
+        Test hotspot connection status
+        Checks if folder exists, login.html exists, and config matches
+        """
+        import os
+        import re
+        from django.conf import settings
+        from django.utils import timezone
+
+        hotspot = self.get_object()
+        base_dir = settings.BASE_DIR
+
+        try:
+            # Check 1: Folder exists
+            folder_path = os.path.join(base_dir, hotspot.hotspot_name)
+            folder_exists = os.path.isdir(folder_path)
+
+            # Check 2: login.html exists
+            login_file_path = os.path.join(folder_path, 'login.html')
+            login_file_exists = os.path.isfile(login_file_path)
+
+            # Check 3: Config matched (window.HOTSPOT_NAME)
+            config_matched = False
+            if login_file_exists:
+                try:
+                    with open(login_file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        # Look for window.HOTSPOT_NAME = 'hotspot_xxx';
+                        pattern = r"window\.HOTSPOT_NAME\s*=\s*['\"]([^'\"]+)['\"]"
+                        match = re.search(pattern, content)
+                        if match:
+                            found_name = match.group(1)
+                            config_matched = (found_name == hotspot.hotspot_name)
+                            logger.info(f"[Hotspot Test] Found HOTSPOT_NAME: {found_name}, Expected: {hotspot.hotspot_name}")
+                except Exception as e:
+                    logger.error(f"[Hotspot Test] Error reading login.html: {str(e)}")
+
+            # Update hotspot status
+            hotspot.folder_exists = folder_exists
+            hotspot.login_file_exists = login_file_exists
+            hotspot.config_matched = config_matched
+            hotspot.last_checked = timezone.now()
+            hotspot.save()
+
+            logger.info(f"[Hotspot Test] {hotspot.hotspot_name}: folder={folder_exists}, file={login_file_exists}, config={config_matched}")
+
+            return Response({
+                'success': True,
+                'hotspot': HotspotSerializer(hotspot).data,
+                'details': {
+                    'folder_path': folder_path,
+                    'folder_exists': folder_exists,
+                    'login_file_exists': login_file_exists,
+                    'config_matched': config_matched,
+                    'status': hotspot.status
+                }
+            })
+
+        except Exception as e:
+            logger.error(f"[Hotspot Test] Error testing connection: {str(e)}", exc_info=True)
+            return Response({
+                'success': False,
+                'message': f'Error testing connection: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_hotspot_choices(request):
+    """
+    Get hotspot choices for dropdown menus
+    Returns list of {value, label} pairs
+    """
+    try:
+        hotspots = Hotspot.objects.filter(is_active=True).order_by('display_name')
+
+        choices = [
+            {'value': '', 'label': 'All Hotspots (Default)'}
+        ]
+
+        for hotspot in hotspots:
+            choices.append({
+                'value': hotspot.hotspot_name,
+                'label': f"{hotspot.display_name} ({hotspot.hotspot_name})"
+            })
+
+        serializer = HotspotChoiceSerializer(choices, many=True)
+        return Response({
+            'success': True,
+            'choices': serializer.data
+        })
+
+    except Exception as e:
+        logger.error(f"[API] Error getting hotspot choices: {str(e)}", exc_info=True)
+        return Response({
+            'success': False,
+            'message': 'Error loading hotspot choices'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
