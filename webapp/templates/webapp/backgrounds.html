@@ -92,12 +92,13 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="hotspot_name" class="form-label">Hotspot Name (Optional)</label>
-                                        <input type="text" class="form-control" id="hotspot_name" name="hotspot_name"
-                                               placeholder="Leave empty for default background">
+                                        <label for="hotspot_name" class="form-label">Hotspot (Optional)</label>
+                                        <select class="form-select hotspot-dropdown" id="hotspot_name" name="hotspot_name" data-include-blank="true">
+                                            <option value="">Loading hotspots...</option>
+                                        </select>
                                         <small class="text-muted">
-                                            <i class="bi bi-info-circle"></i>
-                                            Specify router ID for device-specific backgrounds
+                                            <i class="bi bi-router"></i>
+                                            Select a hotspot or leave as "All Hotspots" for global background
                                         </small>
                                     </div>
 
@@ -313,4 +314,8 @@
         new bootstrap.Modal(document.getElementById('imageViewerModal')).show();
     }
 </script>
+
+<!-- Load hotspot dropdown script -->
+{% load static %}
+<script src="{% static 'webapp/js/hotspot-dropdown.js' %}"></script>
 {% endblock %}

@@ -132,9 +132,10 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Hotspot Name (Optional)</label>
-                                <input type="text" class="form-control" name="hotspot_name"
-                                       placeholder="Leave blank for all routers">
+                                <label class="form-label">Hotspot (Optional)</label>
+                                <select class="form-select hotspot-dropdown" name="hotspot_name" id="addHotspotName" data-include-blank="true">
+                                    <option value="">Loading hotspots...</option>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -206,8 +207,10 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Hotspot Name (Optional)</label>
-                                <input type="text" class="form-control" name="hotspot_name" id="editRouterId">
+                                <label class="form-label">Hotspot (Optional)</label>
+                                <select class="form-select hotspot-dropdown" name="hotspot_name" id="editRouterId" data-include-blank="true">
+                                    <option value="">Loading hotspots...</option>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -270,9 +273,11 @@ function editCard(id, icon, title, description, routerId, order, isActive) {
         document.getElementById('editIcon').value = icon;
         document.getElementById('editTitle').value = title;
         document.getElementById('editDescription').value = description;
-        document.getElementById('editRouterId').value = routerId;
         document.getElementById('editOrder').value = order;
         document.getElementById('editIsActive').checked = isActive;
+
+        // Load hotspot dropdown with current value
+        loadHotspotChoices('editRouterId', routerId, true);
 
         new bootstrap.Modal(document.getElementById('editCardModal')).show();
     } catch (error) {
@@ -317,4 +322,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- Load hotspot dropdown script -->
+{% load static %}
+<script src="{% static 'webapp/js/hotspot-dropdown.js' %}"></script>
 {% endblock %}

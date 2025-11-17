@@ -482,26 +482,12 @@ class HotspotViewSet(viewsets.ModelViewSet):
 def get_hotspot_choices(request):
     """
     Get hotspot choices for dropdown menus
-    Returns list of {value, label} pairs
+    Returns list of hotspot objects with full details
     """
     try:
         hotspots = Hotspot.objects.filter(is_active=True).order_by('display_name')
-
-        choices = [
-            {'value': '', 'label': 'All Hotspots (Default)'}
-        ]
-
-        for hotspot in hotspots:
-            choices.append({
-                'value': hotspot.hotspot_name,
-                'label': f"{hotspot.display_name} ({hotspot.hotspot_name})"
-            })
-
-        serializer = HotspotChoiceSerializer(choices, many=True)
-        return Response({
-            'success': True,
-            'choices': serializer.data
-        })
+        serializer = HotspotSerializer(hotspots, many=True)
+        return Response(serializer.data)
 
     except Exception as e:
         logger.error(f"[API] Error getting hotspot choices: {str(e)}", exc_info=True)
