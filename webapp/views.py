@@ -122,12 +122,14 @@ def settings_view(request):
         library_name = request.POST.get('library_name')
         contact_info = request.POST.get('contact_info')
         default_hotspot_name = request.POST.get('default_hotspot_name') or ''
+        hotspot_status_refresh_interval = int(request.POST.get('hotspot_status_refresh_interval', 10))
         logo = request.FILES.get('logo')
 
         if settings:
             settings.library_name = library_name
             settings.contact_info = contact_info
             settings.default_hotspot_name = default_hotspot_name
+            settings.hotspot_status_refresh_interval = hotspot_status_refresh_interval
             settings.updated_by = request.user
             if logo:
                 settings.logo = logo
@@ -138,6 +140,7 @@ def settings_view(request):
                 library_name=library_name,
                 contact_info=contact_info,
                 default_hotspot_name=default_hotspot_name,
+                hotspot_status_refresh_interval=hotspot_status_refresh_interval,
                 logo=logo if logo else None,
                 updated_by=request.user
             )
