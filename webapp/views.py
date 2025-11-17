@@ -65,23 +65,42 @@ def dashboard_view(request):
 def backgrounds_view(request):
     """Manage background images"""
     if request.method == 'POST':
-        # Handle image upload
-        title = request.POST.get('title')
-        hotspot_name = request.POST.get('hotspot_name') or None
-        is_active = request.POST.get('is_active') == 'on'
-        image = request.FILES.get('image')
+        action = request.POST.get('action')
 
-        if title and image:
-            background = BackgroundImage.objects.create(
-                title=title,
-                image=image,
-                hotspot_name=hotspot_name,
-                is_active=is_active,
-                uploaded_by=request.user
-            )
-            messages.success(request, f'Background image "{title}" uploaded successfully!')
+        if action == 'edit':
+            # Handle edit
+            bg_id = request.POST.get('background_id')
+            background = get_object_or_404(BackgroundImage, pk=bg_id)
+
+            background.title = request.POST.get('title')
+            background.hotspot_name = request.POST.get('hotspot_name') or None
+            background.is_active = request.POST.get('is_active') == 'on'
+
+            # Update image only if new one is uploaded
+            new_image = request.FILES.get('image')
+            if new_image:
+                background.image = new_image
+
+            background.save()
+            messages.success(request, f'Background "{background.title}" updated successfully!')
         else:
-            messages.error(request, 'Please provide both title and image.')
+            # Handle image upload (create new)
+            title = request.POST.get('title')
+            hotspot_name = request.POST.get('hotspot_name') or None
+            is_active = request.POST.get('is_active') == 'on'
+            image = request.FILES.get('image')
+
+            if title and image:
+                background = BackgroundImage.objects.create(
+                    title=title,
+                    image=image,
+                    hotspot_name=hotspot_name,
+                    is_active=is_active,
+                    uploaded_by=request.user
+                )
+                messages.success(request, f'Background image "{title}" uploaded successfully!')
+            else:
+                messages.error(request, 'Please provide both title and image.')
 
         return redirect('backgrounds')
 
