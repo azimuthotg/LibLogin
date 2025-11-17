@@ -257,3 +257,78 @@ class SystemSettings(models.Model):
 
     def __str__(self):
         return self.library_name
+
+
+class PageImpression(models.Model):
+    """Log every time someone views the login page (Impression/Reach tracking)"""
+
+    # Core data
+    hotspot_name = models.CharField(max_length=100, db_index=True, help_text="Hotspot identifier")
+    viewed_at = models.DateTimeField(auto_now_add=True, db_index=True, help_text="When page was viewed")
+
+    # Device identification (for unique counting)
+    mac_hash = models.CharField(max_length=64, db_index=True, help_text="SHA256 hash of MAC address")
+    ip_address = models.GenericIPAddressField(null=True, blank=True, help_text="IP address assigned")
+
+    # Device info
+    device_type = models.CharField(max_length=20, null=True, blank=True, help_text="mobile/desktop/tablet")
+    user_agent = models.TextField(null=True, blank=True, help_text="Browser user agent string")
+
+    # Engagement metrics
+    time_on_page = models.IntegerField(null=True, blank=True, help_text="Seconds spent on page")
+
+    # Metadata
+    is_unique_today = models.BooleanField(default=True, help_text="First impression from this device today")
+
+    class Meta:
+        ordering = ['-viewed_at']
+        indexes = [
+            models.Index(fields=['hotspot_name', 'viewed_at']),
+            models.Index(fields=['mac_hash', 'viewed_at']),
+            models.Index(fields=['hotspot_name', 'mac_hash', 'viewed_at']),
+        ]
+        verbose_name = "Page Impression"
+        verbose_name_plural = "Page Impressions"
+
+    def __str__(self):
+        return f"{self.hotspot_name} - {self.viewed_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class DailyReachStats(models.Model):
+    """Aggregated daily reach statistics per hotspot"""
+
+    hotspot_name = models.CharField(max_length=100, db_index=True)
+    date = models.DateField(db_index=True)
+
+    # Reach metrics
+    total_impressions = models.IntegerField(default=0, help_text="Total page views")
+    unique_devices = models.IntegerField(default=0, help_text="Unique MAC addresses")
+
+    # Device breakdown
+    mobile_count = models.IntegerField(default=0)
+    desktop_count = models.IntegerField(default=0)
+    tablet_count = models.IntegerField(default=0)
+    unknown_count = models.IntegerField(default=0)
+
+    # Engagement metrics
+    avg_time_on_page = models.FloatField(default=0.0, help_text="Average seconds on page")
+    total_time_on_page = models.IntegerField(default=0, help_text="Total seconds across all impressions")
+
+    # Hourly breakdown (JSON field for charts)
+    hourly_data = models.JSONField(default=dict, null=True, blank=True, help_text="Hourly impression counts {hour: count}")
+
+    # Metadata
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['hotspot_name', 'date']
+        ordering = ['-date', 'hotspot_name']
+        verbose_name = "Daily Reach Statistics"
+        verbose_name_plural = "Daily Reach Statistics"
+        indexes = [
+            models.Index(fields=['date', 'hotspot_name']),
+            models.Index(fields=['hotspot_name', 'date']),
+        ]
+
+    def __str__(self):
+        return f"{self.hotspot_name} - {self.date} ({self.unique_devices} unique, {self.total_impressions} total)"

@@ -116,7 +116,10 @@
     <script>
         (function() {
             // Configuration - Point to Django API Server
-            const API_SERVER = 'http://202.29.55.222:8291';
+            // Use current origin for development, fallback to production server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
             const API_ENDPOINT = '/api/login-background/';
             const MAX_RETRIES = 3;
             const RETRY_DELAY = 2000; // 2 seconds
@@ -197,7 +200,10 @@
     <script>
         (function() {
             // Configuration - Point to Django API Server
-            const API_SERVER = 'http://202.29.55.222:8291';
+            // Use current origin for development, fallback to production server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
             const TEMPLATE_API = '/api/template-config/';
             const MAX_RETRIES = 3;
             const RETRY_DELAY = 2000; // 2 seconds
@@ -572,6 +578,104 @@
             } else {
                 loadTemplateConfig();
             }
+        })();
+    </script>
+
+    <!-- Page Impression Tracking Script -->
+    <script>
+        (function() {
+            // Configuration
+            // Use current origin for development, fallback to production server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
+            const TRACK_API = '/api/track-impression/';
+            const TRACK_DELAY = 2000; // Wait 2 seconds to ensure real view
+
+            let pageLoadTime = Date.now();
+            let impressionTracked = false;
+
+            // Track impression after delay (ensures user actually viewed the page)
+            function trackImpression() {
+                // Prevent duplicate tracking
+                if (impressionTracked) {
+                    console.log('[Tracking] Already tracked, skipping');
+                    return;
+                }
+
+                try {
+                    const timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000);
+
+                    const impressionData = {
+                        hotspot_name: window.HOTSPOT_NAME || 'unknown',
+                        mac: '$(mac)',
+                        ip: '$(ip)',
+                        user_agent: navigator.userAgent,
+                        time_on_page: timeOnPage
+                    };
+
+                    console.log('[Tracking] Sending impression data:', impressionData.hotspot_name);
+
+                    fetch(API_SERVER + TRACK_API, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(impressionData),
+                        // Use keepalive to ensure request completes even if page navigates away
+                        keepalive: true
+                    })
+                        .then(function(response) {
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error('HTTP ' + response.status);
+                        })
+                        .then(function(data) {
+                            if (data.success) {
+                                impressionTracked = true;
+                                console.log('[Tracking] ✓ Impression tracked successfully');
+                            } else {
+                                console.warn('[Tracking] ⚠ API returned error:', data.message);
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('[Tracking] ✗ Error:', error.message);
+                            // Fail silently - don't affect user experience
+                        });
+
+                } catch (error) {
+                    console.error('[Tracking] ✗ Exception:', error);
+                    // Fail silently
+                }
+            }
+
+            // Track on page load (after delay)
+            setTimeout(trackImpression, TRACK_DELAY);
+
+            // Track again when user leaves (update time_on_page)
+            window.addEventListener('beforeunload', function() {
+                if (impressionTracked) {
+                    // Update time on page if already tracked
+                    const timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000);
+                    const updateData = {
+                        hotspot_name: window.HOTSPOT_NAME || 'unknown',
+                        mac: '$(mac)',
+                        ip: '$(ip)',
+                        user_agent: navigator.userAgent,
+                        time_on_page: timeOnPage
+                    };
+
+                    // Use sendBeacon for reliable tracking on page unload
+                    if (navigator.sendBeacon) {
+                        const blob = new Blob([JSON.stringify(updateData)], {type: 'application/json'});
+                        navigator.sendBeacon(API_SERVER + TRACK_API, blob);
+                        console.log('[Tracking] ✓ Updated time on page via beacon:', timeOnPage, 'seconds');
+                    }
+                }
+            });
+
+            console.log('[Tracking] Impression tracking initialized');
         })();
     </script>
 </body>

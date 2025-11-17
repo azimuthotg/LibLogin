@@ -1,10 +1,11 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import api_view, permission_classes, action, authentication_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot
+from django.views.decorators.csrf import csrf_exempt
+from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, PageImpression, DailyReachStats
 from .serializers import (
     BackgroundImageSerializer,
     BackgroundImageUploadSerializer,
@@ -18,6 +19,9 @@ from .serializers import (
     HotspotChoiceSerializer
 )
 import logging
+import hashlib
+from django.utils import timezone
+from datetime import date
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -494,4 +498,102 @@ def get_hotspot_choices(request):
         return Response({
             'success': False,
             'message': 'Error loading hotspot choices'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ===============================================
+# Page Impression Tracking API
+# ===============================================
+
+def detect_device_type(user_agent):
+    """Detect device type from user agent string"""
+    if not user_agent:
+        return 'unknown'
+
+    ua_lower = user_agent.lower()
+
+    # Check for mobile devices
+    mobile_keywords = ['mobile', 'android', 'iphone', 'ipod', 'blackberry', 'windows phone']
+    if any(keyword in ua_lower for keyword in mobile_keywords):
+        return 'mobile'
+
+    # Check for tablets
+    tablet_keywords = ['ipad', 'tablet', 'kindle']
+    if any(keyword in ua_lower for keyword in tablet_keywords):
+        return 'tablet'
+
+    # Default to desktop
+    return 'desktop'
+
+
+@api_view(['POST'])
+@authentication_classes([])  # Disable authentication - allows MikroTik to POST without session
+@permission_classes([AllowAny])
+def track_impression(request):
+    """
+    Track page impression (view count)
+
+    Expected data:
+    {
+        "hotspot_name": "hotspot_lab",
+        "mac": "AA:BB:CC:DD:EE:FF",
+        "ip": "10.5.50.1",
+        "user_agent": "Mozilla/5.0...",
+        "time_on_page": 30
+    }
+    """
+    try:
+        # Extract data
+        hotspot_name = request.data.get('hotspot_name', 'unknown')
+        mac = request.data.get('mac', '')
+        ip_address = request.data.get('ip', None)
+        user_agent = request.data.get('user_agent', '')
+        time_on_page = request.data.get('time_on_page', None)
+
+        # Validate required fields
+        if not hotspot_name or not mac:
+            logger.warning(f"[Tracking] Missing required fields: hotspot_name={hotspot_name}, mac={mac}")
+            return Response({
+                'success': False,
+                'message': 'Missing required fields: hotspot_name and mac'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Hash MAC address for privacy (SHA256)
+        mac_hash = hashlib.sha256(mac.encode()).hexdigest()
+
+        # Detect device type
+        device_type = detect_device_type(user_agent)
+
+        # Check if this is unique today
+        today = date.today()
+        is_unique_today = not PageImpression.objects.filter(
+            mac_hash=mac_hash,
+            hotspot_name=hotspot_name,
+            viewed_at__date=today
+        ).exists()
+
+        # Create impression record
+        impression = PageImpression.objects.create(
+            hotspot_name=hotspot_name,
+            mac_hash=mac_hash,
+            ip_address=ip_address,
+            device_type=device_type,
+            user_agent=user_agent,
+            time_on_page=time_on_page,
+            is_unique_today=is_unique_today
+        )
+
+        logger.info(f"[Tracking] ✓ Impression recorded: {hotspot_name} | {device_type} | unique={is_unique_today}")
+
+        return Response({
+            'success': True,
+            'message': 'Impression tracked successfully',
+            'is_unique_today': is_unique_today
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        logger.error(f"[Tracking] ✗ Error tracking impression: {str(e)}", exc_info=True)
+        return Response({
+            'success': False,
+            'message': 'Internal server error'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

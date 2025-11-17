@@ -5,6 +5,7 @@ from .views import (
     get_slide_content,
     get_template_config,
     get_hotspot_choices,
+    track_impression,
     BackgroundImageViewSet,
     SystemSettingsViewSet,
     UserViewSet,
@@ -30,6 +31,9 @@ urlpatterns = [
 
     # Hotspot choices for dropdowns
     path('hotspot-choices/', get_hotspot_choices, name='hotspot-choices'),
+
+    # Page impression tracking (public endpoint for MikroTik login pages)
+    path('track-impression/', track_impression, name='track-impression'),
 
     # Include router URLs
     path('', include(router.urls)),
