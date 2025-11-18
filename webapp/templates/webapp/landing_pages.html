@@ -70,14 +70,15 @@
                                     <th>Title</th>
                                     <th>URL</th>
                                     <th>Hotspot</th>
-                                    <th width="100">Redirects</th>
+                                    <th width="80" class="text-center">Priority</th>
+                                    <th width="100" class="text-center">Redirects</th>
                                     <th width="150">Created</th>
                                     <th width="200">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="landingURLsTableBody">
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">
+                                    <td colspan="8" class="text-center py-4">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
@@ -281,7 +282,7 @@
         if (!landingURLs || landingURLs.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">
+                    <td colspan="8" class="text-center py-4 text-muted">
                         <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                         <p class="mt-2">No landing URLs found</p>
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addLandingURLModal">
@@ -316,6 +317,9 @@
                         </a>
                     </td>
                     <td><span class="badge bg-primary">${hotspotDisplay}</span></td>
+                    <td class="text-center">
+                        <span class="badge bg-info">${url.priority || 0}</span>
+                    </td>
                     <td class="text-center">${url.redirect_count || 0}</td>
                     <td>${createdDate}</td>
                     <td>
