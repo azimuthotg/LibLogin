@@ -519,7 +519,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Submit form via fetch API to include all fields
-                fetch(form.action || window.location.href, {
+                // Use getAttribute to avoid conflict with <input name="action">
+                const formAction = form.getAttribute('action') || window.location.href;
+                fetch(formAction, {
                     method: 'POST',
                     body: formData,
                     credentials: 'include'
