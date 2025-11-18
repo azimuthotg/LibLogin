@@ -364,7 +364,13 @@ def get_template_config(request):
                         'icon': slide.get('icon', '📚'),
                         'icon_image_url': slide.get('icon_image_url', ''),
                         'title': slide.get('title', ''),
-                        'description': slide.get('description', '')
+                        'description': slide.get('description', ''),
+                        'show_title': slide.get('show_title', True),
+                        'show_description': slide.get('show_description', True),
+                        'image_size': slide.get('image_size', 'square_400'),
+                        'show_link': slide.get('show_link', False),
+                        'link_url': slide.get('link_url', ''),
+                        'link_text': slide.get('link_text', 'อ่านต่อ')
                     }
                     for slide in slides_data
                 ]

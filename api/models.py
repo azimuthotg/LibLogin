@@ -86,6 +86,32 @@ class SlideContent(models.Model):
     hotspot_name = models.CharField(max_length=100, blank=True, null=True, help_text="Hotspot name (e.g., 'hotspot', 'hotspot_lib') - blank for all hotspots")
     order = models.IntegerField(default=0, help_text="Display order (lower numbers shown first)")
     is_active = models.BooleanField(default=True, help_text="Show this slide")
+
+    # Display Toggle Options
+    show_title = models.BooleanField(default=True, help_text="Show/hide slide title")
+    show_description = models.BooleanField(default=True, help_text="Show/hide slide description")
+
+    # Image Size Options
+    IMAGE_SIZE_CHOICES = [
+        ('square_600', '600x600 (Square Large)'),
+        ('square_400', '400x400 (Square Medium)'),
+        ('square_200', '200x200 (Square Small)'),
+        ('landscape_600', '600x450 (4:3 Large)'),
+        ('landscape_400', '400x300 (4:3 Medium)'),
+        ('landscape_200', '200x150 (4:3 Small)'),
+    ]
+    image_size = models.CharField(
+        max_length=20,
+        choices=IMAGE_SIZE_CHOICES,
+        default='square_400',
+        help_text='Image display size (only applies when using icon_image)'
+    )
+
+    # Link/CTA Button Options
+    show_link = models.BooleanField(default=False, help_text="Show call-to-action button with link")
+    link_url = models.URLField(blank=True, null=True, help_text="Link URL (e.g., https://example.com)")
+    link_text = models.CharField(max_length=50, blank=True, default="อ่านต่อ", help_text="Button text (max 50 characters)")
+
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_slides')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

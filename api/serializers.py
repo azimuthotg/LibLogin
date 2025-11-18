@@ -94,11 +94,16 @@ class SlideContentSerializer(serializers.ModelSerializer):
     """Serializer for SlideContent model"""
     created_by = UserSerializer(read_only=True)
     icon_image_url = serializers.SerializerMethodField()
+    image_size_display = serializers.CharField(source='get_image_size_display', read_only=True)
 
     class Meta:
         model = SlideContent
         fields = ['id', 'icon', 'icon_image', 'icon_image_url', 'title', 'description',
-                  'hotspot_name', 'order', 'is_active', 'created_by', 'created_at', 'updated_at']
+                  'hotspot_name', 'order', 'is_active',
+                  'show_title', 'show_description',
+                  'image_size', 'image_size_display',
+                  'show_link', 'link_url', 'link_text',
+                  'created_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_icon_image_url(self, obj):

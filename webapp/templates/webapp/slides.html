@@ -65,7 +65,7 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="editSlide({{ slide.id }}, '{{ slide.icon }}', '{{ slide.title }}', '{{ slide.description }}', '{{ slide.hotspot_name|default:'' }}', {{ slide.order }}, {{ slide.is_active|lower }})" title="Edit">
+                                    <button class="btn btn-outline-primary" onclick="editSlide({{ slide.id }})" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn btn-outline-danger" onclick="deleteSlide({{ slide.id }}, '{{ slide.title }}')" title="Delete">
@@ -126,6 +126,78 @@
                         <label class="form-label">Description *</label>
                         <textarea class="form-control" name="description" rows="3" required
                                   placeholder="ระบบ WiFi ฟรีสำหรับนักศึกษาและบุคลากร..."></textarea>
+                    </div>
+
+                    <!-- Display Toggle Options -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="add_show_title" checked>
+                                <label class="form-check-label" for="add_show_title">
+                                    <i class="bi bi-card-heading"></i> แสดง Title
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="add_show_description" checked>
+                                <label class="form-check-label" for="add_show_description">
+                                    <i class="bi bi-card-text"></i> แสดง Description
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Size Options -->
+                    <div class="mb-3">
+                        <label for="add_image_size" class="form-label">
+                            <i class="bi bi-aspect-ratio"></i> ขนาดรูปภาพ
+                        </label>
+                        <select class="form-select" id="add_image_size">
+                            <optgroup label="Square (จัตุรัส)">
+                                <option value="square_600">600x600 - Large</option>
+                                <option value="square_400" selected>400x400 - Medium (Default)</option>
+                                <option value="square_200">200x200 - Small</option>
+                            </optgroup>
+                            <optgroup label="4:3 (แนวนอน)">
+                                <option value="landscape_600">600x450 - Large 4:3</option>
+                                <option value="landscape_400">400x300 - Medium 4:3</option>
+                                <option value="landscape_200">200x150 - Small 4:3</option>
+                            </optgroup>
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> ขนาดรูปภาพจะมีผลเฉพาะเมื่ออัพโหลดรูปภาพ (Option 2)
+                        </div>
+                    </div>
+
+                    <!-- Link/CTA Section -->
+                    <div class="card mb-3 border-info">
+                        <div class="card-header bg-info bg-opacity-10">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="add_show_link">
+                                <label class="form-check-label fw-bold" for="add_show_link">
+                                    <i class="bi bi-link-45deg"></i> เพิ่มปุ่มลิงก์ (Call-to-Action)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body" id="add_link_options" style="display: none;">
+                            <div class="mb-3">
+                                <label for="add_link_url" class="form-label">
+                                    <i class="bi bi-box-arrow-up-right"></i> URL ลิงก์ *
+                                </label>
+                                <input type="url" class="form-control" id="add_link_url"
+                                       placeholder="https://example.com" required>
+                                <div class="form-text">ใส่ลิงก์ที่ต้องการนำผู้ใช้ไป</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="add_link_text" class="form-label">
+                                    <i class="bi bi-chat-square-text"></i> ข้อความบนปุ่ม
+                                </label>
+                                <input type="text" class="form-control" id="add_link_text"
+                                       value="อ่านต่อ" maxlength="50">
+                                <div class="form-text">ข้อความที่แสดงบนปุ่ม (สูงสุด 50 ตัวอักษร)</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row">
@@ -203,6 +275,78 @@
                         <textarea class="form-control" name="description" id="editDescription" rows="3" required></textarea>
                     </div>
 
+                    <!-- Display Toggle Options -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="edit_show_title" checked>
+                                <label class="form-check-label" for="edit_show_title">
+                                    <i class="bi bi-card-heading"></i> แสดง Title
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="edit_show_description" checked>
+                                <label class="form-check-label" for="edit_show_description">
+                                    <i class="bi bi-card-text"></i> แสดง Description
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Size Options -->
+                    <div class="mb-3">
+                        <label for="edit_image_size" class="form-label">
+                            <i class="bi bi-aspect-ratio"></i> ขนาดรูปภาพ
+                        </label>
+                        <select class="form-select" id="edit_image_size">
+                            <optgroup label="Square (จัตุรัส)">
+                                <option value="square_600">600x600 - Large</option>
+                                <option value="square_400" selected>400x400 - Medium (Default)</option>
+                                <option value="square_200">200x200 - Small</option>
+                            </optgroup>
+                            <optgroup label="4:3 (แนวนอน)">
+                                <option value="landscape_600">600x450 - Large 4:3</option>
+                                <option value="landscape_400">400x300 - Medium 4:3</option>
+                                <option value="landscape_200">200x150 - Small 4:3</option>
+                            </optgroup>
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> ขนาดรูปภาพจะมีผลเฉพาะเมื่ออัพโหลดรูปภาพ (Option 2)
+                        </div>
+                    </div>
+
+                    <!-- Link/CTA Section -->
+                    <div class="card mb-3 border-info">
+                        <div class="card-header bg-info bg-opacity-10">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="edit_show_link">
+                                <label class="form-check-label fw-bold" for="edit_show_link">
+                                    <i class="bi bi-link-45deg"></i> เพิ่มปุ่มลิงก์ (Call-to-Action)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body" id="edit_link_options" style="display: none;">
+                            <div class="mb-3">
+                                <label for="edit_link_url" class="form-label">
+                                    <i class="bi bi-box-arrow-up-right"></i> URL ลิงก์ *
+                                </label>
+                                <input type="url" class="form-control" id="edit_link_url"
+                                       placeholder="https://example.com" required>
+                                <div class="form-text">ใส่ลิงก์ที่ต้องการนำผู้ใช้ไป</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_link_text" class="form-label">
+                                    <i class="bi bi-chat-square-text"></i> ข้อความบนปุ่ม
+                                </label>
+                                <input type="text" class="form-control" id="edit_link_text"
+                                       value="อ่านต่อ" maxlength="50">
+                                <div class="form-text">ข้อความที่แสดงบนปุ่ม (สูงสุด 50 ตัวอักษร)</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -266,22 +410,46 @@
 </div>
 
 <script>
-function editSlide(id, icon, title, description, routerId, order, isActive) {
+async function editSlide(id) {
     try {
-        document.getElementById('editSlideId').value = id;
-        document.getElementById('editIcon').value = icon;
-        document.getElementById('editTitle').value = title;
-        document.getElementById('editDescription').value = description;
-        document.getElementById('editOrder').value = order;
-        document.getElementById('editIsActive').checked = isActive;
+        // Fetch slide data from API
+        const response = await fetch(`/api/slides/${id}/`, {
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch slide data');
+        }
+
+        const slide = await response.json();
+
+        // Populate existing fields
+        document.getElementById('editSlideId').value = slide.id;
+        document.getElementById('editIcon').value = slide.icon || '';
+        document.getElementById('editTitle').value = slide.title;
+        document.getElementById('editDescription').value = slide.description;
+        document.getElementById('editOrder').value = slide.order;
+        document.getElementById('editIsActive').checked = slide.is_active;
+
+        // Populate new fields
+        document.getElementById('edit_show_title').checked = slide.show_title !== undefined ? slide.show_title : true;
+        document.getElementById('edit_show_description').checked = slide.show_description !== undefined ? slide.show_description : true;
+        document.getElementById('edit_image_size').value = slide.image_size || 'square_400';
+        document.getElementById('edit_show_link').checked = slide.show_link || false;
+        document.getElementById('edit_link_url').value = slide.link_url || '';
+        document.getElementById('edit_link_text').value = slide.link_text || 'อ่านต่อ';
+
+        // Show/hide link options based on checkbox
+        document.getElementById('edit_link_options').style.display =
+            (slide.show_link || false) ? 'block' : 'none';
 
         // Load hotspot dropdown with current value
-        loadHotspotChoices('editRouterId', routerId, true);
+        loadHotspotChoices('editRouterId', slide.hotspot_name || '', true);
 
         new bootstrap.Modal(document.getElementById('editSlideModal')).show();
     } catch (error) {
         console.error('[Edit Slide Error]', error);
-        showToast('ไม่สามารถเปิดฟอร์มแก้ไขได้', 'error');
+        showToast('ไม่สามารถโหลดข้อมูล Slide ได้', 'error');
     }
 }
 
@@ -303,28 +471,103 @@ document.addEventListener('DOMContentLoaded', function() {
     const forms = document.querySelectorAll('form');
     forms.forEach(function(form) {
         const action = form.querySelector('input[name="action"]');
-        if (action) {
+        if (action && (action.value === 'create' || action.value === 'update')) {
             form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
                 const actionType = action.value;
                 const submitBtn = form.querySelector('button[type="submit"]');
 
+                // Disable submit button
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    setTimeout(function() {
-                        submitBtn.disabled = false;
-                    }, 3000);
                 }
 
                 // Add loading indicator
+                let originalText = '';
                 if (submitBtn && submitBtn.textContent) {
-                    const originalText = submitBtn.textContent;
+                    originalText = submitBtn.textContent;
                     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
                 }
 
                 console.log('[Form Submit] Action:', actionType);
+
+                // Build FormData with all fields including new ones
+                const formData = new FormData(form);
+
+                // Add new fields for both create and update forms
+                if (actionType === 'create') {
+                    formData.append('show_title', document.getElementById('add_show_title').checked);
+                    formData.append('show_description', document.getElementById('add_show_description').checked);
+                    formData.append('image_size', document.getElementById('add_image_size').value);
+                    formData.append('show_link', document.getElementById('add_show_link').checked);
+
+                    if (document.getElementById('add_show_link').checked) {
+                        formData.append('link_url', document.getElementById('add_link_url').value);
+                        formData.append('link_text', document.getElementById('add_link_text').value);
+                    }
+                } else if (actionType === 'update') {
+                    formData.append('show_title', document.getElementById('edit_show_title').checked);
+                    formData.append('show_description', document.getElementById('edit_show_description').checked);
+                    formData.append('image_size', document.getElementById('edit_image_size').value);
+                    formData.append('show_link', document.getElementById('edit_show_link').checked);
+
+                    if (document.getElementById('edit_show_link').checked) {
+                        formData.append('link_url', document.getElementById('edit_link_url').value);
+                        formData.append('link_text', document.getElementById('edit_link_text').value);
+                    }
+                }
+
+                // Submit form via fetch API to include all fields
+                fetch(form.action || window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showToast('ดำเนินการสำเร็จ', 'success');
+                        // Reload page after short delay to show success message
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        throw new Error('Server returned ' + response.status);
+                    }
+                })
+                .catch(error => {
+                    console.error('[Form Submit Error]', error);
+                    showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
+
+                    // Restore button state
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        if (originalText) {
+                            submitBtn.textContent = originalText;
+                        }
+                    }
+                });
             });
         }
     });
+
+    // Toggle link options visibility for edit modal
+    const editShowLinkCheckbox = document.getElementById('edit_show_link');
+    if (editShowLinkCheckbox) {
+        editShowLinkCheckbox.addEventListener('change', function() {
+            document.getElementById('edit_link_options').style.display =
+                this.checked ? 'block' : 'none';
+        });
+    }
+
+    // Toggle link options visibility for add modal
+    const addShowLinkCheckbox = document.getElementById('add_show_link');
+    if (addShowLinkCheckbox) {
+        addShowLinkCheckbox.addEventListener('change', function() {
+            document.getElementById('add_link_options').style.display =
+                this.checked ? 'block' : 'none';
+        });
+    }
 
     // Show success message if present in URL
     const urlParams = new URLSearchParams(window.location.search);

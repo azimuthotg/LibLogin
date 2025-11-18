@@ -139,17 +139,33 @@ class SystemSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(SlideContent)
 class SlideContentAdmin(admin.ModelAdmin):
-    list_display = ['icon', 'title', 'hotspot_name_display', 'order', 'is_active', 'created_by', 'created_at']
-    list_filter = ['is_active', 'hotspot_name', 'created_at']
-    search_fields = ['title', 'description', 'hotspot_name']
+    list_display = ['icon', 'title', 'hotspot_name_display', 'image_size', 'has_link', 'order', 'is_active', 'created_by', 'created_at']
+    list_filter = ['is_active', 'hotspot_name', 'image_size', 'show_link', 'created_at']
+    search_fields = ['title', 'description', 'hotspot_name', 'link_text']
     list_editable = ['order', 'is_active']
     ordering = ['order', 'created_at']
 
     fieldsets = (
         ('Slide Content', {
-            'fields': ('icon', 'title', 'description')
+            'fields': ('icon', 'icon_image', 'title', 'description')
         }),
-        ('Display Settings', {
+        ('Display Options', {
+            'fields': (
+                ('show_title', 'show_description'),
+                'image_size',
+            ),
+            'description': 'Control what elements are displayed and image size'
+        }),
+        ('Link/CTA Button', {
+            'fields': (
+                'show_link',
+                'link_url',
+                'link_text',
+            ),
+            'classes': ('collapse',),
+            'description': 'Add a call-to-action button to redirect users'
+        }),
+        ('Settings', {
             'fields': ('hotspot_name', 'order', 'is_active')
         }),
         ('Metadata', {
@@ -163,6 +179,12 @@ class SlideContentAdmin(admin.ModelAdmin):
     def hotspot_name_display(self, obj):
         return obj.hotspot_name if obj.hotspot_name else "All Hotspots"
     hotspot_name_display.short_description = 'Hotspot'
+
+    def has_link(self, obj):
+        if obj.show_link and obj.link_url:
+            return format_html('<span style="color: green;">✓ {}</span>', obj.link_text or 'Yes')
+        return format_html('<span style="color: gray;">—</span>')
+    has_link.short_description = 'Link Button'
 
     def save_model(self, request, obj, form, change):
         if not change:  # If creating new object
