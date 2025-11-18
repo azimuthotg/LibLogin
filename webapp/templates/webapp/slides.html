@@ -239,7 +239,7 @@
 <div class="modal fade" id="editSlideModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" action="{% url 'slides' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="slide_id" id="editSlideId">
