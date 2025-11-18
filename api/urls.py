@@ -6,6 +6,9 @@ from .views import (
     get_template_config,
     get_hotspot_choices,
     track_impression,
+    impression_statistics,
+    media_reach_report,
+    export_reach_report_pdf,
     BackgroundImageViewSet,
     SystemSettingsViewSet,
     UserViewSet,
@@ -34,6 +37,15 @@ urlpatterns = [
 
     # Page impression tracking (public endpoint for MikroTik login pages)
     path('track-impression/', track_impression, name='track-impression'),
+
+    # Impression statistics (authenticated endpoint for dashboard)
+    path('impression-statistics/', impression_statistics, name='impression-statistics'),
+
+    # Media reach report (authenticated endpoint for advertising assessment)
+    path('media-reach-report/', media_reach_report, name='media-reach-report'),
+
+    # Export media reach report as PDF
+    path('export-reach-report-pdf/', export_reach_report_pdf, name='export-reach-report-pdf'),
 
     # Include router URLs
     path('', include(router.urls)),

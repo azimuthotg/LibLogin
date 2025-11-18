@@ -103,10 +103,13 @@ class HotspotAdmin(admin.ModelAdmin):
 
 @admin.register(SystemSettings)
 class SystemSettingsAdmin(admin.ModelAdmin):
-    list_display = ['library_name', 'default_hotspot_name', 'hotspot_status_refresh_interval', 'updated_at', 'updated_by']
+    list_display = ['organization_name', 'library_name', 'default_hotspot_name', 'hotspot_status_refresh_interval', 'updated_at', 'updated_by']
     readonly_fields = ['updated_at', 'logo_preview']
 
     fieldsets = (
+        ('Organization Information', {
+            'fields': ('organization_name',)
+        }),
         ('Library Information', {
             'fields': ('library_name', 'contact_info')
         }),

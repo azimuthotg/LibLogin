@@ -17,9 +17,24 @@
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-3">
+                            <label for="organization_name" class="form-label">Organization Name</label>
+                            <input type="text" class="form-control" id="organization_name" name="organization_name"
+                                   value="{{ settings.organization_name|default:'' }}"
+                                   placeholder="e.g., มหาวิทยาลัยXXX, ABC University">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Name of your organization (used in reports and headers)
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="library_name" class="form-label">Library Name *</label>
                             <input type="text" class="form-control" id="library_name" name="library_name"
                                    value="{{ settings.library_name|default:'Library Login System' }}" required>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                System/Library name (different from organization name)
+                            </small>
                         </div>
 
                         <div class="mb-3">

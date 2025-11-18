@@ -1,0 +1,1053 @@
+{% extends 'webapp/base.html' %}
+
+{% block title %}Impression Monitoring - LibLogin{% endblock %}
+
+{% block page_title %}Page Impression Monitoring{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Summary Cards */
+    .stat-card {
+        border-radius: 8px;
+        padding: 20px;
+        color: white;
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+
+    .stat-card.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .stat-card.info {
+        background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%);
+    }
+
+    .stat-card.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        opacity: 0.3;
+        position: absolute;
+        right: 20px;
+        top: 20px;
+    }
+
+    /* Charts */
+    .chart-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .chart-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    /* Table */
+    .impressions-table {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .table-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .table {
+        font-size: 0.9rem;
+    }
+
+    .table thead th {
+        border-top: none;
+        background-color: #f8f9fa;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+    }
+
+    .badge-unique {
+        background-color: #28a745;
+    }
+
+    .badge-returning {
+        background-color: #6c757d;
+    }
+
+    /* Filters */
+    .filter-bar {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Loading State */
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    .loading i {
+        font-size: 3rem;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Device Type Icons */
+    .device-mobile { color: #3494e6; }
+    .device-desktop { color: #667eea; }
+    .device-tablet { color: #f093fb; }
+    .device-unknown { color: #6c757d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="row align-items-end">
+        <div class="col-md-3">
+            <label for="daysFilter" class="form-label"><small>Time Range</small></label>
+            <select class="form-select" id="daysFilter">
+                <option value="1">Last 24 Hours</option>
+                <option value="7" selected>Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="hotspotFilter" class="form-label"><small>Hotspot</small></label>
+            <select class="form-select" id="hotspotFilter">
+                <option value="all" selected>All Hotspots</option>
+                <!-- Dynamically populated -->
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary" onclick="loadData()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <button class="btn btn-outline-secondary" onclick="exportData()">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+        <div class="col-md-3 text-end">
+            <small class="text-muted" id="lastUpdated">Last updated: Loading...</small>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards (Dashboard Section - 30%) -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card primary position-relative">
+            <i class="bi bi-eye stat-icon"></i>
+            <div class="stat-label">Total Impressions</div>
+            <div class="stat-value" id="totalImpressions">-</div>
+            <div><small>Page views</small></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card success position-relative">
+            <i class="bi bi-person-check stat-icon"></i>
+            <div class="stat-label">Unique Devices</div>
+            <div class="stat-value" id="uniqueDevices">-</div>
+            <div><small>Distinct visitors</small></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card info position-relative">
+            <i class="bi bi-clock stat-icon"></i>
+            <div class="stat-label">Avg Time on Page</div>
+            <div class="stat-value" id="avgTime">-</div>
+            <div><small>Seconds</small></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card warning position-relative">
+            <i class="bi bi-trophy stat-icon"></i>
+            <div class="stat-label">Top Hotspot</div>
+            <div class="stat-value" style="font-size: 1.5rem;" id="topHotspot">-</div>
+            <div><small id="topHotspotCount">-</small></div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Daily Trend Chart -->
+    <div class="col-md-8">
+        <div class="chart-container">
+            <div class="chart-title">
+                <i class="bi bi-graph-up"></i> Impression Trend
+            </div>
+            <canvas id="trendChart" height="80"></canvas>
+        </div>
+    </div>
+
+    <!-- Device Breakdown Chart -->
+    <div class="col-md-4">
+        <div class="chart-container">
+            <div class="chart-title">
+                <i class="bi bi-pie-chart"></i> Device Breakdown
+            </div>
+            <canvas id="deviceChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Hotspot Breakdown Chart -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="chart-container">
+            <div class="chart-title">
+                <i class="bi bi-bar-chart"></i> Impressions by Hotspot
+            </div>
+            <canvas id="hotspotChart" height="60"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Media Reach Report Section -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="chart-title">
+                    <i class="bi bi-megaphone"></i> Media Reach Assessment Report
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-primary" onclick="loadMediaReachReport()">
+                        <i class="bi bi-graph-up-arrow"></i> Generate Report
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="exportReachReport()">
+                        <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Content (Initially Hidden) -->
+            <div id="mediaReachContent" style="display: none;">
+                <!-- Reach Metrics Row -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted mb-2">Total Reach</h6>
+                                <h3 class="text-primary mb-0" id="reachTotal">-</h3>
+                                <small class="text-muted">Unique Users</small>
+                                <div class="mt-2">
+                                    <span class="badge bg-info" id="reachRate">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted mb-2">Frequency</h6>
+                                <h3 class="text-success mb-0" id="reachFrequency">-</h3>
+                                <small class="text-muted">Avg Exposures</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted mb-2">GRP</h6>
+                                <h3 class="text-warning mb-0" id="reachGRP">-</h3>
+                                <small class="text-muted">Gross Rating Point</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-danger">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted mb-2">Effective Reach</h6>
+                                <h3 class="text-danger mb-0" id="reachEffective">-</h3>
+                                <small class="text-muted">3+ Exposures</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frequency Distribution Chart -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <canvas id="frequencyDistChart" height="150"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <!-- Growth Comparison -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Period-over-Period Growth</h6>
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Reach Growth:</span>
+                                        <strong id="reachGrowth" class="text-success">-</strong>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Impression Growth:</span>
+                                        <strong id="impressionGrowth" class="text-info">-</strong>
+                                    </div>
+                                </div>
+                                <hr>
+                                <small class="text-muted">Compared to previous period</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations Section -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <i class="bi bi-lightbulb"></i> Recommendations
+                            </div>
+                            <div class="card-body" id="recommendationsContainer">
+                                <div class="text-center text-muted">
+                                    <i class="bi bi-hourglass-split"></i> Loading recommendations...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Metrics Table -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="4" class="text-center bg-primary text-white">
+                                        <i class="bi bi-clipboard-data"></i> Detailed Metrics
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailedMetricsBody">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="mediaReachLoading" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Generating media reach report...</p>
+            </div>
+
+            <!-- Initial State -->
+            <div id="mediaReachInitial" class="text-center py-5">
+                <i class="bi bi-megaphone" style="font-size: 4rem; color: #dee2e6;"></i>
+                <p class="text-muted mt-3">Click "Generate Report" to analyze advertising effectiveness</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Impressions Table (Detail Section - 70%) -->
+<div class="impressions-table">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="table-title">
+            <i class="bi bi-list-ul"></i> Recent Impressions
+        </div>
+        <div>
+            <input type="text" class="form-control form-control-sm" id="searchTable" placeholder="Search IP or MAC...">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Hotspot</th>
+                    <th>Device</th>
+                    <th>IP Address</th>
+                    <th>Time on Page</th>
+                    <th>Status</th>
+                    <th>MAC (Hash)</th>
+                </tr>
+            </thead>
+            <tbody id="impressionsTableBody">
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <div class="loading">
+                            <i class="bi bi-hourglass-split"></i>
+                            <p>Loading data...</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            <small class="text-muted">Showing <span id="rowCount">0</span> impressions</small>
+        </div>
+        <div>
+            <button class="btn btn-sm btn-outline-primary" onclick="loadMoreData()">
+                <i class="bi bi-plus-circle"></i> Load More
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    // Global variables
+    let trendChart, deviceChart, hotspotChart;
+    let currentData = null;
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('[Monitoring] Initializing dashboard...');
+        loadHotspotChoices();
+        loadData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    });
+
+    // Load hotspot choices for filter
+    async function loadHotspotChoices() {
+        try {
+            const response = await fetch('/api/hotspot-choices/');
+            const data = await response.json();
+
+            const select = document.getElementById('hotspotFilter');
+            select.innerHTML = '<option value="all" selected>All Hotspots</option>';
+
+            data.forEach(hotspot => {
+                const option = document.createElement('option');
+                option.value = hotspot.value;
+                option.textContent = hotspot.label;
+                select.appendChild(option);
+            });
+
+            console.log('[Monitoring] Loaded', data.length, 'hotspot choices');
+        } catch (error) {
+            console.error('[Monitoring] Error loading hotspot choices:', error);
+        }
+    }
+
+    // Load statistics data from API
+    async function loadData() {
+        console.log('[Monitoring] Loading statistics...');
+
+        const days = document.getElementById('daysFilter').value;
+        const hotspot = document.getElementById('hotspotFilter').value;
+
+        try {
+            const url = `/api/impression-statistics/?days=${days}&hotspot=${hotspot}&limit=50`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+
+            currentData = await response.json();
+
+            if (currentData.success) {
+                updateSummaryCards(currentData.summary);
+                updateTrendChart(currentData.daily_trend);
+                updateDeviceChart(currentData.device_breakdown);
+                updateHotspotChart(currentData.hotspot_breakdown);
+                updateTable(currentData.recent_impressions);
+
+                document.getElementById('lastUpdated').textContent =
+                    'Last updated: ' + new Date().toLocaleTimeString();
+
+                console.log('[Monitoring] ✓ Data loaded successfully');
+            } else {
+                console.error('[Monitoring] API returned error:', currentData.message);
+                showError('Failed to load data');
+            }
+
+        } catch (error) {
+            console.error('[Monitoring] Error loading data:', error);
+            showError('Network error: ' + error.message);
+        }
+    }
+
+    // Update summary cards
+    function updateSummaryCards(summary) {
+        document.getElementById('totalImpressions').textContent =
+            summary.total_impressions.toLocaleString();
+        document.getElementById('uniqueDevices').textContent =
+            summary.unique_devices.toLocaleString();
+        document.getElementById('avgTime').textContent =
+            summary.avg_time_on_page + 's';
+        document.getElementById('topHotspot').textContent =
+            summary.top_hotspot;
+        document.getElementById('topHotspotCount').textContent =
+            summary.top_hotspot_count.toLocaleString() + ' impressions';
+    }
+
+    // Update trend chart
+    function updateTrendChart(dailyTrend) {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+
+        if (trendChart) {
+            trendChart.destroy();
+        }
+
+        const labels = dailyTrend.map(d => new Date(d.date).toLocaleDateString());
+        const totals = dailyTrend.map(d => d.total);
+        const uniques = dailyTrend.map(d => d.unique);
+
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Total Impressions',
+                        data: totals,
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Unique Devices',
+                        data: uniques,
+                        borderColor: 'rgb(17, 153, 142)',
+                        backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Update device chart
+    function updateDeviceChart(deviceBreakdown) {
+        const ctx = document.getElementById('deviceChart').getContext('2d');
+
+        if (deviceChart) {
+            deviceChart.destroy();
+        }
+
+        const labels = deviceBreakdown.map(d => {
+            const type = d.device_type || 'unknown';
+            return type.charAt(0).toUpperCase() + type.slice(1);
+        });
+        const counts = deviceBreakdown.map(d => d.count);
+
+        const colors = {
+            'Mobile': 'rgba(52, 148, 230, 0.8)',
+            'Desktop': 'rgba(102, 126, 234, 0.8)',
+            'Tablet': 'rgba(240, 147, 251, 0.8)',
+            'Unknown': 'rgba(108, 117, 125, 0.8)'
+        };
+
+        deviceChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: counts,
+                    backgroundColor: labels.map(l => colors[l] || colors['Unknown']),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    }
+
+    // Update hotspot chart
+    function updateHotspotChart(hotspotBreakdown) {
+        const ctx = document.getElementById('hotspotChart').getContext('2d');
+
+        if (hotspotChart) {
+            hotspotChart.destroy();
+        }
+
+        const labels = hotspotBreakdown.map(h => h.hotspot_name);
+        const impressions = hotspotBreakdown.map(h => h.impressions);
+        const uniques = hotspotBreakdown.map(h => h.unique_devices);
+
+        hotspotChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Total Impressions',
+                        data: impressions,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    },
+                    {
+                        label: 'Unique Devices',
+                        data: uniques,
+                        backgroundColor: 'rgba(17, 153, 142, 0.8)',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Update impressions table
+    function updateTable(impressions) {
+        const tbody = document.getElementById('impressionsTableBody');
+        tbody.innerHTML = '';
+
+        if (impressions.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No impressions found</td>
+                </tr>
+            `;
+            document.getElementById('rowCount').textContent = '0';
+            return;
+        }
+
+        impressions.forEach(imp => {
+            const timestamp = new Date(imp.viewed_at);
+            const deviceIcon = getDeviceIcon(imp.device_type);
+            const uniqueBadge = imp.is_unique_today
+                ? '<span class="badge badge-unique">Unique</span>'
+                : '<span class="badge badge-returning">Returning</span>';
+
+            const row = `
+                <tr>
+                    <td>${timestamp.toLocaleString()}</td>
+                    <td><span class="badge bg-primary">${imp.hotspot_name}</span></td>
+                    <td><i class="bi bi-${deviceIcon} ${getDeviceClass(imp.device_type)}"></i> ${imp.device_type || 'unknown'}</td>
+                    <td><code>${imp.ip_address || 'N/A'}</code></td>
+                    <td>${imp.time_on_page ? imp.time_on_page + 's' : 'N/A'}</td>
+                    <td>${uniqueBadge}</td>
+                    <td><small class="text-muted">${imp.mac_hash_short}</small></td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        document.getElementById('rowCount').textContent = impressions.length;
+    }
+
+    // Helper functions
+    function getDeviceIcon(deviceType) {
+        const icons = {
+            'mobile': 'phone',
+            'desktop': 'laptop',
+            'tablet': 'tablet',
+            'unknown': 'question-circle'
+        };
+        return icons[deviceType] || 'question-circle';
+    }
+
+    function getDeviceClass(deviceType) {
+        return 'device-' + (deviceType || 'unknown');
+    }
+
+    function showError(message) {
+        alert('Error: ' + message);
+    }
+
+    function loadMoreData() {
+        alert('Load more functionality - to be implemented with pagination');
+    }
+
+    function exportData() {
+        if (!currentData) {
+            alert('No data to export');
+            return;
+        }
+
+        // Convert to CSV
+        const impressions = currentData.recent_impressions;
+        const headers = ['Timestamp', 'Hotspot', 'Device', 'IP', 'Time on Page', 'Unique', 'MAC Hash'];
+        const rows = impressions.map(imp => [
+            new Date(imp.viewed_at).toLocaleString(),
+            imp.hotspot_name,
+            imp.device_type || 'unknown',
+            imp.ip_address || 'N/A',
+            imp.time_on_page || 'N/A',
+            imp.is_unique_today ? 'Yes' : 'No',
+            imp.mac_hash_short
+        ]);
+
+        let csv = headers.join(',') + '\n';
+        rows.forEach(row => {
+            csv += row.map(cell => '"' + cell + '"').join(',') + '\n';
+        });
+
+        // Download
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'impressions_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        console.log('[Monitoring] ✓ Data exported to CSV');
+    }
+
+    // === MEDIA REACH REPORT FUNCTIONS ===
+    let frequencyDistChart;
+    let mediaReachData = null;
+
+    async function loadMediaReachReport() {
+        console.log('[Media Reach] Loading report...');
+
+        // Show loading state
+        document.getElementById('mediaReachInitial').style.display = 'none';
+        document.getElementById('mediaReachContent').style.display = 'none';
+        document.getElementById('mediaReachLoading').style.display = 'block';
+
+        const days = document.getElementById('daysFilter').value;
+        const hotspot = document.getElementById('hotspotFilter').value;
+        const targetAudience = 10000; // TODO: Make this configurable
+
+        try {
+            const url = `/api/media-reach-report/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+
+            mediaReachData = await response.json();
+
+            if (mediaReachData.success) {
+                displayMediaReachReport(mediaReachData);
+                console.log('[Media Reach] ✓ Report generated successfully');
+            } else {
+                throw new Error('API returned error');
+            }
+
+        } catch (error) {
+            console.error('[Media Reach] Error:', error);
+            alert('Error generating media reach report: ' + error.message);
+            // Show initial state again
+            document.getElementById('mediaReachLoading').style.display = 'none';
+            document.getElementById('mediaReachInitial').style.display = 'block';
+        }
+    }
+
+    function displayMediaReachReport(data) {
+        // Hide loading, show content
+        document.getElementById('mediaReachLoading').style.display = 'none';
+        document.getElementById('mediaReachContent').style.display = 'block';
+
+        // Update Reach Metrics Cards
+        document.getElementById('reachTotal').textContent = data.reach_metrics.total_reach.toLocaleString();
+        document.getElementById('reachRate').textContent = data.reach_metrics.reach_rate + '% of target';
+        document.getElementById('reachFrequency').textContent = data.reach_metrics.frequency + 'x';
+        document.getElementById('reachGRP').textContent = data.reach_metrics.grp;
+        document.getElementById('reachEffective').textContent =
+            data.effective_reach.total.toLocaleString() + ' (' + data.effective_reach.percentage + '%)';
+
+        // Update Growth Metrics
+        const reachGrowthElem = document.getElementById('reachGrowth');
+        const reachGrowth = data.growth_comparison.reach_growth;
+        reachGrowthElem.textContent = (reachGrowth >= 0 ? '+' : '') + reachGrowth + '%';
+        reachGrowthElem.className = reachGrowth >= 0 ? 'text-success' : 'text-danger';
+
+        const impressionGrowthElem = document.getElementById('impressionGrowth');
+        const impressionGrowth = data.growth_comparison.impression_growth;
+        impressionGrowthElem.textContent = (impressionGrowth >= 0 ? '+' : '') + impressionGrowth + '%';
+        impressionGrowthElem.className = impressionGrowth >= 0 ? 'text-success' : 'text-danger';
+
+        // Frequency Distribution Chart
+        updateFrequencyDistChart(data.effective_reach.frequency_distribution);
+
+        // Recommendations
+        displayRecommendations(data.recommendations);
+
+        // Detailed Metrics Table
+        displayDetailedMetrics(data);
+    }
+
+    function updateFrequencyDistChart(freqDist) {
+        const ctx = document.getElementById('frequencyDistChart').getContext('2d');
+
+        if (frequencyDistChart) {
+            frequencyDistChart.destroy();
+        }
+
+        const labels = ['1-2 Times\n(Low)', '3-7 Times\n(Optimal)', '8-15 Times\n(High)', '15+ Times\n(Overexposed)'];
+        const values = [
+            freqDist.low_1_2.users,
+            freqDist.optimal_3_7.users,
+            freqDist.high_8_15.users,
+            freqDist.overexposed_15_plus.users
+        ];
+        const percentages = [
+            freqDist.low_1_2.percentage,
+            freqDist.optimal_3_7.percentage,
+            freqDist.high_8_15.percentage,
+            freqDist.overexposed_15_plus.percentage
+        ];
+
+        frequencyDistChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Users',
+                    data: values,
+                    backgroundColor: [
+                        'rgba(255, 206, 86, 0.8)',  // Yellow - Low
+                        'rgba(75, 192, 192, 0.8)',  // Green - Optimal
+                        'rgba(54, 162, 235, 0.8)',  // Blue - High
+                        'rgba(255, 99, 132, 0.8)'   // Red - Overexposed
+                    ],
+                    borderColor: [
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Frequency Distribution (Exposure Frequency)',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                return `${values[index]} users (${percentages[index]}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Users'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function displayRecommendations(recommendations) {
+        const container = document.getElementById('recommendationsContainer');
+        container.innerHTML = '';
+
+        if (!recommendations || recommendations.length === 0) {
+            container.innerHTML = '<p class="text-muted">No specific recommendations at this time.</p>';
+            return;
+        }
+
+        recommendations.forEach(rec => {
+            const alertClass = {
+                'success': 'alert-success',
+                'warning': 'alert-warning',
+                'danger': 'alert-danger',
+                'info': 'alert-info'
+            }[rec.type] || 'alert-info';
+
+            const iconClass = {
+                'success': 'bi-check-circle-fill',
+                'warning': 'bi-exclamation-triangle-fill',
+                'danger': 'bi-x-circle-fill',
+                'info': 'bi-info-circle-fill'
+            }[rec.type] || 'bi-info-circle-fill';
+
+            const html = `
+                <div class="alert ${alertClass} d-flex align-items-start" role="alert">
+                    <i class="bi ${iconClass} me-3" style="font-size: 1.5rem;"></i>
+                    <div class="flex-grow-1">
+                        <h6 class="alert-heading mb-1">${rec.category}</h6>
+                        <p class="mb-1">${rec.message}</p>
+                        <hr class="my-2">
+                        <p class="mb-0"><strong>Action:</strong> ${rec.action}</p>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    function displayDetailedMetrics(data) {
+        const tbody = document.getElementById('detailedMetricsBody');
+        tbody.innerHTML = '';
+
+        const metrics = [
+            { label: 'Report Period', value: `${new Date(data.report_period.start).toLocaleDateString()} - ${new Date(data.report_period.end).toLocaleDateString()}` },
+            { label: 'Target Audience', value: data.reach_metrics.target_audience.toLocaleString() + ' users' },
+            { label: 'Total Reach', value: data.reach_metrics.total_reach.toLocaleString() + ' unique users' },
+            { label: 'Reach Rate', value: data.reach_metrics.reach_rate + '%' },
+            { label: 'Total Impressions (OTS)', value: data.reach_metrics.total_impressions.toLocaleString() },
+            { label: 'Average Frequency', value: data.reach_metrics.frequency + 'x' },
+            { label: 'GRP (Gross Rating Point)', value: data.reach_metrics.grp },
+            { label: 'Effective Reach (3+ exposures)', value: data.effective_reach.total.toLocaleString() + ' (' + data.effective_reach.percentage + '%)' },
+            { label: 'Avg Time on Page', value: data.engagement.avg_time_on_page + ' seconds' },
+            { label: 'Engagement Rate', value: data.engagement.engagement_rate + '%' },
+            { label: 'Engaged Users (10s+)', value: data.engagement.engaged_users.toLocaleString() }
+        ];
+
+        // Add CPM if cost provided
+        if (data.cost_analysis.ad_cost > 0) {
+            metrics.push(
+                { label: 'Ad Cost', value: '$' + data.cost_analysis.ad_cost.toFixed(2) },
+                { label: 'CPM (Cost Per 1000)', value: '$' + data.cost_analysis.cpm },
+                { label: 'Cost Per Reach', value: '$' + data.cost_analysis.cost_per_reach }
+            );
+        }
+
+        // Display as 2-column table
+        for (let i = 0; i < metrics.length; i += 2) {
+            const row = `
+                <tr>
+                    <td class="fw-bold">${metrics[i].label}</td>
+                    <td>${metrics[i].value}</td>
+                    ${i + 1 < metrics.length ?
+                        `<td class="fw-bold">${metrics[i + 1].label}</td><td>${metrics[i + 1].value}</td>` :
+                        '<td colspan="2"></td>'}
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        }
+    }
+
+    function exportReachReport() {
+        if (!mediaReachData) {
+            alert('Please generate a report first');
+            return;
+        }
+
+        console.log('[PDF Export] Opening PDF in new tab...');
+
+        const days = document.getElementById('daysFilter').value;
+        const hotspot = document.getElementById('hotspotFilter').value;
+        const targetAudience = 10000;
+
+        // Build PDF URL
+        const url = `/api/export-reach-report-pdf/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+
+        // Open PDF in new tab
+        window.open(url, '_blank');
+
+        console.log('[PDF Export] ✓ PDF opened in new tab');
+    }
+
+    // Table search
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchTable');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#impressionsTableBody tr');
+
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

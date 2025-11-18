@@ -138,6 +138,7 @@ def settings_view(request):
     settings = SystemSettings.objects.first()
 
     if request.method == 'POST':
+        organization_name = request.POST.get('organization_name') or ''
         library_name = request.POST.get('library_name')
         contact_info = request.POST.get('contact_info')
         default_hotspot_name = request.POST.get('default_hotspot_name') or ''
@@ -145,6 +146,7 @@ def settings_view(request):
         logo = request.FILES.get('logo')
 
         if settings:
+            settings.organization_name = organization_name
             settings.library_name = library_name
             settings.contact_info = contact_info
             settings.default_hotspot_name = default_hotspot_name
@@ -156,6 +158,7 @@ def settings_view(request):
             messages.success(request, 'Settings updated successfully!')
         else:
             settings = SystemSettings.objects.create(
+                organization_name=organization_name,
                 library_name=library_name,
                 contact_info=contact_info,
                 default_hotspot_name=default_hotspot_name,
@@ -546,3 +549,9 @@ def cards_view(request):
     }
 
     return render(request, 'webapp/cards.html', context)
+
+
+@login_required
+def monitoring_view(request):
+    """Impression tracking monitoring dashboard"""
+    return render(request, 'webapp/monitoring.html')

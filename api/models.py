@@ -239,6 +239,7 @@ class SystemSettings(models.Model):
         (60, '60 minutes'),
     ]
 
+    organization_name = models.CharField(max_length=255, blank=True, help_text="Organization name (e.g., University, Library)")
     library_name = models.CharField(max_length=255, default="Library Login System")
     contact_info = models.TextField(blank=True, help_text="Contact information for support")
     logo = models.ImageField(upload_to='logos/', blank=True, null=True)

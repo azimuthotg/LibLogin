@@ -13,6 +13,7 @@ urlpatterns = [
     path('slides/', views.slides_view, name='slides'),
     path('cards/', views.cards_view, name='cards'),
     path('settings/', views.settings_view, name='settings'),
+    path('monitoring/', views.monitoring_view, name='monitoring'),
 
     # MikroTik Hotspot Pages (Public)
     path('hotspot/login/', views.hotspot_login, name='hotspot_login'),

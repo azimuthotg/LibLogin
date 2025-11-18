@@ -65,7 +65,7 @@ class SystemSettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SystemSettings
-        fields = ['id', 'library_name', 'contact_info', 'logo', 'logo_url',
+        fields = ['id', 'organization_name', 'library_name', 'contact_info', 'logo', 'logo_url',
                   'default_hotspot_name', 'hotspot_status_refresh_interval',
                   'updated_at', 'updated_by']
         read_only_fields = ['id', 'updated_at']
