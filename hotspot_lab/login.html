@@ -581,6 +581,68 @@
         })();
     </script>
 
+    <!-- Landing Page URL Loading Script -->
+    <script>
+        (function() {
+            // Configuration - Point to Django API Server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
+            const LANDING_URL_API = '/api/landing-url/';
+
+            // Load landing URL and override dst parameter if custom URL is configured
+            function loadLandingURL() {
+                const hotspotName = window.HOTSPOT_NAME || 'unknown';
+                const apiUrl = API_SERVER + LANDING_URL_API + '?hotspot_name=' + encodeURIComponent(hotspotName);
+
+                console.log('[Landing URL] Fetching from:', apiUrl);
+
+                fetch(apiUrl, {
+                    method: 'GET',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        if (data && data.success && data.landing_url && !data.fallback) {
+                            console.log('[Landing URL] ✓ Using custom landing URL:', data.landing_url);
+
+                            // Override dst parameter in all forms
+                            const forms = document.querySelectorAll('form[name="login"], form[name="sendin"]');
+                            forms.forEach(function(form) {
+                                const dstInput = form.querySelector('input[name="dst"]');
+                                if (dstInput) {
+                                    dstInput.value = data.landing_url;
+                                    console.log('[Landing URL] ✓ Updated dst in form:', form.name || 'unnamed');
+                                }
+                            });
+                        } else {
+                            console.log('[Landing URL] Using default MikroTik redirect ($(link-orig))');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('[Landing URL] ✗ Error:', error.message);
+                        console.log('[Landing URL] Falling back to default MikroTik redirect');
+                        // Fail silently - keep using $(link-orig)
+                    });
+            }
+
+            // Load landing URL when page is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadLandingURL);
+            } else {
+                loadLandingURL();
+            }
+        })();
+    </script>
+
     <!-- Page Impression Tracking Script -->
     <script>
         (function() {
