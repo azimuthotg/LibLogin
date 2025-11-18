@@ -13,6 +13,7 @@ from .views import (
     BackgroundImageViewSet,
     SystemSettingsViewSet,
     UserViewSet,
+    SlideContentViewSet,
     HotspotViewSet,
     LandingPageURLViewSet
 )
@@ -22,6 +23,7 @@ router = DefaultRouter()
 router.register(r'backgrounds', BackgroundImageViewSet, basename='background')
 router.register(r'settings', SystemSettingsViewSet, basename='settings')
 router.register(r'users', UserViewSet, basename='user')
+router.register(r'slides', SlideContentViewSet, basename='slide')
 router.register(r'hotspots', HotspotViewSet, basename='hotspot')
 router.register(r'landing-urls', LandingPageURLViewSet, basename='landing-url')
 

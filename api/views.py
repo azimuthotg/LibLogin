@@ -200,6 +200,25 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAdminUser]
 
 
+class SlideContentViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing slide content
+    Read operations are public, write operations require authentication
+    """
+    queryset = SlideContent.objects.all()
+    serializer_class = SlideContentSerializer
+
+    def get_permissions(self):
+        """Allow anyone to read, but require authentication for write operations"""
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        """Set created_by when creating a slide"""
+        serializer.save(created_by=self.request.user)
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_slide_content(request):
