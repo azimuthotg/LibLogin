@@ -555,3 +555,9 @@ def cards_view(request):
 def monitoring_view(request):
     """Impression tracking monitoring dashboard"""
     return render(request, 'webapp/monitoring.html')
+
+
+@login_required
+def landing_pages_view(request):
+    """Landing page URL management"""
+    return render(request, 'webapp/landing_pages.html')

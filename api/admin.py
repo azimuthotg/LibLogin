@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot
+from django.core.cache import cache
+from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, LandingPageURL
 
 
 @admin.register(BackgroundImage)
@@ -235,3 +236,79 @@ class CardContentAdmin(admin.ModelAdmin):
         if not change:  # If creating new object
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(LandingPageURL)
+class LandingPageURLAdmin(admin.ModelAdmin):
+    list_display = ['status_icon', 'title', 'url_preview', 'hotspot_name', 'is_active', 'redirect_count', 'last_redirected_at', 'created_by']
+    list_filter = ['is_active', 'hotspot_name', 'created_at']
+    search_fields = ['title', 'url', 'hotspot_name']
+    list_editable = ['is_active']
+    readonly_fields = ['redirect_count', 'last_redirected_at', 'created_at', 'updated_at']
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Landing Page Information', {
+            'fields': ('title', 'url', 'hotspot_name')
+        }),
+        ('Settings', {
+            'fields': ('is_active', 'priority'),
+            'description': 'Only one landing URL can be active per hotspot at a time.'
+        }),
+        ('Analytics', {
+            'fields': ('redirect_count', 'last_redirected_at'),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('created_by', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def status_icon(self, obj):
+        if obj.is_active:
+            return format_html('<span style="color: green; font-size: 1.2em;">●</span>')
+        return format_html('<span style="color: gray; font-size: 1.2em;">○</span>')
+    status_icon.short_description = 'Status'
+
+    def url_preview(self, obj):
+        if len(obj.url) > 50:
+            return format_html('<a href="{}" target="_blank">{}</a>', obj.url, obj.url[:50] + '...')
+        return format_html('<a href="{}" target="_blank">{}</a>', obj.url, obj.url)
+    url_preview.short_description = 'URL'
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # If creating new object
+            obj.created_by = request.user
+
+        # If setting as active, deactivate other URLs for this hotspot
+        if obj.is_active:
+            LandingPageURL.objects.filter(
+                hotspot_name=obj.hotspot_name,
+                is_active=True
+            ).exclude(id=obj.id).update(is_active=False)
+
+        super().save_model(request, obj, form, change)
+
+        # Invalidate cache for this hotspot
+        cache_key = f'landing_url_{obj.hotspot_name}'
+        cache.delete(cache_key)
+
+    def delete_model(self, request, obj):
+        """Invalidate cache when deleting from admin"""
+        hotspot_name = obj.hotspot_name
+        super().delete_model(request, obj)
+
+        # Invalidate cache for this hotspot
+        cache_key = f'landing_url_{hotspot_name}'
+        cache.delete(cache_key)
+
+    def delete_queryset(self, request, queryset):
+        """Invalidate cache when bulk deleting from admin"""
+        hotspot_names = set(queryset.values_list('hotspot_name', flat=True))
+        super().delete_queryset(request, queryset)
+
+        # Invalidate cache for all affected hotspots
+        for hotspot_name in hotspot_names:
+            cache_key = f'landing_url_{hotspot_name}'
+            cache.delete(cache_key)

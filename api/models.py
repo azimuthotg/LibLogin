@@ -333,3 +333,44 @@ class DailyReachStats(models.Model):
 
     def __str__(self):
         return f"{self.hotspot_name} - {self.date} ({self.unique_devices} unique, {self.total_impressions} total)"
+
+
+class LandingPageURL(models.Model):
+    """Landing page URL for post-login redirect (per hotspot)"""
+
+    title = models.CharField(max_length=255, help_text="Description (e.g., Library Portal, Promotion Page)")
+    url = models.URLField(max_length=500, help_text="Redirect URL after successful login")
+    hotspot_name = models.CharField(max_length=100, db_index=True, help_text="Hotspot identifier")
+    is_active = models.BooleanField(default=False, help_text="Active redirect for this hotspot")
+
+    # Analytics
+    redirect_count = models.IntegerField(default=0, help_text="Number of times users were redirected")
+    last_redirected_at = models.DateTimeField(null=True, blank=True, help_text="Last redirect timestamp")
+
+    # Optional priority for future A/B testing
+    priority = models.IntegerField(default=0, help_text="Priority (higher = preferred if multiple active)")
+
+    # Metadata
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='landing_urls')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Landing Page URL"
+        verbose_name_plural = "Landing Page URLs"
+        ordering = ['-is_active', '-priority', '-created_at']
+        indexes = [
+            models.Index(fields=['hotspot_name', 'is_active']),
+            models.Index(fields=['is_active', 'hotspot_name']),
+        ]
+
+    def __str__(self):
+        status = "🟢 Active" if self.is_active else "⚪ Inactive"
+        return f"{status} | {self.title} ({self.hotspot_name})"
+
+    def increment_redirect_count(self):
+        """Increment redirect counter and update timestamp"""
+        from django.utils import timezone
+        self.redirect_count += 1
+        self.last_redirected_at = timezone.now()
+        self.save(update_fields=['redirect_count', 'last_redirected_at'])

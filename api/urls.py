@@ -5,6 +5,7 @@ from .views import (
     get_slide_content,
     get_template_config,
     get_hotspot_choices,
+    get_landing_url,
     track_impression,
     impression_statistics,
     media_reach_report,
@@ -12,7 +13,8 @@ from .views import (
     BackgroundImageViewSet,
     SystemSettingsViewSet,
     UserViewSet,
-    HotspotViewSet
+    HotspotViewSet,
+    LandingPageURLViewSet
 )
 
 # Create router for viewsets
@@ -21,6 +23,7 @@ router.register(r'backgrounds', BackgroundImageViewSet, basename='background')
 router.register(r'settings', SystemSettingsViewSet, basename='settings')
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'hotspots', HotspotViewSet, basename='hotspot')
+router.register(r'landing-urls', LandingPageURLViewSet, basename='landing-url')
 
 urlpatterns = [
     # Public endpoint for MikroTik to fetch background image
@@ -34,6 +37,9 @@ urlpatterns = [
 
     # Hotspot choices for dropdowns
     path('hotspot-choices/', get_hotspot_choices, name='hotspot-choices'),
+
+    # Landing URL for redirect after login (public endpoint for MikroTik login pages)
+    path('landing-url/', get_landing_url, name='landing-url'),
 
     # Page impression tracking (public endpoint for MikroTik login pages)
     path('track-impression/', track_impression, name='track-impression'),

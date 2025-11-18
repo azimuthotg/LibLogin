@@ -14,6 +14,7 @@ urlpatterns = [
     path('cards/', views.cards_view, name='cards'),
     path('settings/', views.settings_view, name='settings'),
     path('monitoring/', views.monitoring_view, name='monitoring'),
+    path('landing-pages/', views.landing_pages_view, name='landing_pages'),
 
     # MikroTik Hotspot Pages (Public)
     path('hotspot/login/', views.hotspot_login, name='hotspot_login'),

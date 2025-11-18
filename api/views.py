@@ -5,7 +5,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
-from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, PageImpression, DailyReachStats
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, PageImpression, DailyReachStats, LandingPageURL
 from .serializers import (
     BackgroundImageSerializer,
     BackgroundImageUploadSerializer,
@@ -16,7 +18,8 @@ from .serializers import (
     SlideContentSerializer,
     CardContentSerializer,
     HotspotSerializer,
-    HotspotChoiceSerializer
+    HotspotChoiceSerializer,
+    LandingPageURLSerializer
 )
 import logging
 import hashlib
@@ -515,6 +518,199 @@ class HotspotViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'message': f'Error testing connection: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class LandingPageURLViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing landing page URLs
+
+    Features:
+    - CRUD operations for landing page URLs
+    - Automatic cache invalidation on create/update/delete
+    - Only one active URL per hotspot at a time
+    """
+    queryset = LandingPageURL.objects.all()
+    serializer_class = LandingPageURLSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Filter by hotspot_name if provided"""
+        queryset = LandingPageURL.objects.all()
+        hotspot_name = self.request.query_params.get('hotspot_name', None)
+        if hotspot_name:
+            queryset = queryset.filter(hotspot_name=hotspot_name)
+        return queryset
+
+    def perform_destroy(self, instance):
+        """Invalidate cache when deleting a landing URL"""
+        hotspot_name = instance.hotspot_name
+        instance.delete()
+
+        # Invalidate cache for this hotspot
+        cache_key = f'landing_url_{hotspot_name}'
+        cache.delete(cache_key)
+        logger.info(f"[Landing URL] Deleted and cache invalidated for {hotspot_name}")
+
+    def perform_create(self, serializer):
+        """Set created_by when creating a landing URL"""
+        hotspot_name = serializer.validated_data.get('hotspot_name')
+
+        # If setting as active, deactivate others for this hotspot
+        if serializer.validated_data.get('is_active', False):
+            LandingPageURL.objects.filter(
+                hotspot_name=hotspot_name,
+                is_active=True
+            ).update(is_active=False)
+            logger.info(f"[Landing URL] Deactivated existing active URLs for {hotspot_name}")
+
+        serializer.save(created_by=self.request.user)
+
+        # Invalidate cache for this hotspot
+        cache_key = f'landing_url_{hotspot_name}'
+        cache.delete(cache_key)
+        logger.info(f"[Landing URL] Cache invalidated for {hotspot_name}")
+
+    def perform_update(self, serializer):
+        """Handle activation logic when updating"""
+        hotspot_name = serializer.instance.hotspot_name
+
+        if serializer.validated_data.get('is_active', False):
+            # Deactivate other active URLs for this hotspot
+            LandingPageURL.objects.filter(
+                hotspot_name=hotspot_name,
+                is_active=True
+            ).exclude(id=serializer.instance.id).update(is_active=False)
+            logger.info(f"[Landing URL] Deactivated other active URLs for {hotspot_name}")
+
+        serializer.save()
+
+        # Invalidate cache for this hotspot
+        cache_key = f'landing_url_{hotspot_name}'
+        cache.delete(cache_key)
+        logger.info(f"[Landing URL] Cache invalidated for {hotspot_name}")
+
+    @action(detail=True, methods=['post'])
+    def set_active(self, request, pk=None):
+        """Set this landing URL as active (deactivate others)"""
+        landing_url = self.get_object()
+        hotspot_name = landing_url.hotspot_name
+
+        # Deactivate other active URLs for this hotspot
+        LandingPageURL.objects.filter(
+            hotspot_name=hotspot_name,
+            is_active=True
+        ).exclude(id=landing_url.id).update(is_active=False)
+
+        # Activate this one
+        landing_url.is_active = True
+        landing_url.save()
+
+        # Invalidate cache for this hotspot
+        cache_key = f'landing_url_{hotspot_name}'
+        cache.delete(cache_key)
+
+        logger.info(f"[Landing URL] Activated: {landing_url.title} for {hotspot_name}")
+
+        return Response({
+            'success': True,
+            'message': f'Landing URL "{landing_url.title}" is now active',
+            'data': LandingPageURLSerializer(landing_url).data
+        })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_landing_url(request):
+    """
+    Public API endpoint to get active landing URL for a hotspot
+    Used by login.html to determine redirect URL
+
+    Features:
+    - Caching: Results cached for 5 minutes per hotspot
+    - Error handling: Graceful fallback when no URL configured
+    - Auto-invalidation: Cache cleared when landing URLs are updated
+    """
+    hotspot_name = request.GET.get('hotspot_name', None)
+
+    # Validate hotspot_name parameter
+    if not hotspot_name:
+        logger.warning("[Landing URL] Missing hotspot_name parameter")
+        return Response({
+            'success': False,
+            'message': 'hotspot_name parameter is required',
+            'fallback': True
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate hotspot_name length (prevent abuse)
+    if len(hotspot_name) > 100:
+        logger.warning(f"[Landing URL] Invalid hotspot_name length: {len(hotspot_name)}")
+        return Response({
+            'success': False,
+            'message': 'Invalid hotspot_name parameter',
+            'fallback': True
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Generate cache key
+        cache_key = f'landing_url_{hotspot_name}'
+
+        # Try to get from cache first
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            logger.info(f"[Landing URL] Cache hit for {hotspot_name}")
+            return Response(cached_result)
+
+        # Cache miss - query database
+        logger.info(f"[Landing URL] Cache miss for {hotspot_name}, querying database")
+
+        landing_url = LandingPageURL.objects.filter(
+            hotspot_name=hotspot_name,
+            is_active=True
+        ).first()
+
+        if landing_url:
+            result = {
+                'success': True,
+                'landing_url': landing_url.url,
+                'title': landing_url.title,
+                'fallback': False
+            }
+            logger.info(f"[Landing URL] Found active URL for {hotspot_name}: {landing_url.url}")
+
+            # Update redirect count and timestamp
+            landing_url.redirect_count += 1
+            landing_url.last_redirected_at = timezone.now()
+            landing_url.save(update_fields=['redirect_count', 'last_redirected_at'])
+        else:
+            result = {
+                'success': True,
+                'landing_url': None,
+                'fallback': True,
+                'message': f'No active landing URL configured for {hotspot_name}'
+            }
+            logger.info(f"[Landing URL] No active URL for {hotspot_name}, using fallback")
+
+        # Cache the result for 5 minutes (300 seconds)
+        cache.set(cache_key, result, timeout=300)
+
+        return Response(result)
+
+    except ValidationError as e:
+        logger.error(f"[Landing URL] Validation error: {str(e)}")
+        return Response({
+            'success': False,
+            'message': 'Invalid request parameters',
+            'fallback': True
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"[Landing URL] Unexpected error: {str(e)}", exc_info=True)
+        # Return fallback even on error to ensure login still works
+        return Response({
+            'success': False,
+            'message': 'Internal server error',
+            'fallback': True
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])

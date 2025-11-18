@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent, Hotspot
+from .models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent, Hotspot, LandingPageURL
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -135,3 +135,15 @@ class TemplateConfigFullSerializer(serializers.Serializer):
     slides = SlideContentSerializer(many=True, required=False)
     cards = CardContentSerializer(many=True, required=False)
     background = serializers.DictField(required=False)
+
+
+class LandingPageURLSerializer(serializers.ModelSerializer):
+    """Serializer for LandingPageURL model"""
+    created_by = UserSerializer(read_only=True)
+
+    class Meta:
+        model = LandingPageURL
+        fields = ['id', 'title', 'url', 'hotspot_name', 'is_active',
+                  'redirect_count', 'last_redirected_at', 'priority',
+                  'created_by', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'redirect_count', 'last_redirected_at', 'created_at', 'updated_at']
