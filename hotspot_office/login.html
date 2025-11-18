@@ -215,11 +215,25 @@
             let retryCount = 0;
             let isLoading = false;
             const CACHE_KEY = 'liblogin_template_cache';
-            const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+            // ⚡ Cache Duration: Disabled in development, enabled in production
+            const IS_DEVELOPMENT = window.location.hostname === 'localhost' ||
+                                   window.location.hostname === '127.0.0.1' ||
+                                   window.location.hostname.startsWith('192.168.') ||
+                                   window.location.hostname.startsWith('172.');
+            const CACHE_DURATION = IS_DEVELOPMENT ? 0 : (5 * 60 * 1000); // 0 in dev, 5 min in production
+
+            console.log('[Cache] Mode:', IS_DEVELOPMENT ? 'DEVELOPMENT (Cache Disabled)' : 'PRODUCTION (Cache 5 min)');
 
             // Cache helpers
             function getCachedData() {
                 try {
+                    // Skip cache entirely in development mode
+                    if (IS_DEVELOPMENT) {
+                        console.log('[Cache] 🚀 Development mode - Cache disabled');
+                        return null;
+                    }
+
                     const cached = localStorage.getItem(CACHE_KEY);
                     if (!cached) return null;
 
@@ -524,6 +538,10 @@
                 }
                 if (hotspotName) {
                     params.push('hotspot_name=' + encodeURIComponent(hotspotName));
+                }
+                // Cache busting in development mode
+                if (IS_DEVELOPMENT) {
+                    params.push('_t=' + Date.now());
                 }
                 if (params.length > 0) {
                     apiUrl += '?' + params.join('&');
