@@ -127,11 +127,23 @@ body {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
+/* Remove margin when title is hidden */
+.slide-title[style*="display: none"],
+.slide-title[style*="display:none"] {
+    margin: 0 !important;
+}
+
 .slide-description {
     font-size: 18px;
     line-height: 1.6;
     margin-bottom: 30px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Remove margin when description is hidden */
+.slide-description[style*="display: none"],
+.slide-description[style*="display:none"] {
+    margin: 0 !important;
 }
 
 /* Dots Indicator */
