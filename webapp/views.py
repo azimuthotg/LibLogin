@@ -427,6 +427,18 @@ def slides_view(request):
             order = request.POST.get('order', 0)
             is_active = request.POST.get('is_active') == 'on'
 
+            # Get new display toggle fields
+            show_title = request.POST.get('show_title') == 'on'
+            show_description = request.POST.get('show_description') == 'on'
+
+            # Get image size
+            image_size = request.POST.get('image_size', 'square_400')
+
+            # Get link/CTA fields
+            show_link = request.POST.get('show_link') == 'on'
+            link_url = request.POST.get('link_url') or None
+            link_text = request.POST.get('link_text', 'อ่านต่อ')
+
             if title and description and (icon or icon_image):
                 SlideContent.objects.create(
                     icon=icon,
@@ -436,6 +448,12 @@ def slides_view(request):
                     hotspot_name=hotspot_name,
                     order=order,
                     is_active=is_active,
+                    show_title=show_title,
+                    show_description=show_description,
+                    image_size=image_size,
+                    show_link=show_link,
+                    link_url=link_url,
+                    link_text=link_text,
                     created_by=request.user
                 )
                 messages.success(request, f'Slide "{title}" created successfully!')
@@ -457,6 +475,19 @@ def slides_view(request):
             slide.hotspot_name = request.POST.get('hotspot_name') or None
             slide.order = request.POST.get('order', 0)
             slide.is_active = request.POST.get('is_active') == 'on'
+
+            # Update new display toggle fields
+            slide.show_title = request.POST.get('show_title') == 'on'
+            slide.show_description = request.POST.get('show_description') == 'on'
+
+            # Update image size
+            slide.image_size = request.POST.get('image_size', 'square_400')
+
+            # Update link/CTA fields
+            slide.show_link = request.POST.get('show_link') == 'on'
+            slide.link_url = request.POST.get('link_url') or None
+            slide.link_text = request.POST.get('link_text', 'อ่านต่อ')
+
             slide.save()
 
             messages.success(request, f'Slide "{slide.title}" updated successfully!')

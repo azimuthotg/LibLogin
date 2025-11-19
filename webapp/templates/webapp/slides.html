@@ -497,22 +497,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Add new fields for both create and update forms
                 if (actionType === 'create') {
-                    formData.append('show_title', document.getElementById('add_show_title').checked);
-                    formData.append('show_description', document.getElementById('add_show_description').checked);
+                    // Append checkboxes only when checked (Django expects 'on' or missing)
+                    if (document.getElementById('add_show_title').checked) {
+                        formData.append('show_title', 'on');
+                    }
+                    if (document.getElementById('add_show_description').checked) {
+                        formData.append('show_description', 'on');
+                    }
                     formData.append('image_size', document.getElementById('add_image_size').value);
-                    formData.append('show_link', document.getElementById('add_show_link').checked);
 
                     if (document.getElementById('add_show_link').checked) {
+                        formData.append('show_link', 'on');
                         formData.append('link_url', document.getElementById('add_link_url').value);
                         formData.append('link_text', document.getElementById('add_link_text').value);
                     }
                 } else if (actionType === 'update') {
-                    formData.append('show_title', document.getElementById('edit_show_title').checked);
-                    formData.append('show_description', document.getElementById('edit_show_description').checked);
+                    // Append checkboxes only when checked (Django expects 'on' or missing)
+                    if (document.getElementById('edit_show_title').checked) {
+                        formData.append('show_title', 'on');
+                    }
+                    if (document.getElementById('edit_show_description').checked) {
+                        formData.append('show_description', 'on');
+                    }
                     formData.append('image_size', document.getElementById('edit_image_size').value);
-                    formData.append('show_link', document.getElementById('edit_show_link').checked);
 
                     if (document.getElementById('edit_show_link').checked) {
+                        formData.append('show_link', 'on');
                         formData.append('link_url', document.getElementById('edit_link_url').value);
                         formData.append('link_text', document.getElementById('edit_link_text').value);
                     }

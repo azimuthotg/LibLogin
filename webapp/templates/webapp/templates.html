@@ -264,35 +264,22 @@ function previewTemplate(templateId, hotspotName) {
     try {
         console.log('[Preview] Loading template preview:', templateId, 'hotspot:', hotspotName);
 
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('previewTemplateModal'));
-        modal.show();
-
-        // Show loading, hide iframe
-        document.getElementById('previewLoading').style.display = 'block';
-        const iframe = document.getElementById('previewIframe');
-        iframe.style.display = 'none';
-
         // Build preview URL - use hotspot folder path
         // If hotspot is specified, use /{hotspot}/login.html, otherwise use /hotspot/login.html (default)
         const hotspotPath = hotspotName || 'hotspot';
         let previewUrl = '/' + hotspotPath + '/login.html?template_id=' + encodeURIComponent(templateId);
 
-        console.log('[Preview] Loading URL:', previewUrl);
+        console.log('[Preview] Opening URL in new tab:', previewUrl);
 
-        // Load iframe
-        iframe.onload = function() {
-            console.log('[Preview] ✓ Iframe loaded');
-            document.getElementById('previewLoading').style.display = 'none';
-            iframe.style.display = 'block';
-        };
+        // Open preview in new tab
+        const previewWindow = window.open(previewUrl, '_blank');
 
-        iframe.onerror = function() {
-            console.error('[Preview] ✗ Iframe load error');
-            document.getElementById('previewLoading').innerHTML = '<p class="text-danger">เกิดข้อผิดพลาดในการโหลดตัวอย่าง</p>';
-        };
-
-        iframe.src = previewUrl;
+        if (!previewWindow) {
+            // Popup blocked
+            showToast('กรุณาอนุญาตให้เปิดหน้าต่างใหม่ในเบราว์เซอร์', 'error');
+        } else {
+            showToast('กำลังเปิดตัวอย่างในแท็บใหม่...', 'success');
+        }
 
     } catch (error) {
         console.error('[Preview Template Error]', error);
