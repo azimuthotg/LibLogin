@@ -13,6 +13,10 @@
         color: white;
         margin-bottom: 20px;
         transition: transform 0.2s;
+        height: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     .stat-card:hover {
@@ -40,6 +44,9 @@
         font-size: 2.5rem;
         font-weight: bold;
         margin: 10px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .stat-label {
@@ -147,8 +154,15 @@
 {% block content %}
 <!-- Filter Bar -->
 <div class="filter-bar">
-    <div class="row align-items-end">
+    <div class="row align-items-end mb-3">
         <div class="col-md-3">
+            <label for="dateRangeType" class="form-label"><small>Date Range Type</small></label>
+            <select class="form-select" id="dateRangeType" onchange="toggleDateRangeInputs()">
+                <option value="preset" selected>Quick Select</option>
+                <option value="custom">Custom Range</option>
+            </select>
+        </div>
+        <div class="col-md-3" id="presetRangeContainer">
             <label for="daysFilter" class="form-label"><small>Time Range</small></label>
             <select class="form-select" id="daysFilter">
                 <option value="1">Last 24 Hours</option>
@@ -156,6 +170,18 @@
                 <option value="30">Last 30 Days</option>
                 <option value="90">Last 90 Days</option>
             </select>
+        </div>
+        <div class="col-md-6" id="customRangeContainer" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="startDate" class="form-label"><small>Start Date</small></label>
+                    <input type="date" class="form-control" id="startDate">
+                </div>
+                <div class="col-md-6">
+                    <label for="endDate" class="form-label"><small>End Date</small></label>
+                    <input type="date" class="form-control" id="endDate">
+                </div>
+            </div>
         </div>
         <div class="col-md-3">
             <label for="hotspotFilter" class="form-label"><small>Hotspot</small></label>
@@ -215,10 +241,10 @@
 </div>
 
 <!-- Charts Row -->
-<div class="row mb-4">
+<div class="row mb-4" style="min-height: 400px;">
     <!-- Daily Trend Chart -->
-    <div class="col-md-8">
-        <div class="chart-container">
+    <div class="col-md-8 d-flex">
+        <div class="chart-container" style="flex: 1;">
             <div class="chart-title">
                 <i class="bi bi-graph-up"></i> Impression Trend
             </div>
@@ -227,12 +253,12 @@
     </div>
 
     <!-- Device Breakdown Chart -->
-    <div class="col-md-4">
-        <div class="chart-container">
+    <div class="col-md-4 d-flex">
+        <div class="chart-container" style="flex: 1;">
             <div class="chart-title">
                 <i class="bi bi-pie-chart"></i> Device Breakdown
             </div>
-            <canvas id="deviceChart" height="200"></canvas>
+            <canvas id="deviceChart" height="80"></canvas>
         </div>
     </div>
 </div>
@@ -455,12 +481,39 @@
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         console.log('[Monitoring] Initializing dashboard...');
+        initializeDateInputs();
         loadHotspotChoices();
         loadData();
 
         // Auto-refresh every 30 seconds
         setInterval(loadData, 30000);
     });
+
+    // Initialize date inputs with default values
+    function initializeDateInputs() {
+        const today = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(today.getDate() - 7);
+
+        // Set default custom date range (last 7 days)
+        document.getElementById('endDate').valueAsDate = today;
+        document.getElementById('startDate').valueAsDate = sevenDaysAgo;
+    }
+
+    // Toggle between preset and custom date range
+    function toggleDateRangeInputs() {
+        const rangeType = document.getElementById('dateRangeType').value;
+        const presetContainer = document.getElementById('presetRangeContainer');
+        const customContainer = document.getElementById('customRangeContainer');
+
+        if (rangeType === 'custom') {
+            presetContainer.style.display = 'none';
+            customContainer.style.display = 'block';
+        } else {
+            presetContainer.style.display = 'block';
+            customContainer.style.display = 'none';
+        }
+    }
 
     // Load hotspot choices for filter
     async function loadHotspotChoices() {
@@ -488,11 +541,36 @@
     async function loadData() {
         console.log('[Monitoring] Loading statistics...');
 
-        const days = document.getElementById('daysFilter').value;
+        const rangeType = document.getElementById('dateRangeType').value;
         const hotspot = document.getElementById('hotspotFilter').value;
+        let url;
+
+        if (rangeType === 'custom') {
+            // Custom date range
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            // Validate date range
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('Start date must be before end date');
+                return;
+            }
+
+            url = `/api/impression-statistics/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&limit=50`;
+            console.log('[Monitoring] Using custom date range:', startDate, 'to', endDate);
+        } else {
+            // Preset range (days)
+            const days = document.getElementById('daysFilter').value;
+            url = `/api/impression-statistics/?days=${days}&hotspot=${hotspot}&limit=50`;
+            console.log('[Monitoring] Using preset range: last', days, 'days');
+        }
 
         try {
-            const url = `/api/impression-statistics/?days=${days}&hotspot=${hotspot}&limit=50`;
             const response = await fetch(url);
 
             if (!response.ok) {
@@ -787,12 +865,31 @@
         document.getElementById('mediaReachContent').style.display = 'none';
         document.getElementById('mediaReachLoading').style.display = 'block';
 
-        const days = document.getElementById('daysFilter').value;
+        const rangeType = document.getElementById('dateRangeType').value;
         const hotspot = document.getElementById('hotspotFilter').value;
         const targetAudience = 10000; // TODO: Make this configurable
+        let url;
+
+        if (rangeType === 'custom') {
+            // Custom date range
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                document.getElementById('mediaReachLoading').style.display = 'none';
+                document.getElementById('mediaReachInitial').style.display = 'block';
+                return;
+            }
+
+            url = `/api/media-reach-report/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+        } else {
+            // Preset range (days)
+            const days = document.getElementById('daysFilter').value;
+            url = `/api/media-reach-report/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+        }
 
         try {
-            const url = `/api/media-reach-report/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
             const response = await fetch(url);
 
             if (!response.ok) {
@@ -1021,12 +1118,19 @@
 
         console.log('[PDF Export] Opening PDF in new tab...');
 
-        const days = document.getElementById('daysFilter').value;
+        const rangeType = document.getElementById('dateRangeType').value;
         const hotspot = document.getElementById('hotspotFilter').value;
         const targetAudience = 10000;
+        let url;
 
-        // Build PDF URL
-        const url = `/api/export-reach-report-pdf/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+        if (rangeType === 'custom') {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            url = `/api/export-reach-report-pdf/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+        } else {
+            const days = document.getElementById('daysFilter').value;
+            url = `/api/export-reach-report-pdf/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+        }
 
         // Open PDF in new tab
         window.open(url, '_blank');

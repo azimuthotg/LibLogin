@@ -28,6 +28,36 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label"><small>Date Range Type</small></label>
+                            <select class="form-select" id="dateRangeType" onchange="toggleDateRangeInputs()">
+                                <option value="all" selected>All Time</option>
+                                <option value="preset">Quick Select</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3" id="presetRangeContainer" style="display: none;">
+                            <label class="form-label"><small>Time Range</small></label>
+                            <select class="form-select" id="daysFilter" onchange="filterLandingURLs()">
+                                <option value="7">Last 7 Days</option>
+                                <option value="30" selected>Last 30 Days</option>
+                                <option value="90">Last 90 Days</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="customRangeContainer" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label"><small>Start Date</small></label>
+                                    <input type="date" class="form-control" id="startDate" onchange="filterLandingURLs()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><small>End Date</small></label>
+                                    <input type="date" class="form-control" id="endDate" onchange="filterLandingURLs()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-4">
                             <label class="form-label">Filter by Hotspot:</label>
@@ -234,8 +264,41 @@
 
     // Load data on page load
     document.addEventListener('DOMContentLoaded', function() {
+        initializeDateInputs();
         loadLandingURLs();
     });
+
+    // Initialize date inputs with default values
+    function initializeDateInputs() {
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+
+        // Set default custom date range (last 30 days)
+        document.getElementById('endDate').valueAsDate = today;
+        document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+    }
+
+    // Toggle between all time, preset and custom date range
+    function toggleDateRangeInputs() {
+        const rangeType = document.getElementById('dateRangeType').value;
+        const presetContainer = document.getElementById('presetRangeContainer');
+        const customContainer = document.getElementById('customRangeContainer');
+
+        if (rangeType === 'preset') {
+            presetContainer.style.display = 'block';
+            customContainer.style.display = 'none';
+        } else if (rangeType === 'custom') {
+            presetContainer.style.display = 'none';
+            customContainer.style.display = 'block';
+        } else {
+            // all time
+            presetContainer.style.display = 'none';
+            customContainer.style.display = 'none';
+        }
+
+        filterLandingURLs();
+    }
 
     // Load landing URLs
     async function loadLandingURLs() {
@@ -257,8 +320,41 @@
     function filterLandingURLs() {
         const hotspotFilter = document.getElementById('hotspotFilter').value;
         const statusFilter = document.getElementById('statusFilter').value;
+        const dateRangeType = document.getElementById('dateRangeType').value;
 
         let filtered = allLandingURLs;
+
+        // Filter by date range
+        if (dateRangeType === 'preset') {
+            const days = parseInt(document.getElementById('daysFilter').value);
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+
+            filtered = filtered.filter(url => {
+                const createdDate = new Date(url.created_at);
+                return createdDate >= cutoffDate;
+            });
+        } else if (dateRangeType === 'custom') {
+            const startDateStr = document.getElementById('startDate').value;
+            const endDateStr = document.getElementById('endDate').value;
+
+            if (startDateStr && endDateStr) {
+                const startDate = new Date(startDateStr);
+                const endDate = new Date(endDateStr);
+                endDate.setHours(23, 59, 59, 999); // Include the entire end date
+
+                if (startDate > endDate) {
+                    alert('Start date must be before end date');
+                    return;
+                }
+
+                filtered = filtered.filter(url => {
+                    const createdDate = new Date(url.created_at);
+                    return createdDate >= startDate && createdDate <= endDate;
+                });
+            }
+        }
+        // If dateRangeType === 'all', no date filtering
 
         // Filter by hotspot (empty string means "All Hotspots")
         if (hotspotFilter && hotspotFilter !== '') {

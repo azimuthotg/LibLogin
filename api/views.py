@@ -862,15 +862,29 @@ def impression_statistics(request):
     """Get impression tracking statistics with filtering options"""
     try:
         # Get query parameters
-        days = int(request.GET.get('days', 7))  # Default: last 7 days
         hotspot_filter = request.GET.get('hotspot', None)
 
-        # Calculate date range
-        end_date = timezone.now()
-        start_date = end_date - timedelta(days=days)
+        # Calculate date range - support both 'days' and custom 'start_date/end_date'
+        if request.GET.get('start_date') and request.GET.get('end_date'):
+            # Custom date range
+            from datetime import datetime
+            start_date = datetime.strptime(request.GET.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.GET.get('end_date'), '%Y-%m-%d')
+            # Make end_date inclusive (end of day)
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+            # Make timezone aware
+            start_date = timezone.make_aware(start_date)
+            end_date = timezone.make_aware(end_date)
+            # Calculate days for later use
+            days = (end_date - start_date).days
+        else:
+            # Preset range (days)
+            days = int(request.GET.get('days', 7))  # Default: last 7 days
+            end_date = timezone.now()
+            start_date = end_date - timedelta(days=days)
 
         # Base queryset
-        queryset = PageImpression.objects.filter(viewed_at__gte=start_date)
+        queryset = PageImpression.objects.filter(viewed_at__gte=start_date, viewed_at__lte=end_date)
 
         # Apply hotspot filter if provided
         if hotspot_filter and hotspot_filter != 'all':
@@ -894,6 +908,10 @@ def impression_statistics(request):
         top_hotspot = queryset.values('hotspot_name').annotate(
             count=Count('id')
         ).order_by('-count').first()
+
+        # Handle case when no data exists
+        top_hotspot_name = top_hotspot['hotspot_name'] if top_hotspot else 'N/A'
+        top_hotspot_count = top_hotspot['count'] if top_hotspot else 0
 
         # === DAILY TREND (for line chart) ===
         daily_trend = queryset.annotate(
@@ -946,8 +964,8 @@ def impression_statistics(request):
                 'total_impressions': total_impressions,
                 'unique_devices': unique_devices,
                 'avg_time_on_page': round(avg_time, 1),
-                'top_hotspot': top_hotspot['hotspot_name'] if top_hotspot else 'N/A',
-                'top_hotspot_count': top_hotspot['count'] if top_hotspot else 0
+                'top_hotspot': top_hotspot_name,
+                'top_hotspot_count': top_hotspot_count
             },
             'device_breakdown': list(device_stats),
             'daily_trend': [{
@@ -980,16 +998,30 @@ def media_reach_report(request):
     """Generate Media Reach Assessment Report for advertising effectiveness"""
     try:
         # Get query parameters
-        days = int(request.GET.get('days', 7))
         hotspot_filter = request.GET.get('hotspot', None)
         target_audience = int(request.GET.get('target_audience', 10000))  # Total potential audience
 
-        # Calculate date range
-        end_date = timezone.now()
-        start_date = end_date - timedelta(days=days)
+        # Calculate date range - support both 'days' and custom 'start_date/end_date'
+        if request.GET.get('start_date') and request.GET.get('end_date'):
+            # Custom date range
+            from datetime import datetime
+            start_date = datetime.strptime(request.GET.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.GET.get('end_date'), '%Y-%m-%d')
+            # Make end_date inclusive (end of day)
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+            # Make timezone aware
+            start_date = timezone.make_aware(start_date)
+            end_date = timezone.make_aware(end_date)
+            # Calculate days for later use
+            days = (end_date - start_date).days
+        else:
+            # Preset range (days)
+            days = int(request.GET.get('days', 7))
+            end_date = timezone.now()
+            start_date = end_date - timedelta(days=days)
 
         # Base queryset
-        queryset = PageImpression.objects.filter(viewed_at__gte=start_date)
+        queryset = PageImpression.objects.filter(viewed_at__gte=start_date, viewed_at__lte=end_date)
 
         # Apply hotspot filter if provided
         if hotspot_filter and hotspot_filter != 'all':
@@ -1262,16 +1294,30 @@ def export_reach_report_pdf(request):
     """Export Media Reach Report as PDF"""
     try:
         # Get same parameters as media_reach_report
-        days = int(request.GET.get('days', 7))
         hotspot_filter = request.GET.get('hotspot', None)
         target_audience = int(request.GET.get('target_audience', 10000))
 
-        # Calculate date range
-        end_date = timezone.now()
-        start_date = end_date - timedelta(days=days)
+        # Calculate date range - support both 'days' and custom 'start_date/end_date'
+        if request.GET.get('start_date') and request.GET.get('end_date'):
+            # Custom date range
+            from datetime import datetime
+            start_date = datetime.strptime(request.GET.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.GET.get('end_date'), '%Y-%m-%d')
+            # Make end_date inclusive (end of day)
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+            # Make timezone aware
+            start_date = timezone.make_aware(start_date)
+            end_date = timezone.make_aware(end_date)
+            # Calculate days for later use
+            days = (end_date - start_date).days
+        else:
+            # Preset range (days)
+            days = int(request.GET.get('days', 7))
+            end_date = timezone.now()
+            start_date = end_date - timedelta(days=days)
 
         # Get data (reuse logic from media_reach_report)
-        queryset = PageImpression.objects.filter(viewed_at__gte=start_date)
+        queryset = PageImpression.objects.filter(viewed_at__gte=start_date, viewed_at__lte=end_date)
         if hotspot_filter and hotspot_filter != 'all':
             queryset = queryset.filter(hotspot_name=hotspot_filter)
 
