@@ -47,11 +47,16 @@
         padding: 12px;
         border-radius: 8px;
         border: 1px solid #ddd;
+        /* Prevent zoom on iOS when focus */
+        -webkit-appearance: none;
+        appearance: none;
     }
 
     .form-control:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        /* Prevent page zoom on mobile when focusing input */
+        font-size: max(1rem, 16px);
     }
 
     .btn-login {
@@ -62,6 +67,8 @@
         color: white;
         font-weight: bold;
         transition: transform 0.2s;
+        /* Ensure minimum touch target size (44x44px) */
+        min-height: 44px;
     }
 
     .btn-login:hover {
@@ -73,6 +80,182 @@
         font-weight: 600;
         color: #2c3e50;
         margin-bottom: 8px;
+    }
+
+    /* ========================================
+       Responsive Design
+       ======================================== */
+
+    /* Tablet Portrait (768px and below) */
+    @media (max-width: 768px) {
+        .login-card {
+            padding: 35px 28px;
+            max-width: 420px;
+        }
+
+        .login-header i {
+            font-size: 3.5rem;
+            margin-bottom: 12px;
+        }
+
+        .login-header h2 {
+            font-size: 1.6rem;
+        }
+
+        .login-header p {
+            font-size: 0.85rem;
+        }
+
+        .form-control {
+            padding: 11px;
+            font-size: 0.95rem;
+        }
+
+        .btn-login {
+            padding: 11px;
+            font-size: 0.95rem;
+        }
+    }
+
+    /* Mobile Large (576px and below) */
+    @media (max-width: 576px) {
+        .login-container {
+            padding: 20px;
+        }
+
+        .login-card {
+            padding: 32px 25px;
+            max-width: 100%;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .login-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .login-header p {
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .btn-login {
+            padding: 10px;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+
+        .alert {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* Mobile Standard (480px and below) */
+    @media (max-width: 480px) {
+        .login-card {
+            padding: 30px 22px;
+            border-radius: 12px;
+        }
+
+        .login-header {
+            margin-bottom: 25px;
+        }
+
+        .login-header i {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .login-header h2 {
+            font-size: 1.4rem;
+        }
+
+        .login-header p {
+            font-size: 0.75rem;
+        }
+
+        .form-control {
+            padding: 9px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+        }
+
+        .btn-login {
+            padding: 9px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.25rem !important;
+        }
+
+        .mt-4 {
+            margin-top: 1.25rem !important;
+        }
+    }
+
+    /* Mobile Small (380px and below) */
+    @media (max-width: 380px) {
+        .login-container {
+            padding: 15px;
+        }
+
+        .login-card {
+            padding: 25px 20px;
+            border-radius: 10px;
+        }
+
+        .login-header {
+            margin-bottom: 20px;
+        }
+
+        .login-header i {
+            font-size: 2.2rem;
+            margin-bottom: 6px;
+        }
+
+        .login-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .login-header p {
+            font-size: 0.7rem;
+        }
+
+        .form-control {
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+        }
+
+        .btn-login {
+            padding: 8px;
+            font-size: 0.8rem;
+        }
     }
 </style>
 {% endblock %}
