@@ -64,6 +64,8 @@ body {
     max-width: 450px;
     width: 100%;
     text-align: center;
+    /* Ensure minimum readable width on very small screens */
+    min-width: 280px;
 }
 
 /* Status Box (wider) */
@@ -127,6 +129,9 @@ input[type="password"] {
     border-radius: 10px;
     font-size: 1rem;
     transition: all 0.3s;
+    /* Prevent zoom on iOS when focus */
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 input[type="text"]:focus,
@@ -134,6 +139,8 @@ input[type="password"]:focus {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    /* Prevent page zoom on mobile when focusing input */
+    font-size: max(1rem, 16px);
 }
 
 /* Buttons */
@@ -151,6 +158,8 @@ input[type="password"]:focus {
     text-decoration: none;
     display: inline-block;
     text-align: center;
+    /* Ensure minimum touch target size (44x44px) */
+    min-height: 44px;
 }
 
 .btn-login {
@@ -343,6 +352,61 @@ input[type="password"]:focus {
 }
 
 /* Responsive */
+
+/* Tablet Portrait */
+@media (max-width: 768px) {
+    .status-box-wide {
+        max-width: 100%;
+    }
+
+    .login-container {
+        padding: 15px;
+    }
+}
+
+/* Mobile Large (576px and below) */
+@media (max-width: 576px) {
+    .login-box {
+        padding: 35px 25px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .subtitle-en {
+        font-size: 0.75rem;
+        margin-bottom: 25px;
+    }
+
+    .logo {
+        max-width: 110px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        padding: 11px 14px;
+        font-size: 0.95rem;
+    }
+
+    label {
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+    }
+
+    .btn-login,
+    .btn-danger,
+    .btn-secondary {
+        padding: 11px 18px;
+        font-size: 0.95rem;
+    }
+}
+
+/* Mobile (480px and below) */
 @media (max-width: 480px) {
     .login-box {
         padding: 30px 20px;
@@ -352,22 +416,121 @@ input[type="password"]:focus {
         font-size: 1.5rem;
     }
 
-    .status-grid {
-        grid-template-columns: 1fr;
+    .subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
     }
 
-    .button-group {
-        flex-direction: column;
+    .subtitle-en {
+        font-size: 0.7rem;
+        margin-bottom: 20px;
     }
 
     .logo {
         max-width: 100px;
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    label {
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+    }
+
+    .btn-login,
+    .btn-danger,
+    .btn-secondary {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    .status-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .status-item {
+        padding: 12px;
+    }
+
+    .status-label {
+        font-size: 0.8rem;
+    }
+
+    .status-value {
+        font-size: 1rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .footer {
+        margin-top: 20px;
+        padding-top: 15px;
+        font-size: 0.8rem;
+    }
+
+    .contact-info {
+        font-size: 0.75rem;
+    }
+
+    .error-message {
+        padding: 10px 12px;
+        font-size: 0.85rem;
     }
 }
 
-@media (max-width: 768px) {
-    .status-box-wide {
-        max-width: 100%;
+/* Mobile Small (380px and below) */
+@media (max-width: 380px) {
+    .login-box {
+        padding: 25px 18px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+    }
+
+    .subtitle-en {
+        font-size: 0.65rem;
+    }
+
+    .logo {
+        max-width: 90px;
+        margin-bottom: 12px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        padding: 9px 11px;
+        font-size: 0.85rem;
+    }
+
+    .btn-login,
+    .btn-danger,
+    .btn-secondary {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+    }
+
+    .form-group {
+        margin-bottom: 14px;
     }
 }
 
