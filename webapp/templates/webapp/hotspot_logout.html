@@ -5,10 +5,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logout - {{ library_name }}</title>
-    <link rel="stylesheet" href="{% static 'css/hotspot.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     {% if link_orig %}
     <meta http-equiv="refresh" content="5;url={{ link_orig }}">
     {% endif %}
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Sarabun', sans-serif;
+            background: #1a2535;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+
+        #login-background {
+            position: fixed; inset: 0;
+            background-size: cover; background-position: center;
+            z-index: 0;
+        }
+        .overlay {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, rgba(26,37,53,.85), rgba(44,62,80,.75));
+            backdrop-filter: blur(2px); z-index: 1;
+        }
+
+        .login-container {
+            position: relative; z-index: 2;
+            width: 100%; max-width: 400px; padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255,255,255,.07);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 20px; padding: 40px 32px;
+            box-shadow: 0 24px 64px rgba(0,0,0,.4);
+            text-align: center;
+        }
+
+        .logo { max-height: 56px; max-width: 140px; object-fit: contain; filter: brightness(0) invert(1); margin-bottom: 20px; }
+
+        .success-circle {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(34,197,94,.2), rgba(22,163,74,.3));
+            border: 2px solid rgba(34,197,94,.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: #4ade80;
+            margin: 0 auto 24px;
+            animation: popIn .5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        h1 { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 1.5rem; color: #fff; margin-bottom: 6px; }
+        .subtitle { font-family: 'Sarabun', sans-serif; font-size: .9rem; color: rgba(255,255,255,.65); margin-bottom: 24px; }
+
+        .logout-info {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 12px; padding: 16px 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        .info-row {
+            display: flex; align-items: center; gap: 10px;
+            font-size: .85rem; color: rgba(255,255,255,.75);
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-row i { color: rgba(255,255,255,.4); width: 16px; text-align: center; }
+        .info-row strong { color: rgba(255,255,255,.9); }
+
+        .redirect-msg {
+            background: rgba(52,152,219,.12);
+            border: 1px solid rgba(52,152,219,.25);
+            border-radius: 8px; padding: 10px 14px;
+            font-size: .82rem; color: rgba(255,255,255,.65);
+            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 8px; justify-content: center;
+        }
+
+        .btn-back {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 12px;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #fff; border: none; border-radius: 10px;
+            font-family: 'Kanit', sans-serif; font-weight: 600; font-size: .9rem;
+            cursor: pointer; text-decoration: none;
+            box-shadow: 0 6px 20px rgba(52,152,219,.35);
+            transition: all .2s;
+        }
+        .btn-back:hover { transform: translateY(-1px); }
+
+        .footer { margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.1); }
+        .footer p { font-size: .78rem; color: rgba(255,255,255,.45); }
+    </style>
 </head>
 <body>
     <div id="login-background"></div>
@@ -17,54 +116,58 @@
     <div class="login-container">
         <div class="login-box">
             {% if logo_url %}
-            <img src="{{ logo_url }}" alt="Logo" class="logo">
-            {% else %}
-            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo" onerror="this.style.display='none'">
+            <img src="{{ logo_url }}" alt="Logo" class="logo" onerror="this.style.display='none'">
             {% endif %}
 
-            <div class="success-icon">✓</div>
+            <div class="success-circle"><i class="bi bi-check-lg"></i></div>
 
             <h1>ออกจากระบบสำเร็จ</h1>
-            <p class="subtitle">คุณได้ออกจากระบบเรียบร้อยแล้ว</p>
+            <p class="subtitle">คุณออกจากระบบ WiFi เรียบร้อยแล้ว</p>
 
+            {% if username or ip %}
             <div class="logout-info">
                 {% if username %}
-                <p><strong>Username:</strong> {{ username }}</p>
+                <div class="info-row">
+                    <i class="bi bi-person"></i>
+                    <span>Username: <strong>{{ username }}</strong></span>
+                </div>
                 {% endif %}
                 {% if ip %}
-                <p><strong>IP Address:</strong> {{ ip }}</p>
+                <div class="info-row">
+                    <i class="bi bi-hdd-network"></i>
+                    <span>IP Address: <strong>{{ ip }}</strong></span>
+                </div>
                 {% endif %}
-                <p class="redirect-message">กำลังนำท่านกลับสู่หน้าเริ่มต้นใน 5 วินาที...</p>
             </div>
+            {% endif %}
 
             {% if link_orig %}
-            <a href="{{ link_orig }}" class="btn-login">กลับสู่หน้าเริ่มต้น</a>
+            <div class="redirect-msg">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>กำลังนำท่านกลับสู่หน้าเริ่มต้นใน 5 วินาที...</span>
+            </div>
+            <a href="{{ link_orig }}" class="btn-back">
+                <i class="bi bi-house"></i> กลับสู่หน้าเริ่มต้น
+            </a>
             {% endif %}
 
             <div class="footer">
                 <p>{{ library_name }}</p>
-                {% if contact_info %}
-                <p class="contact-info">{{ contact_info }}</p>
-                {% endif %}
+                {% if contact_info %}<p>{{ contact_info }}</p>{% endif %}
             </div>
         </div>
     </div>
 
     <script>
-        const API_BASE_URL = window.location.origin;
-
         function loadBackgroundImage() {
-            fetch(API_BASE_URL + '/api/login-background/')
-                .then(response => response.json())
+            fetch(window.location.origin + '/api/login-background/')
+                .then(r => r.json())
                 .then(data => {
-                    if (data.success && data.imageUrl) {
-                        document.getElementById('login-background').style.backgroundImage =
-                            'url(' + data.imageUrl + ')';
-                    }
+                    if (data.success && data.imageUrl)
+                        document.getElementById('login-background').style.backgroundImage = 'url(' + data.imageUrl + ')';
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(() => {});
         }
-
         document.addEventListener('DOMContentLoaded', loadBackgroundImage);
     </script>
 </body>

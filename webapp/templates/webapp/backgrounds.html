@@ -1,246 +1,222 @@
 {% extends 'webapp/base.html' %}
-
-{% block title %}Manage Background Images - LibLogin{% endblock %}
-
-{% block page_title %}Background Images Management{% endblock %}
+{% block title %}Background Images - LibLogin{% endblock %}
+{% block page_title %}Background Images{% endblock %}
 
 {% block extra_css %}
 <style>
-    .image-card {
-        position: relative;
-        border-radius: 8px;
-        overflow: hidden;
-        transition: transform 0.3s;
-    }
+/* Upload section */
+.upload-section { background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); overflow:hidden; margin-bottom:24px; }
+.upload-hdr { padding:14px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+.upload-hdr-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#2c3e50; display:flex; align-items:center; gap:8px; }
+.upload-body { padding:24px; }
 
-    .image-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    }
+/* Upload zone */
+.upload-zone { border:2px dashed #d1dce8; border-radius:12px; padding:36px; text-align:center; background:#f8fafc; cursor:pointer; transition:all .25s; }
+.upload-zone:hover, .upload-zone.dragover { border-color:#3498db; background:#f0f8ff; }
+.upload-zone-icon { font-size:2.5rem; color:#aed6f1; display:block; margin-bottom:8px; }
+.upload-zone p { color:#64748b; font-size:.875rem; margin:4px 0 0; font-family:'Sarabun',sans-serif; }
+.upload-zone small { color:#94a3b8; font-size:.75rem; }
+.img-preview-wrap { margin-top:16px; }
+.img-preview-wrap img { max-height:120px; border-radius:8px; }
+.img-preview-wrap p { font-size:.8rem; color:#64748b; margin-top:6px; }
 
-    .image-preview {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-    }
+/* Form fields */
+.flbl { font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; color:#374151; display:block; margin-bottom:6px; }
+.finput, .fselect { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; transition:border-color .2s,box-shadow .2s; background:#fff; }
+.finput:focus, .fselect:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+.fhint { font-size:.75rem; color:#94a3b8; margin-top:4px; font-family:'Sarabun',sans-serif; }
+.switch-row { display:flex; align-items:center; gap:10px; padding:10px 13px; background:#f8fafc; border-radius:9px; border:1.5px solid #e2e8f0; }
+.switch-row .form-check-input { width:2.2em; height:1.2em; cursor:pointer; }
+.switch-row .form-check-input:checked { background-color:#27ae60; border-color:#27ae60; }
+.switch-lbl { font-family:'Sarabun',sans-serif; font-size:.875rem; color:#475569; margin:0; }
 
-    .image-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        padding: 15px;
-        color: white;
-    }
+.btn-upload { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:9px; padding:10px 22px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.875rem; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:0 3px 10px rgba(52,152,219,.3); transition:all .2s; }
+.btn-upload:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(52,152,219,.4); }
 
-    .active-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 1;
-    }
+/* Filter bar */
+.filter-bar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+.search-wrap { flex:1; min-width:200px; position:relative; }
+.search-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:.9rem; }
+.search-wrap input { width:100%; padding:10px 13px 10px 36px; border:1.5px solid #e2e8f0; border-radius:10px; font-family:'Sarabun',sans-serif; font-size:.875rem; background:#fff; transition:border-color .2s; }
+.search-wrap input:focus { outline:none; border-color:#3498db; }
+.filter-select { padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-family:'Sarabun',sans-serif; font-size:.875rem; background:#fff; cursor:pointer; min-width:140px; }
+.filter-select:focus { outline:none; border-color:#3498db; }
 
-    .upload-zone {
-        border: 2px dashed #ddd;
-        border-radius: 8px;
-        padding: 40px;
-        text-align: center;
-        background-color: #f8f9fa;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
+/* Image grid */
+.img-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
 
-    .upload-zone:hover {
-        border-color: #667eea;
-        background-color: #f0f2ff;
-    }
+.img-card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.07); transition:transform .25s, box-shadow .25s; }
+.img-card:hover { transform:translateY(-4px); box-shadow:0 10px 28px rgba(0,0,0,.12); }
 
-    .upload-zone.dragover {
-        border-color: #667eea;
-        background-color: #e8ebff;
-    }
+.img-card-thumb { position:relative; height:180px; overflow:hidden; cursor:pointer; }
+.img-card-thumb img { width:100%; height:100%; object-fit:cover; transition:transform .4s; }
+.img-card:hover .img-card-thumb img { transform:scale(1.05); }
+
+.img-card-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.65)); display:flex; flex-direction:column; justify-content:flex-end; padding:12px; opacity:0; transition:opacity .2s; }
+.img-card:hover .img-card-overlay { opacity:1; }
+.overlay-title { color:#fff; font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; }
+
+.active-ribbon { position:absolute; top:10px; left:10px; background:#27ae60; color:#fff; padding:3px 10px; border-radius:20px; font-size:.7rem; font-family:'Kanit',sans-serif; display:flex; align-items:center; gap:4px; }
+
+.img-card-body { padding:14px 16px; }
+.img-card-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; color:#1e293b; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.img-card-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+
+.hs-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:.7rem; font-family:'Kanit',sans-serif; }
+.hs-badge.named { background:#ebf5fb; color:#1a5276; border:1px solid #aed6f1; }
+.hs-badge.global { background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0; }
+
+.date-text { font-size:.72rem; color:#94a3b8; }
+
+.img-card-actions { display:flex; gap:6px; }
+.ic-btn { flex:1; padding:7px; border-radius:8px; border:1.5px solid #e2e8f0; background:#fff; font-size:.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; font-family:'Kanit',sans-serif; font-size:.75rem; transition:all .18s; color:#475569; }
+.ic-btn:hover { background:#f0f8ff; border-color:#aed6f1; color:#3498db; }
+.ic-btn.activate { color:#27ae60; border-color:#a9dfbf; background:#eafaf1; }
+.ic-btn.activate:hover { background:#27ae60; color:#fff; border-color:#27ae60; }
+.ic-btn.del { color:#e74c3c; border-color:#fadbd8; background:#fdf2f2; }
+.ic-btn.del:hover { background:#e74c3c; color:#fff; border-color:#e74c3c; }
+
+/* Empty state */
+.bg-empty { text-align:center; padding:64px 24px; background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+.bg-empty-icon { width:72px;height:72px; background:#ebf5fb; border-radius:18px; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; color:#3498db; margin-bottom:16px; }
+.bg-empty h4 { font-family:'Kanit',sans-serif; font-weight:600; color:#2c3e50; margin-bottom:8px; }
+.bg-empty p { color:#94a3b8; font-size:.875rem; margin-bottom:20px; }
+
+/* Modals */
+.modal-content { border:none; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.mhdr-dark { background:linear-gradient(135deg,#2c3e50,#34495e); color:#fff; padding:16px 22px; border-bottom:none; }
+.mhdr-dark .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+.mhdr-dark .btn-close { filter:invert(1) brightness(2); opacity:.7; }
+.mbody { padding:22px; }
+.mftr { padding:14px 22px; background:#f8fafc; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; gap:10px; }
+.btn-mc { background:#fff; border:1.5px solid #e2e8f0; color:#64748b; border-radius:9px; padding:8px 18px; font-family:'Kanit',sans-serif; font-size:.82rem; cursor:pointer; }
+.btn-ms { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:9px; padding:8px 20px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(52,152,219,.25); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Upload Form -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-cloud-upload"></i> Upload New Background Image</span>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#uploadForm">
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-                </div>
-                <div class="collapse show" id="uploadForm">
-                    <div class="card-body">
-                        <form method="post" enctype="multipart/form-data" id="uploadBackgroundForm">
-                            {% csrf_token %}
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="title" class="form-label">Image Title *</label>
-                                        <input type="text" class="form-control" id="title" name="title" required
-                                               placeholder="e.g., Library Background 2024">
-                                    </div>
 
-                                    <div class="mb-3">
-                                        <label for="hotspot_name" class="form-label">Hotspot (Optional)</label>
-                                        <select class="form-select hotspot-dropdown" id="hotspot_name" name="hotspot_name" data-include-blank="true">
-                                            <option value="">Loading hotspots...</option>
-                                        </select>
-                                        <small class="text-muted">
-                                            <i class="bi bi-router"></i>
-                                            Select a hotspot or leave as "All Hotspots" for global background
-                                        </small>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active">
-                                            <label class="form-check-label" for="is_active">
-                                                Set as active background
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Image File *</label>
-                                    <div class="upload-zone" id="uploadZone">
-                                        <input type="file" class="d-none" id="image" name="image" accept="image/*" required>
-                                        <i class="bi bi-cloud-arrow-up" style="font-size: 3rem; color: #667eea;"></i>
-                                        <p class="mt-2 mb-0">Click to upload or drag and drop</p>
-                                        <small class="text-muted">PNG, JPG, JPEG (Max 1920x1080, will be optimized)</small>
-                                        <div id="imagePreview" class="mt-3"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="text-end mt-3">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-upload"></i> Upload Background
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Upload Section -->
+<div class="upload-section">
+    <div class="upload-hdr" onclick="toggleUpload(this)">
+        <div class="upload-hdr-title"><i class="bi bi-cloud-upload"></i> อัปโหลด Background Image ใหม่</div>
+        <i class="bi bi-chevron-up toggle-chevron"></i>
     </div>
-
-    <!-- Filter and Search -->
-    <div class="row mb-3">
-        <div class="col-md-8">
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" id="searchInput" placeholder="Search by title or router ID...">
-            </div>
-        </div>
-        <div class="col-md-4">
-            <select class="form-select" id="filterStatus">
-                <option value="">All Images</option>
-                <option value="active">Active Only</option>
-                <option value="inactive">Inactive Only</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Background Images Grid -->
-    <div class="row" id="imagesGrid">
-        {% if backgrounds %}
-            {% for background in backgrounds %}
-            <div class="col-md-4 col-lg-3 mb-4 image-item"
-                 data-title="{{ background.title|lower }}"
-                 data-router="{{ background.hotspot_name|default:'default'|lower }}"
-                 data-status="{% if background.is_active %}active{% else %}inactive{% endif %}">
-                <div class="card image-card">
-                    {% if background.is_active %}
-                    <span class="badge bg-success active-badge">
-                        <i class="bi bi-check-circle"></i> Active
-                    </span>
-                    {% endif %}
-
-                    <img src="{{ background.image.url }}" alt="{{ background.title }}" class="image-preview">
-
-                    <div class="image-overlay">
-                        <h6 class="mb-0">{{ background.title }}</h6>
+    <div class="upload-body" id="uploadCollapse">
+        <form method="post" enctype="multipart/form-data" id="uploadBackgroundForm">
+            {% csrf_token %}
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+                <div>
+                    <div class="mb-3">
+                        <label class="flbl">ชื่อภาพ <span style="color:#e74c3c;">*</span></label>
+                        <input type="text" class="finput" id="title" name="title" required placeholder="เช่น Library Background 2024">
                     </div>
-
-                    <div class="card-body">
-                        <!-- Hotspot Info Row -->
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">
-                                {% if background.hotspot_name %}
-                                <i class="bi bi-hdd-network"></i> {{ background.hotspot_name }}
-                                {% else %}
-                                <i class="bi bi-globe"></i> All Hotspots
-                                {% endif %}
-                            </small>
-                            <small class="text-muted">
-                                {{ background.uploaded_at|date:"d/m/Y" }}
-                            </small>
-                        </div>
-
-                        <!-- Action Buttons Row -->
-                        <div class="btn-group w-100" role="group">
-                            {% if not background.is_active %}
-                            <form method="post" action="{% url 'set_active' background.id %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-success" title="Set as Active">
-                                    <i class="bi bi-check-circle"></i>
-                                </button>
-                            </form>
-                            {% endif %}
-                            <button type="button" class="btn btn-sm btn-warning" onclick="editBackground({{ background.id }}, '{{ background.title|escapejs }}', '{{ background.hotspot_name|default:''|escapejs }}', {{ background.is_active|lower }}, '{{ background.image.url|escapejs }}')" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-info" onclick="viewImage('{{ background.image.url }}', '{{ background.title }}')" title="View Full Size">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <form method="post" action="{% url 'delete_background' background.id %}"
-                                  onsubmit="return confirm('Are you sure you want to delete this image?');"
-                                  class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </div>
+                    <div class="mb-3">
+                        <label class="flbl">Hotspot (ไม่บังคับ)</label>
+                        <select class="fselect hotspot-dropdown" id="hotspot_name" name="hotspot_name" data-include-blank="true">
+                            <option value="">Loading hotspots...</option>
+                        </select>
+                        <div class="fhint"><i class="bi bi-info-circle me-1"></i>เว้นว่างเพื่อใช้กับทุก Hotspot</div>
+                    </div>
+                    <div class="switch-row">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" role="switch">
+                        <label class="switch-lbl" for="is_active">ตั้งเป็น Active ทันที</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="flbl">ไฟล์ภาพ <span style="color:#e74c3c;">*</span></label>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" class="d-none" id="image" name="image" accept="image/*" required>
+                        <i class="bi bi-cloud-arrow-up upload-zone-icon"></i>
+                        <p>คลิกหรือลากไฟล์มาวางที่นี่</p>
+                        <small>PNG, JPG, JPEG (จะปรับขนาดอัตโนมัติสูงสุด 1920×1080)</small>
+                        <div class="img-preview-wrap" id="imagePreview"></div>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-        <div class="col-12">
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-inbox" style="font-size: 4rem;"></i>
-                <h4 class="mt-3">No Background Images Yet</h4>
-                <p>Upload your first background image to get started!</p>
+            <div style="text-align:right; margin-top:16px;">
+                <button type="submit" class="btn-upload"><i class="bi bi-upload"></i> อัปโหลด</button>
             </div>
-        </div>
-        {% endif %}
+        </form>
     </div>
 </div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="search-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" id="searchInput" placeholder="ค้นหาชื่อภาพหรือ Hotspot...">
+    </div>
+    <select class="filter-select" id="filterStatus">
+        <option value="">ทั้งหมด</option>
+        <option value="active">Active เท่านั้น</option>
+        <option value="inactive">Inactive เท่านั้น</option>
+    </select>
+</div>
+
+<!-- Images Grid -->
+{% if backgrounds %}
+<div class="img-grid" id="imagesGrid">
+    {% for bg in backgrounds %}
+    <div class="img-card image-item"
+         data-title="{{ bg.title|lower }}"
+         data-router="{{ bg.hotspot_name|default:'default'|lower }}"
+         data-status="{% if bg.is_active %}active{% else %}inactive{% endif %}">
+
+        <div class="img-card-thumb" onclick="viewImage('{{ bg.image.url }}','{{ bg.title|escapejs }}')">
+            {% if bg.is_active %}
+            <div class="active-ribbon"><i class="bi bi-check-circle-fill"></i> Active</div>
+            {% endif %}
+            <img src="{{ bg.image.url }}" alt="{{ bg.title }}">
+            <div class="img-card-overlay">
+                <div class="overlay-title"><i class="bi bi-zoom-in me-1"></i> ดูขนาดเต็ม</div>
+            </div>
+        </div>
+
+        <div class="img-card-body">
+            <div class="img-card-title" title="{{ bg.title }}">{{ bg.title }}</div>
+            <div class="img-card-meta">
+                {% if bg.hotspot_name %}
+                <span class="hs-badge named"><i class="bi bi-wifi"></i>{{ bg.hotspot_name }}</span>
+                {% else %}
+                <span class="hs-badge global"><i class="bi bi-globe2"></i>All Hotspots</span>
+                {% endif %}
+                <span class="date-text">{{ bg.uploaded_at|date:"d/m/Y" }}</span>
+            </div>
+            <div class="img-card-actions">
+                {% if not bg.is_active %}
+                <form method="post" action="{% url 'set_active' bg.id %}" style="flex:1;">
+                    {% csrf_token %}
+                    <button type="submit" class="ic-btn activate w-100"><i class="bi bi-check-circle"></i> Set Active</button>
+                </form>
+                {% endif %}
+                <button class="ic-btn" onclick="editBackground({{ bg.id }},'{{ bg.title|escapejs }}','{{ bg.hotspot_name|default:''|escapejs }}',{{ bg.is_active|lower }},'{{ bg.image.url|escapejs }}')">
+                    <i class="bi bi-pencil"></i> แก้ไข
+                </button>
+                <form method="post" action="{% url 'delete_background' bg.id %}" onsubmit="return confirm('ลบภาพ {{ bg.title|escapejs }} ใช่หรือไม่?');">
+                    {% csrf_token %}
+                    <button type="submit" class="ic-btn del"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-empty">
+    <div class="bg-empty-icon"><i class="bi bi-images"></i></div>
+    <h4>ยังไม่มี Background Image</h4>
+    <p>อัปโหลดภาพแรกของคุณเพื่อเริ่มต้นใช้งาน</p>
+</div>
+{% endif %}
+
 
 <!-- Image Viewer Modal -->
 <div class="modal fade" id="imageViewerModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="imageViewerTitle">Image Preview</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img src="" id="imageViewerImg" class="img-fluid" alt="Preview">
-            </div>
+            <div class="mhdr-dark modal-header"><div class="modal-title" id="imageViewerTitle"><i class="bi bi-image"></i> ดูภาพ</div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body text-center p-3"><img src="" id="imageViewerImg" class="img-fluid rounded" alt="Preview"></div>
         </div>
     </div>
 </div>
@@ -249,63 +225,28 @@
 <div class="modal fade" id="editBackgroundModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="edit">
-                <input type="hidden" name="background_id" id="editBackgroundId">
-
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Background Image</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
+            <form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="action" value="edit"><input type="hidden" name="background_id" id="editBackgroundId">
+                <div class="mhdr-dark modal-header"><div class="modal-title"><i class="bi bi-pencil-square"></i> แก้ไข Background</div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="mbody">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                        <div>
+                            <div class="mb-3"><label class="flbl">ชื่อภาพ <span style="color:#e74c3c;">*</span></label><input type="text" class="finput" id="editTitle" name="title" required></div>
                             <div class="mb-3">
-                                <label for="editTitle" class="form-label">Image Title *</label>
-                                <input type="text" class="form-control" id="editTitle" name="title" required>
+                                <label class="flbl">Hotspot</label>
+                                <select class="fselect hotspot-dropdown" id="editHotspotName" name="hotspot_name" data-include-blank="true"><option value="">Loading hotspots...</option></select>
                             </div>
-
-                            <div class="mb-3">
-                                <label for="editHotspotName" class="form-label">Hotspot (Optional)</label>
-                                <select class="form-select hotspot-dropdown" id="editHotspotName" name="hotspot_name" data-include-blank="true">
-                                    <option value="">Loading hotspots...</option>
-                                </select>
-                                <small class="text-muted">
-                                    <i class="bi bi-router"></i>
-                                    Select a hotspot or leave as "All Hotspots" for global background
-                                </small>
-                            </div>
-
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="editIsActive" name="is_active">
-                                    <label class="form-check-label" for="editIsActive">
-                                        Set as active background
-                                    </label>
-                                </div>
-                            </div>
+                            <div class="switch-row"><input class="form-check-input" type="checkbox" id="editIsActive" name="is_active" role="switch"><label class="switch-lbl" for="editIsActive">Set Active</label></div>
                         </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Current Image</label>
-                            <div class="text-center mb-3">
-                                <img id="editCurrentImage" src="" class="img-thumbnail" style="max-height: 200px;" alt="Current">
-                            </div>
-                            <label class="form-label">Change Image (Optional)</label>
-                            <input type="file" class="form-control" name="image" accept="image/*">
-                            <small class="text-muted">Leave empty to keep current image</small>
+                        <div>
+                            <label class="flbl">ภาพปัจจุบัน</label>
+                            <img id="editCurrentImage" src="" class="img-fluid rounded mb-2" style="max-height:150px; width:100%; object-fit:cover;" alt="">
+                            <label class="flbl">เปลี่ยนภาพ (ไม่บังคับ)</label>
+                            <input type="file" class="finput" name="image" accept="image/*">
+                            <div class="fhint">เว้นว่างเพื่อคงภาพเดิม</div>
                         </div>
                     </div>
                 </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Update Background
-                    </button>
-                </div>
+                <div class="mftr"><button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn-ms"><i class="bi bi-save"></i> บันทึก</button></div>
             </form>
         </div>
     </div>
@@ -313,96 +254,74 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Upload zone drag and drop
-    const uploadZone = document.getElementById('uploadZone');
-    const fileInput = document.getElementById('image');
-    const imagePreview = document.getElementById('imagePreview');
-
-    uploadZone.addEventListener('click', () => fileInput.click());
-
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-    });
-
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('dragover');
-    });
-
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        fileInput.files = e.dataTransfer.files;
-        previewImage();
-    });
-
-    fileInput.addEventListener('change', previewImage);
-
-    function previewImage() {
-        const file = fileInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.innerHTML = `
-                    <img src="${e.target.result}" class="img-thumbnail" style="max-height: 150px;">
-                    <p class="mt-2 mb-0"><strong>${file.name}</strong></p>
-                `;
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // Search and filter
-    const searchInput = document.getElementById('searchInput');
-    const filterStatus = document.getElementById('filterStatus');
-    const imageItems = document.querySelectorAll('.image-item');
-
-    function filterImages() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const statusFilter = filterStatus.value;
-
-        imageItems.forEach(item => {
-            const title = item.dataset.title;
-            const router = item.dataset.router;
-            const status = item.dataset.status;
-
-            const matchesSearch = title.includes(searchTerm) || router.includes(searchTerm);
-            const matchesStatus = !statusFilter || status === statusFilter;
-
-            if (matchesSearch && matchesStatus) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    searchInput.addEventListener('input', filterImages);
-    filterStatus.addEventListener('change', filterImages);
-
-    // Image viewer
-    function viewImage(url, title) {
-        document.getElementById('imageViewerImg').src = url;
-        document.getElementById('imageViewerTitle').textContent = title;
-        new bootstrap.Modal(document.getElementById('imageViewerModal')).show();
-    }
-
-    // Edit background
-    function editBackground(id, title, hotspotName, isActive, imageUrl) {
-        document.getElementById('editBackgroundId').value = id;
-        document.getElementById('editTitle').value = title;
-        document.getElementById('editIsActive').checked = isActive;
-        document.getElementById('editCurrentImage').src = imageUrl;
-
-        // Load hotspot dropdown with current value
-        loadHotspotChoices('editHotspotName', hotspotName, true);
-
-        new bootstrap.Modal(document.getElementById('editBackgroundModal')).show();
-    }
-</script>
-
-<!-- Load hotspot dropdown script -->
 {% load static %}
 <script src="{% static 'webapp/js/hotspot-dropdown.js' %}"></script>
+<script>
+// Toggle upload section
+function toggleUpload(hdr) {
+    const body = document.getElementById('uploadCollapse');
+    const chevron = hdr.querySelector('.toggle-chevron');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    chevron.className = `bi bi-chevron-${isOpen ? 'down' : 'up'} toggle-chevron`;
+}
+
+// Upload zone
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('image');
+const imagePreview = document.getElementById('imagePreview');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files; previewImage();
+});
+fileInput.addEventListener('change', previewImage);
+
+function previewImage() {
+    const file = fileInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            imagePreview.innerHTML = `<img src="${e.target.result}" class="img-thumbnail"><p><strong>${file.name}</strong></p>`;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Search & filter
+const searchInput = document.getElementById('searchInput');
+const filterStatus = document.getElementById('filterStatus');
+
+function filterImages() {
+    const term = searchInput.value.toLowerCase();
+    const status = filterStatus.value;
+    document.querySelectorAll('.image-item').forEach(item => {
+        const matchSearch = item.dataset.title.includes(term) || item.dataset.router.includes(term);
+        const matchStatus = !status || item.dataset.status === status;
+        item.style.display = (matchSearch && matchStatus) ? '' : 'none';
+    });
+}
+searchInput.addEventListener('input', filterImages);
+filterStatus.addEventListener('change', filterImages);
+
+// Image viewer
+function viewImage(url, title) {
+    document.getElementById('imageViewerImg').src = url;
+    document.getElementById('imageViewerTitle').innerHTML = `<i class="bi bi-image"></i> ${title}`;
+    new bootstrap.Modal(document.getElementById('imageViewerModal')).show();
+}
+
+// Edit background
+function editBackground(id, title, hotspotName, isActive, imageUrl) {
+    document.getElementById('editBackgroundId').value = id;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editIsActive').checked = isActive;
+    document.getElementById('editCurrentImage').src = imageUrl;
+    loadHotspotChoices('editHotspotName', hotspotName, true);
+    new bootstrap.Modal(document.getElementById('editBackgroundModal')).show();
+}
+</script>
 {% endblock %}

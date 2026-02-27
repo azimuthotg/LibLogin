@@ -5,332 +5,554 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LibLogin Management{% endblock %}</title>
 
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
+        /* ── Design Tokens ──────────────────────────────── */
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --sidebar-bg: #34495e;
-            --sidebar-hover: #2c3e50;
+            --sidebar-width: 248px;
+            --sidebar-bg: #1a2535;
+            --sidebar-border: rgba(255,255,255,0.06);
+            --sidebar-text: #8fa3b8;
+            --sidebar-text-hover: #ffffff;
+            --sidebar-active-bg: rgba(52,152,219,0.15);
+            --sidebar-active-text: #5dade2;
+            --sidebar-active-border: #3498db;
+            --topbar-height: 64px;
+            --topbar-bg: #ffffff;
+            --page-bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --card-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.04);
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --accent-hover: #2980b9;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --radius: 12px;
+            --radius-sm: 8px;
         }
+
+        /* ── Reset & Base ───────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #ecf0f1;
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--page-bg);
+            color: #2c3e50;
+            margin: 0;
+            padding: 0;
         }
 
+        /* ── Sidebar ────────────────────────────────────── */
         .sidebar {
-            min-height: 100vh;
-            background-color: var(--sidebar-bg);
+            position: fixed;
+            top: 0; left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,.1) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+
+        /* Brand */
+        .sidebar-brand {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid var(--sidebar-border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
             color: white;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-text .brand-name {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #ffffff;
+            line-height: 1;
+            display: block;
+        }
+
+        .sidebar-brand-text .brand-sub {
+            font-size: .68rem;
+            color: var(--sidebar-text);
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        /* Nav sections */
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 0;
+        }
+
+        .nav-section-label {
+            font-family: 'Kanit', sans-serif;
+            font-size: .6rem;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,.25);
+            padding: 14px 20px 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px 10px 20px;
+            margin: 1px 8px;
+            border-radius: var(--radius-sm);
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-family: 'Sarabun', sans-serif;
+            font-size: .875rem;
+            font-weight: 400;
+            transition: all .18s ease;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255,255,255,.06);
+            color: var(--sidebar-text-hover);
+            border-left-color: rgba(52,152,219,.4);
+        }
+
+        .sidebar-link.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
+            border-left-color: var(--sidebar-active-border);
+            font-weight: 500;
+        }
+
+        .sidebar-link .link-icon {
+            width: 18px;
+            font-size: .95rem;
+            text-align: center;
+            flex-shrink: 0;
+            opacity: .75;
+        }
+
+        .sidebar-link.active .link-icon,
+        .sidebar-link:hover .link-icon { opacity: 1; }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            padding: 14px 12px 20px;
+            border-top: 1px solid var(--sidebar-border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            background: rgba(255,255,255,.04);
+        }
+
+        .sidebar-user-avatar {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .8rem;
+            color: white;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-info .user-name {
+            font-size: .8rem;
+            color: #d0dce8;
+            font-weight: 500;
+            display: block;
+            line-height: 1.2;
+        }
+
+        .sidebar-user-info .user-role {
+            font-size: .65rem;
+            color: var(--sidebar-text);
+        }
+
+        /* ── Top Bar ────────────────────────────────────── */
+        .topbar {
             position: fixed;
             top: 0;
-            left: 0;
-            width: 250px;
-            padding-top: 20px;
-            z-index: 1000;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--topbar-height);
+            background: var(--topbar-bg);
+            border-bottom: 1px solid #e8edf2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            z-index: 900;
         }
 
-        .sidebar .nav-link {
-            color: #bdc3c7;
-            padding: 12px 20px;
-            margin: 5px 10px;
-            border-radius: 5px;
-            transition: all 0.3s;
+        .topbar-title {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--primary);
+            margin: 0;
         }
 
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            background-color: var(--sidebar-hover);
-            color: white;
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
+        .topbar-date {
+            font-size: .8rem;
+            color: #8fa3b8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
+        /* ── Main Content ───────────────────────────────── */
         .main-content {
-            margin-left: 250px;
-            padding: 20px;
+            margin-left: var(--sidebar-width);
+            padding-top: calc(var(--topbar-height) + 24px);
+            padding-right: 28px;
+            padding-left: 28px;
+            padding-bottom: 40px;
+            min-height: 100vh;
         }
 
-        .navbar-custom {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15px 30px;
-            margin-bottom: 30px;
+        /* ── Alert Messages ─────────────────────────────── */
+        .messages-container {
+            margin-bottom: 20px;
         }
 
+        .alert {
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-size: .875rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        }
+
+        .alert-success { background: #eafaf1; color: #1e8449; border-left: 4px solid #27ae60; }
+        .alert-danger  { background: #fdf2f2; color: #922b21; border-left: 4px solid #e74c3c; }
+        .alert-warning { background: #fffbeb; color: #92400e; border-left: 4px solid #f39c12; }
+        .alert-info    { background: #ebf5fb; color: #1a5276; border-left: 4px solid #3498db; }
+        .alert-error   { background: #fdf2f2; color: #922b21; border-left: 4px solid #e74c3c; }
+
+        .alert .btn-close { margin-left: auto; opacity: .5; }
+        .alert .btn-close:hover { opacity: 1; }
+
+        /* ── Cards ──────────────────────────────────────── */
         .card {
             border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            background: var(--card-bg);
             margin-bottom: 20px;
         }
 
         .card-header {
-            background-color: var(--primary-color);
+            background: var(--primary);
             color: white;
-            font-weight: bold;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 500;
+            font-size: .9rem;
+            border-radius: var(--radius) var(--radius) 0 0 !important;
+            padding: 14px 20px;
+            border-bottom: none;
         }
 
+        /* ── Buttons ────────────────────────────────────── */
         .btn-primary {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Kanit', sans-serif;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(52,152,219,.3);
+            transition: all .2s;
         }
 
         .btn-primary:hover {
-            background-color: #2980b9;
-            border-color: #2980b9;
+            background: linear-gradient(135deg, #253545, var(--accent-hover));
+            transform: translateY(-1px);
+            box-shadow: 0 5px 16px rgba(52,152,219,.4);
         }
 
-        .sidebar-brand {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
+        /* ── Toast ──────────────────────────────────────── */
+        .toast-container-custom {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .sidebar-brand h4 {
-            margin: 0;
-            font-weight: bold;
+        .toast-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            min-width: 280px;
+            max-width: 380px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.15);
+            animation: toastIn .3s ease;
+            font-size: .875rem;
+            font-family: 'Sarabun', sans-serif;
         }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(24px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast-item.success { background: #27ae60; color: #fff; }
+        .toast-item.error   { background: #e74c3c; color: #fff; }
+        .toast-item.warning { background: #f39c12; color: #fff; }
+        .toast-item.info    { background: #3498db; color: #fff; }
+
+        .toast-item .toast-icon { font-size: 1.05rem; flex-shrink: 0; }
+        .toast-item .toast-msg  { flex: 1; }
+
+        .toast-item .toast-close {
+            background: none; border: none;
+            color: rgba(255,255,255,.7);
+            cursor: pointer;
+            font-size: .9rem;
+            padding: 0; line-height: 1;
+            flex-shrink: 0;
+        }
+        .toast-item .toast-close:hover { color: #fff; }
     </style>
 
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% block body %}
-    <div class="container-fluid">
-        <div class="row">
-            {% if user.is_authenticated %}
-            <!-- Sidebar -->
-            <nav class="sidebar">
-                <div class="sidebar-brand">
-                    <h4><i class="bi bi-image"></i> LibLogin</h4>
-                    <small>Management System</small>
-                </div>
+{% block body %}
 
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'backgrounds' %}active{% endif %}" href="{% url 'backgrounds' %}">
-                            <i class="bi bi-images"></i> Background Images
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'templates' %}active{% endif %}" href="{% url 'templates' %}">
-                            <i class="bi bi-palette"></i> Templates
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'slides' %}active{% endif %}" href="{% url 'slides' %}">
-                            <i class="bi bi-collection"></i> Slide Content
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}" href="{% url 'cards' %}">
-                            <i class="bi bi-grid-3x3"></i> Card Content
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'monitoring' %}active{% endif %}" href="{% url 'monitoring' %}">
-                            <i class="bi bi-graph-up"></i> Monitoring
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'landing_pages' %}active{% endif %}" href="{% url 'landing_pages' %}">
-                            <i class="bi bi-link-45deg"></i> Landing Pages
-                        </a>
-                    </li>
-                    {% if user.is_staff %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
-                            <i class="bi bi-gear"></i> Settings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/" target="_blank">
-                            <i class="bi bi-shield-lock"></i> Admin Panel
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item mt-4">
-                        <a class="nav-link" href="{% url 'logout' %}">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-
-                <div class="position-absolute bottom-0 p-3 text-muted" style="font-size: 0.8rem; width: 250px;">
-                    <i class="bi bi-person-circle"></i> {{ user.username }}
-                    {% if user.is_staff %}
-                    <span class="badge bg-warning text-dark ms-1">Admin</span>
-                    {% endif %}
-                </div>
-            </nav>
-            {% endif %}
-
-            <!-- Main Content -->
-            <main class="{% if user.is_authenticated %}main-content{% endif %} col">
-                {% if user.is_authenticated %}
-                <nav class="navbar-custom">
-                    <div class="d-flex justify-content-between align-items-center w-100">
-                        <h2 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h2>
-                        <div>
-                            <span class="text-muted">
-                                <i class="bi bi-calendar"></i>
-                                <span id="current-date"></span>
-                            </span>
-                        </div>
-                    </div>
-                </nav>
-                {% endif %}
-
-                {% if messages %}
-                <div class="container-fluid">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                {% block content %}{% endblock %}
-            </main>
+{% if user.is_authenticated %}
+<!-- ── Sidebar ─────────────────────────────────────────── -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-inner">
+            <div class="sidebar-brand-icon"><i class="bi bi-wifi"></i></div>
+            <div class="sidebar-brand-text">
+                <span class="brand-name">LibLogin</span>
+                <span class="brand-sub">Management System</span>
+            </div>
         </div>
     </div>
 
-    <!-- Toast Container for Notifications -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 9999;">
-        <!-- Toasts will be dynamically added here -->
+    <div class="sidebar-nav">
+        <!-- Overview -->
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+            <i class="bi bi-speedometer2 link-icon"></i> Dashboard
+        </a>
+
+        <!-- Content -->
+        <div class="nav-section-label">Content</div>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'backgrounds' %}active{% endif %}" href="{% url 'backgrounds' %}">
+            <i class="bi bi-images link-icon"></i> Background Images
+        </a>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'templates' %}active{% endif %}" href="{% url 'templates' %}">
+            <i class="bi bi-palette link-icon"></i> Templates
+        </a>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'slides' %}active{% endif %}" href="{% url 'slides' %}">
+            <i class="bi bi-collection link-icon"></i> Slide Content
+        </a>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}" href="{% url 'cards' %}">
+            <i class="bi bi-grid-3x3 link-icon"></i> Card Content
+        </a>
+
+        <!-- Management -->
+        <div class="nav-section-label">Management</div>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'departments' %}active{% endif %}" href="{% url 'departments' %}">
+            <i class="bi bi-building link-icon"></i> Departments
+        </a>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'landing_pages' %}active{% endif %}" href="{% url 'landing_pages' %}">
+            <i class="bi bi-link-45deg link-icon"></i> Landing Pages
+        </a>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'monitoring' %}active{% endif %}" href="{% url 'monitoring' %}">
+            <i class="bi bi-graph-up link-icon"></i> Monitoring
+        </a>
+
+        <!-- Admin (staff only) -->
+        {% if user.is_staff %}
+        <div class="nav-section-label">Admin</div>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'users' %}active{% endif %}" href="{% url 'users' %}">
+            <i class="bi bi-people link-icon"></i> Users
+        </a>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
+            <i class="bi bi-gear link-icon"></i> Settings
+        </a>
+        <a class="sidebar-link" href="/admin/" target="_blank">
+            <i class="bi bi-shield-lock link-icon"></i> Admin Panel
+        </a>
+        {% endif %}
+
+        <!-- Logout -->
+        <div class="nav-section-label">Account</div>
+        <a class="sidebar-link" href="{% url 'logout' %}">
+            <i class="bi bi-box-arrow-right link-icon"></i> Logout
+        </a>
     </div>
-    {% endblock %}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-user-avatar">{{ user.username|first|upper }}</div>
+            <div class="sidebar-user-info">
+                <span class="user-name">{{ user.username }}</span>
+                <span class="user-role">{% if user.is_staff %}Administrator{% else %}Staff{% endif %}</span>
+            </div>
+        </div>
+    </div>
+</nav>
 
-    <script>
-        // Update current date
-        const dateElement = document.getElementById('current-date');
-        if (dateElement) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            dateElement.textContent = new Date().toLocaleDateString('th-TH', options);
-        }
+<!-- ── Top Bar ──────────────────────────────────────────── -->
+<header class="topbar">
+    <h1 class="topbar-title">{% block page_title %}Dashboard{% endblock %}</h1>
+    <div class="topbar-right">
+        <div class="topbar-date">
+            <i class="bi bi-calendar3"></i>
+            <span id="current-date"></span>
+        </div>
+    </div>
+</header>
+{% endif %}
 
-        // Toast Notification System
-        function showToast(message, type = 'info', duration = 5000) {
-            const toastContainer = document.getElementById('toastContainer');
-            if (!toastContainer) {
-                console.error('Toast container not found');
-                return;
-            }
+<!-- ── Main Content ─────────────────────────────────────── -->
+<main class="{% if user.is_authenticated %}main-content{% endif %}">
 
-            // Map type to Bootstrap color classes
-            const typeMap = {
-                'success': 'bg-success text-white',
-                'error': 'bg-danger text-white',
-                'warning': 'bg-warning text-dark',
-                'info': 'bg-info text-white'
-            };
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill"></i>
+            {% elif message.tags == 'error' or message.tags == 'danger' %}<i class="bi bi-exclamation-circle-fill"></i>
+            {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill"></i>
+            {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-            const iconMap = {
-                'success': 'bi-check-circle-fill',
-                'error': 'bi-exclamation-circle-fill',
-                'warning': 'bi-exclamation-triangle-fill',
-                'info': 'bi-info-circle-fill'
-            };
+    {% block content %}{% endblock %}
+</main>
 
-            const toastClass = typeMap[type] || typeMap['info'];
-            const iconClass = iconMap[type] || iconMap['info'];
+<!-- ── Toast Container ──────────────────────────────────── -->
+<div class="toast-container-custom" id="toastContainer"></div>
 
-            // Create unique ID for toast
-            const toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+{% endblock %}
 
-            // Create toast element
-            const toastHTML = `
-                <div id="${toastId}" class="toast align-items-center ${toastClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <i class="bi ${iconClass} me-2"></i>
-                            ${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>
-            `;
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-            // Add toast to container
-            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+<script>
+    // Current date (Thai locale)
+    const dateEl = document.getElementById('current-date');
+    if (dateEl) {
+        dateEl.textContent = new Date().toLocaleDateString('th-TH', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+    }
 
-            // Initialize and show toast
-            const toastElement = document.getElementById(toastId);
-            const toast = new bootstrap.Toast(toastElement, {
-                autohide: true,
-                delay: duration
-            });
+    // ── Toast System ────────────────────────────────────
+    function showToast(message, type = 'info', duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
 
-            // Remove toast element after it's hidden
-            toastElement.addEventListener('hidden.bs.toast', function() {
-                toastElement.remove();
-            });
-
-            toast.show();
-        }
-
-        // Global error handler for fetch requests
-        window.handleFetchError = function(error, customMessage) {
-            console.error('[Error]', error);
-            const message = customMessage || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
-            showToast(message, 'error');
+        const icons = {
+            success: 'bi-check-circle-fill',
+            error:   'bi-exclamation-circle-fill',
+            warning: 'bi-exclamation-triangle-fill',
+            info:    'bi-info-circle-fill'
         };
 
-        // Form submission handler with error handling
-        window.handleFormSubmit = function(formElement, onSuccess) {
-            formElement.addEventListener('submit', function(e) {
-                const submitButton = formElement.querySelector('button[type="submit"]');
+        const id = 'toast-' + Date.now();
+        const el = document.createElement('div');
+        el.className = `toast-item ${type}`;
+        el.id = id;
+        el.innerHTML = `
+            <i class="bi ${icons[type] || icons.info} toast-icon"></i>
+            <span class="toast-msg">${message}</span>
+            <button class="toast-close" onclick="this.closest('.toast-item').remove()">
+                <i class="bi bi-x-lg"></i>
+            </button>`;
 
-                try {
-                    // Disable submit button to prevent double submission
-                    if (submitButton) {
-                        submitButton.disabled = true;
-                        const originalText = submitButton.innerHTML;
-                        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
+        container.appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; setTimeout(() => el.remove(), 400); }, duration);
+    }
 
-                        // Re-enable after 3 seconds (fallback)
-                        setTimeout(function() {
-                            if (submitButton) {
-                                submitButton.disabled = false;
-                                submitButton.innerHTML = originalText;
-                            }
-                        }, 3000);
-                    }
+    // Global error handler
+    window.handleFetchError = function(error, customMessage) {
+        console.error('[Error]', error);
+        showToast(customMessage || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
+    };
 
-                    if (onSuccess) {
-                        onSuccess(e);
-                    }
-                } catch (error) {
-                    console.error('[Form Submit Error]', error);
-                    showToast('เกิดข้อผิดพลาดในการส่งฟอร์ม', 'error');
-
-                    if (submitButton) {
-                        submitButton.disabled = false;
-                    }
+    // Form double-submit guard
+    window.handleFormSubmit = function(formElement, onSuccess) {
+        formElement.addEventListener('submit', function(e) {
+            const btn = formElement.querySelector('button[type="submit"]');
+            try {
+                if (btn) {
+                    btn.disabled = true;
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
+                    setTimeout(() => { if (btn) { btn.disabled = false; btn.innerHTML = orig; } }, 3000);
                 }
-            });
-        };
-    </script>
+                if (onSuccess) onSuccess(e);
+            } catch (err) {
+                console.error('[Form Submit Error]', err);
+                showToast('เกิดข้อผิดพลาดในการส่งฟอร์ม', 'error');
+                if (btn) btn.disabled = false;
+            }
+        });
+    };
+</script>
 
-    {% block extra_js %}{% endblock %}
+{% block extra_js %}{% endblock %}
 </body>
 </html>

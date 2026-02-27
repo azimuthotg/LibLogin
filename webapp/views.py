@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
-from api.models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent
+from api.models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent, Hotspot, Department
 import os
 from django.conf import settings as django_settings
 
@@ -580,6 +580,160 @@ def cards_view(request):
     }
 
     return render(request, 'webapp/cards.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def users_view(request):
+    """User management (staff only)"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add':
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '')
+            password2 = request.POST.get('password2', '')
+            email = request.POST.get('email', '').strip()
+            is_staff = request.POST.get('is_staff') == 'on'
+            is_active = request.POST.get('is_active') == 'on'
+
+            if not username or not password:
+                messages.error(request, 'Username and password are required.')
+            elif password != password2:
+                messages.error(request, 'Passwords do not match.')
+            elif len(password) < 8:
+                messages.error(request, 'Password must be at least 8 characters.')
+            elif User.objects.filter(username=username).exists():
+                messages.error(request, 'Username already taken.')
+            else:
+                user = User.objects.create_user(username=username, password=password, email=email)
+                user.is_staff = is_staff
+                user.is_active = is_active
+                user.save()
+                messages.success(request, f'User "{username}" created successfully!')
+
+        elif action == 'edit':
+            user_id = request.POST.get('user_id')
+            target = get_object_or_404(User, pk=user_id)
+            username = request.POST.get('username', '').strip()
+            email = request.POST.get('email', '').strip()
+            is_staff = request.POST.get('is_staff') == 'on'
+            is_active = request.POST.get('is_active') == 'on'
+
+            if User.objects.filter(username=username).exclude(pk=target.pk).exists():
+                messages.error(request, 'Username already taken.')
+            elif not is_staff and target.is_staff and User.objects.filter(is_staff=True).count() == 1:
+                messages.error(request, 'Cannot remove staff from last admin.')
+            else:
+                target.username = username
+                target.email = email
+                target.is_staff = is_staff
+                target.is_active = is_active
+                target.save()
+                messages.success(request, f'User "{username}" updated successfully!')
+
+        elif action == 'change_password':
+            user_id = request.POST.get('user_id')
+            target = get_object_or_404(User, pk=user_id)
+            password = request.POST.get('password', '')
+            password2 = request.POST.get('password2', '')
+
+            if password != password2:
+                messages.error(request, 'Passwords do not match.')
+            elif len(password) < 8:
+                messages.error(request, 'Password must be at least 8 characters.')
+            else:
+                target.set_password(password)
+                target.save()
+                messages.success(request, f'Password for "{target.username}" changed successfully!')
+
+        elif action == 'delete':
+            user_id = request.POST.get('user_id')
+            target = get_object_or_404(User, pk=user_id)
+
+            if target == request.user:
+                messages.error(request, 'You cannot delete your own account.')
+            elif target.is_staff and User.objects.filter(is_staff=True).count() == 1:
+                messages.error(request, 'Cannot delete the last admin account.')
+            else:
+                username = target.username
+                target.delete()
+                messages.success(request, f'User "{username}" deleted successfully!')
+
+        return redirect('users')
+
+    users = User.objects.all().order_by('username')
+    return render(request, 'webapp/users.html', {
+        'users': users,
+        'staff_count': users.filter(is_staff=True).count(),
+        'active_count': users.filter(is_active=True).count(),
+    })
+
+
+@login_required
+def departments_view(request):
+    """Manage departments and their hotspot access"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add':
+            name = request.POST.get('name', '').strip()
+            description = request.POST.get('description', '').strip()
+            is_active = request.POST.get('is_active') == 'on'
+            hotspot_ids = request.POST.getlist('hotspot_ids')
+
+            if not name:
+                messages.error(request, 'กรุณากรอกชื่อหน่วยงาน')
+            elif Department.objects.filter(name=name).exists():
+                messages.error(request, f'ชื่อหน่วยงาน "{name}" มีอยู่แล้ว')
+            else:
+                dept = Department.objects.create(
+                    name=name,
+                    description=description,
+                    is_active=is_active,
+                    created_by=request.user
+                )
+                if hotspot_ids:
+                    dept.hotspots.set(Hotspot.objects.filter(pk__in=hotspot_ids))
+                messages.success(request, f'เพิ่มหน่วยงาน "{name}" เรียบร้อยแล้ว')
+
+        elif action == 'edit':
+            dept_id = request.POST.get('dept_id')
+            dept = get_object_or_404(Department, pk=dept_id)
+            name = request.POST.get('name', '').strip()
+            description = request.POST.get('description', '').strip()
+            is_active = request.POST.get('is_active') == 'on'
+            hotspot_ids = request.POST.getlist('hotspot_ids')
+
+            if not name:
+                messages.error(request, 'กรุณากรอกชื่อหน่วยงาน')
+            elif Department.objects.filter(name=name).exclude(pk=dept.pk).exists():
+                messages.error(request, f'ชื่อหน่วยงาน "{name}" มีอยู่แล้ว')
+            else:
+                dept.name = name
+                dept.description = description
+                dept.is_active = is_active
+                dept.save()
+                dept.hotspots.set(Hotspot.objects.filter(pk__in=hotspot_ids))
+                messages.success(request, f'แก้ไขหน่วยงาน "{name}" เรียบร้อยแล้ว')
+
+        elif action == 'delete':
+            dept_id = request.POST.get('dept_id')
+            dept = get_object_or_404(Department, pk=dept_id)
+            name = dept.name
+            dept.delete()
+            messages.success(request, f'ลบหน่วยงาน "{name}" เรียบร้อยแล้ว')
+
+        return redirect('departments')
+
+    departments = Department.objects.prefetch_related('hotspots').all()
+    hotspots = Hotspot.objects.filter(is_active=True).order_by('display_name')
+
+    context = {
+        'departments': departments,
+        'hotspots': hotspots,
+    }
+    return render(request, 'webapp/departments.html', context)
 
 
 @login_required

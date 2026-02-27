@@ -1,260 +1,647 @@
 {% extends 'webapp/base.html' %}
 
-{% block title %}Template Management - LibLogin{% endblock %}
+{% block title %}Templates - LibLogin Management{% endblock %}
 {% block page_title %}Template Management{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ── Stats Strip ── */
+    .stats-strip {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    .stat-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border-radius: 50px;
+        padding: 8px 18px;
+        font-family: 'Sarabun', sans-serif;
+        font-size: .82rem;
+        color: #64748b;
+        box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        border: 1px solid #e9eef4;
+    }
+    .stat-pill .pill-val {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1e293b;
+    }
+    .stat-pill .pill-icon { font-size: .9rem; }
+    .stat-pill.active .pill-icon { color: #22c55e; }
+    .stat-pill.inactive .pill-icon { color: #94a3b8; }
+    .stat-pill.total .pill-icon { color: #3498db; }
+
+    /* ── Page Header ── */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .page-header-left h4 {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #1e293b;
+        margin: 0 0 4px;
+    }
+    .page-header-left p {
+        font-family: 'Sarabun', sans-serif;
+        font-size: .82rem;
+        color: #64748b;
+        margin: 0;
+    }
+
+    /* ── Info Banner ── */
+    .info-banner {
+        background: linear-gradient(135deg, rgba(52,152,219,.08), rgba(44,62,80,.05));
+        border: 1px solid rgba(52,152,219,.2);
+        border-left: 4px solid #3498db;
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-family: 'Sarabun', sans-serif;
+        font-size: .85rem;
+        color: #334155;
+        margin-bottom: 24px;
+    }
+    .info-banner i { color: #3498db; margin-top: 1px; font-size: .95rem; }
+
+    /* ── Template Cards ── */
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .tpl-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1.5px solid #e9eef4;
+        overflow: hidden;
+        transition: transform .2s, box-shadow .2s;
+        animation: fadeUp .4s ease both;
+        position: relative;
+    }
+    .tpl-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(0,0,0,.1);
+    }
+    .tpl-card.is-active {
+        border-color: #22c55e;
+        box-shadow: 0 0 0 1px rgba(34,197,94,.2);
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    {% for i in "12345678" %}
+    .tpl-card:nth-child({{ forloop.counter }}) { animation-delay: {{ forloop.counter0 }}00ms; }
+    {% endfor %}
+
+    /* Active ribbon */
+    .active-ribbon {
+        position: absolute;
+        top: 14px; right: -28px;
+        background: #22c55e;
+        color: #fff;
+        font-family: 'Kanit', sans-serif;
+        font-size: .65rem;
+        font-weight: 600;
+        letter-spacing: .06em;
+        padding: 2px 36px;
+        transform: rotate(45deg);
+        text-transform: uppercase;
+    }
+
+    /* Card header */
+    .tpl-header {
+        padding: 18px 18px 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .tpl-icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .tpl-icon.comp-slideshow { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .tpl-icon.comp-fullbg    { background: linear-gradient(135deg, #8e44ad, #6c3483); }
+    .tpl-icon.comp-card      { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .tpl-title-wrap { flex: 1; min-width: 0; }
+    .tpl-name {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: .95rem;
+        color: #1e293b;
+        line-height: 1.3;
+        margin-bottom: 4px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .tpl-comp-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: rgba(52,152,219,.1);
+        color: #2980b9;
+        font-family: 'Kanit', sans-serif;
+        font-size: .67rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        padding: 2px 9px;
+        border-radius: 50px;
+        border: 1px solid rgba(52,152,219,.2);
+    }
+
+    /* Card body */
+    .tpl-body {
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .tpl-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Sarabun', sans-serif;
+        font-size: .82rem;
+        color: #64748b;
+    }
+    .tpl-meta-row i { font-size: .85rem; color: #94a3b8; width: 16px; text-align: center; }
+    .tpl-meta-row .meta-val { color: #334155; font-weight: 500; }
+
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-family: 'Kanit', sans-serif; font-size: .72rem; font-weight: 600;
+        padding: 3px 10px; border-radius: 50px;
+    }
+    .status-badge.active {
+        background: rgba(34,197,94,.12); color: #16a34a;
+        border: 1px solid rgba(34,197,94,.25);
+    }
+    .status-badge.inactive {
+        background: rgba(148,163,184,.12); color: #64748b;
+        border: 1px solid rgba(148,163,184,.25);
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    /* Card footer actions */
+    .tpl-actions {
+        padding: 12px 18px;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    .btn-tpl {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-family: 'Kanit', sans-serif; font-size: .77rem; font-weight: 500;
+        padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer;
+        transition: all .18s; text-decoration: none;
+    }
+    .btn-tpl-preview { background: rgba(52,152,219,.1); color: #2980b9; }
+    .btn-tpl-preview:hover { background: rgba(52,152,219,.2); color: #1a6fa8; }
+    .btn-tpl-edit { background: rgba(44,62,80,.08); color: #2c3e50; }
+    .btn-tpl-edit:hover { background: rgba(44,62,80,.15); color: #1a2535; }
+    .btn-tpl-activate { background: rgba(34,197,94,.1); color: #16a34a; }
+    .btn-tpl-activate:hover { background: rgba(34,197,94,.2); }
+    .btn-tpl-delete { background: rgba(239,68,68,.08); color: #dc2626; }
+    .btn-tpl-delete:hover { background: rgba(239,68,68,.16); }
+
+    /* ── Empty State ── */
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 64px 24px;
+        background: #fff;
+        border-radius: 16px;
+        border: 2px dashed #e2e8f0;
+    }
+    .empty-icon {
+        width: 72px; height: 72px;
+        background: linear-gradient(135deg, #f0f4f8, #e2e8f0);
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.9rem; color: #94a3b8;
+        margin: 0 auto 20px;
+    }
+    .empty-state h5 {
+        font-family: 'Kanit', sans-serif; font-weight: 600;
+        font-size: 1.1rem; color: #334155; margin-bottom: 8px;
+    }
+    .empty-state p {
+        font-family: 'Sarabun', sans-serif; font-size: .875rem;
+        color: #94a3b8; margin-bottom: 24px;
+    }
+
+    /* ── Modals ── */
+    .modal-header-dark {
+        background: linear-gradient(135deg, #1a2535 0%, #2c3e50 100%);
+        padding: 18px 20px;
+        border-bottom: none;
+    }
+    .modal-header-dark .modal-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600; font-size: .95rem; color: #fff;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .modal-header-dark .btn-close { filter: invert(1) brightness(2); }
+
+    .modal-header-danger {
+        background: linear-gradient(135deg, #991b1b, #dc2626);
+        padding: 18px 20px; border-bottom: none;
+    }
+    .modal-header-danger .modal-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600; font-size: .95rem; color: #fff;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .modal-header-danger .btn-close { filter: invert(1) brightness(2); }
+
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 14px 20px; border-top: 1px solid #f1f5f9; }
+
+    .form-label-styled {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500; font-size: .82rem; color: #374151;
+        display: block; margin-bottom: 6px; letter-spacing: .01em;
+    }
+    .form-control-styled, .form-select-styled {
+        width: 100%;
+        padding: 10px 13px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        font-family: 'Sarabun', sans-serif;
+        font-size: .875rem;
+        color: #1e293b;
+        background: #fff;
+        transition: border-color .2s, box-shadow .2s;
+        -webkit-appearance: none; appearance: none;
+    }
+    .form-control-styled:focus, .form-select-styled:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52,152,219,.12);
+    }
+
+    .form-check-styled {
+        display: flex; align-items: center; gap: 10px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        padding: 10px 14px;
+        cursor: pointer;
+    }
+    .form-check-styled input[type="checkbox"] { width: 17px; height: 17px; cursor: pointer; accent-color: #3498db; }
+    .form-check-styled label {
+        font-family: 'Sarabun', sans-serif; font-size: .875rem;
+        color: #374151; cursor: pointer; margin: 0;
+    }
+
+    .helper-text {
+        font-family: 'Sarabun', sans-serif; font-size: .77rem; color: #94a3b8; margin-top: 5px;
+    }
+
+    .delete-warn-box {
+        background: #fef2f2;
+        border: 1px solid rgba(239,68,68,.25);
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-family: 'Sarabun', sans-serif; font-size: .85rem; color: #991b1b;
+        display: flex; align-items: flex-start; gap: 10px;
+    }
+    .delete-warn-box i { font-size: 1rem; margin-top: 1px; flex-shrink: 0; }
+
+    .btn-modal-primary {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: #fff; border: none; border-radius: 8px;
+        font-family: 'Kanit', sans-serif; font-weight: 600; font-size: .85rem;
+        padding: 9px 20px; cursor: pointer; transition: all .2s;
+    }
+    .btn-modal-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(52,152,219,.35); }
+
+    .btn-modal-danger {
+        background: #dc2626; color: #fff; border: none; border-radius: 8px;
+        font-family: 'Kanit', sans-serif; font-weight: 600; font-size: .85rem;
+        padding: 9px 20px; cursor: pointer; transition: all .2s;
+    }
+    .btn-modal-danger:hover { background: #b91c1c; }
+
+    .btn-modal-cancel {
+        background: #f1f5f9; color: #64748b; border: none; border-radius: 8px;
+        font-family: 'Kanit', sans-serif; font-weight: 500; font-size: .85rem;
+        padding: 9px 16px; cursor: pointer; transition: background .2s;
+    }
+    .btn-modal-cancel:hover { background: #e2e8f0; }
+
+    .mb-f { margin-bottom: 16px; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <!-- Header with Add Button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4><i class="bi bi-palette"></i> Login Page Templates</h4>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
-            <i class="bi bi-plus-circle"></i> Add New Template
-        </button>
-    </div>
 
-    <!-- Info Alert -->
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i>
-        <strong>Templates</strong> define the layout and components displayed on the login page.
-        Only one template can be active per router at a time.
+<!-- Stats Strip -->
+<div class="stats-strip">
+    <div class="stat-pill total">
+        <i class="bi bi-palette pill-icon"></i>
+        <span class="pill-val">{{ templates|length }}</span>
+        <span>Template ทั้งหมด</span>
     </div>
-
-    <!-- Templates List -->
-    <div class="row">
-        {% for template in templates %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card {% if template.is_active %}border-success{% endif %}">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>
-                        {{ template.template_name }}
-                        {% if template.is_active %}
-                        <span class="badge bg-success ms-2">Active</span>
-                        {% endif %}
-                    </span>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            {% if template.is_active %}
-                            <li>
-                                <a class="dropdown-item" href="#" onclick="previewTemplate({{ template.id }}, '{{ template.hotspot_name|default:'' }}')">
-                                    <i class="bi bi-eye"></i> Preview
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            {% endif %}
-                            <li>
-                                <a class="dropdown-item" href="#" onclick="editTemplate({{ template.id }}, '{{ template.template_name }}', '{{ template.left_panel_component }}', '{{ template.hotspot_name|default:'' }}', {{ template.is_active|lower }})">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </a>
-                            </li>
-                            {% if not template.is_active %}
-                            <li>
-                                <form method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="set_active">
-                                    <input type="hidden" name="template_id" value="{{ template.id }}">
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="bi bi-check-circle"></i> Set Active
-                                    </button>
-                                </form>
-                            </li>
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="#" onclick="deleteTemplate({{ template.id }}, '{{ template.template_name }}')">
-                                    <i class="bi bi-trash"></i> Delete
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="mb-2">
-                        <strong>Component:</strong>
-                        <span class="badge bg-primary">{{ template.get_left_panel_component_display }}</span>
-                    </p>
-                    <p class="mb-2">
-                        <strong>Hotspot:</strong> {{ template.hotspot_name|default:"All Hotspots" }}
-                    </p>
-                    <p class="text-muted mb-0" style="font-size: 0.85rem;">
-                        <i class="bi bi-person"></i> {{ template.created_by.username }}
-                        <br>
-                        <i class="bi bi-clock"></i> {{ template.updated_at|date:"d M Y H:i" }}
-                    </p>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="alert alert-warning text-center">
-                <i class="bi bi-exclamation-triangle"></i> No templates found. Create your first template to get started!
-            </div>
-        </div>
-        {% endfor %}
+    <div class="stat-pill active">
+        <i class="bi bi-check-circle-fill pill-icon"></i>
+        <span class="pill-val">
+            {% with active_count=0 %}
+            {% for t in templates %}{% if t.is_active %}1{% endif %}{% endfor %}
+            {% endwith %}
+        </span>
+        <span>Active</span>
+    </div>
+    <div class="stat-pill inactive">
+        <i class="bi bi-pause-circle pill-icon"></i>
+        <span class="pill-val">
+            {% for t in templates %}{% if not t.is_active %}1{% endif %}{% endfor %}
+        </span>
+        <span>Inactive</span>
     </div>
 </div>
 
-<!-- Create Template Modal -->
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h4><i class="bi bi-palette me-2" style="color:#3498db;"></i>Login Page Templates</h4>
+        <p>กำหนด Layout และ Component สำหรับหน้า Login ของ Hotspot แต่ละเครื่อง</p>
+    </div>
+    <button class="btn-modal-primary" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+        <i class="bi bi-plus-lg me-1"></i> เพิ่ม Template
+    </button>
+</div>
+
+<!-- Info Banner -->
+<div class="info-banner">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>
+        <strong>Template คืออะไร?</strong> Template กำหนดรูปแบบการแสดงผลบนหน้า Login —
+        เลือก Component เช่น Slideshow, Full Background หรือ Card Gallery
+        และผูกกับ Hotspot เฉพาะ หรือใช้กับทุก Hotspot ก็ได้
+    </div>
+</div>
+
+<!-- Templates Grid -->
+<div class="templates-grid">
+    {% for template in templates %}
+    {% with comp=template.left_panel_component %}
+    <div class="tpl-card {% if template.is_active %}is-active{% endif %}">
+
+        {% if template.is_active %}
+        <div class="active-ribbon">Active</div>
+        {% endif %}
+
+        <div class="tpl-header">
+            <div class="tpl-icon
+                {% if comp == 'slideshow' %}comp-slideshow
+                {% elif comp == 'fullbg' %}comp-fullbg
+                {% else %}comp-card{% endif %}">
+                {% if comp == 'slideshow' %}<i class="bi bi-collection-play"></i>
+                {% elif comp == 'fullbg' %}<i class="bi bi-display"></i>
+                {% else %}<i class="bi bi-grid"></i>{% endif %}
+            </div>
+            <div class="tpl-title-wrap">
+                <div class="tpl-name">{{ template.template_name }}</div>
+                <span class="tpl-comp-badge">
+                    <i class="bi bi-layers"></i>
+                    {{ template.get_left_panel_component_display }}
+                </span>
+            </div>
+        </div>
+
+        <div class="tpl-body">
+            <div class="tpl-meta-row">
+                <i class="bi bi-router"></i>
+                <span>Hotspot:</span>
+                <span class="meta-val">{{ template.hotspot_name|default:"ทุก Hotspot" }}</span>
+            </div>
+            <div class="tpl-meta-row">
+                <i class="bi bi-person"></i>
+                <span>สร้างโดย:</span>
+                <span class="meta-val">{{ template.created_by.username|default:"-" }}</span>
+            </div>
+            <div class="tpl-meta-row">
+                <i class="bi bi-clock-history"></i>
+                <span>อัปเดต:</span>
+                <span class="meta-val">{{ template.updated_at|date:"d M Y H:i" }}</span>
+            </div>
+            <div class="tpl-meta-row">
+                <i class="bi bi-circle-fill" style="font-size:.55rem; color:{% if template.is_active %}#22c55e{% else %}#94a3b8{% endif %};"></i>
+                <span class="status-badge {% if template.is_active %}active{% else %}inactive{% endif %}">
+                    <span class="status-dot"></span>
+                    {% if template.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="tpl-actions">
+            {% if template.is_active %}
+            <button class="btn-tpl btn-tpl-preview"
+                    onclick="previewTemplate({{ template.id }}, '{{ template.hotspot_name|default:'' }}')">
+                <i class="bi bi-eye"></i> Preview
+            </button>
+            {% endif %}
+
+            {% if not template.is_active %}
+            <form method="POST" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="set_active">
+                <input type="hidden" name="template_id" value="{{ template.id }}">
+                <button type="submit" class="btn-tpl btn-tpl-activate">
+                    <i class="bi bi-check-circle"></i> Set Active
+                </button>
+            </form>
+            {% endif %}
+
+            <button class="btn-tpl btn-tpl-edit"
+                    onclick="editTemplate({{ template.id }}, '{{ template.template_name|escapejs }}', '{{ template.left_panel_component }}', '{{ template.hotspot_name|default:''|escapejs }}', {{ template.is_active|lower }})">
+                <i class="bi bi-pencil"></i> แก้ไข
+            </button>
+
+            <button class="btn-tpl btn-tpl-delete"
+                    onclick="deleteTemplate({{ template.id }}, '{{ template.template_name|escapejs }}')">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+    {% endwith %}
+    {% empty %}
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-palette"></i></div>
+        <h5>ยังไม่มี Template</h5>
+        <p>เริ่มสร้าง Template แรกเพื่อกำหนด Layout หน้า Login ของ Hotspot</p>
+        <button class="btn-modal-primary" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+            <i class="bi bi-plus-lg me-1"></i> สร้าง Template แรก
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ─── Create Template Modal ─── -->
 <div class="modal fade" id="createTemplateModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create">
 
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Create New Template</h5>
+                <div class="modal-header-dark">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> เพิ่ม Template ใหม่</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Template Name *</label>
-                        <input type="text" class="form-control" name="template_name" required
-                               placeholder="e.g., Default Slideshow">
+                    <div class="mb-f">
+                        <label class="form-label-styled">ชื่อ Template <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-control-styled" name="template_name" required
+                               placeholder="เช่น Default Slideshow">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Component Type *</label>
-                        <select class="form-select" name="left_panel_component" required>
+                    <div class="mb-f">
+                        <label class="form-label-styled">Component Type <span style="color:#e74c3c">*</span></label>
+                        <select class="form-select-styled" name="left_panel_component" required>
                             {% for value, label in component_choices %}
                             <option value="{{ value }}">{{ label }}</option>
                             {% endfor %}
                         </select>
-                        <small class="text-muted">Choose what to display on the left side of the login page</small>
+                        <p class="helper-text"><i class="bi bi-info-circle me-1"></i>เลือก Component ที่ใช้แสดงผลด้านซ้ายของหน้า Login</p>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Hotspot (Optional)</label>
-                        <select class="form-select hotspot-dropdown" name="hotspot_name" id="addHotspotName" data-include-blank="true">
+                    <div class="mb-f">
+                        <label class="form-label-styled">Hotspot (ไม่บังคับ)</label>
+                        <select class="form-select-styled hotspot-dropdown" name="hotspot_name"
+                                id="addHotspotName" data-include-blank="true">
                             <option value="">Loading hotspots...</option>
                         </select>
-                        <small class="text-muted"><i class="bi bi-router"></i> Assign this template to a specific hotspot</small>
+                        <p class="helper-text"><i class="bi bi-router me-1"></i>ผูก Template นี้กับ Hotspot เฉพาะ หรือว่างไว้เพื่อใช้กับทุก Hotspot</p>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" name="is_active" id="createIsActive">
-                        <label class="form-check-label" for="createIsActive">
-                            Set as active template
-                        </label>
+                    <div class="form-check-styled">
+                        <input type="checkbox" name="is_active" id="createIsActive">
+                        <label for="createIsActive">ตั้งเป็น Active Template</label>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Template</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-primary">
+                        <i class="bi bi-plus-lg me-1"></i> สร้าง Template
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Edit Template Modal -->
+<!-- ─── Edit Template Modal ─── -->
 <div class="modal fade" id="editTemplateModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="template_id" id="editTemplateId">
 
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Template</h5>
+                <div class="modal-header-dark">
+                    <h5 class="modal-title"><i class="bi bi-pencil"></i> แก้ไข Template</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Template Name *</label>
-                        <input type="text" class="form-control" name="template_name" id="editTemplateName" required>
+                    <div class="mb-f">
+                        <label class="form-label-styled">ชื่อ Template <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-control-styled" name="template_name"
+                               id="editTemplateName" required>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Component Type *</label>
-                        <select class="form-select" name="left_panel_component" id="editComponentType" required>
+                    <div class="mb-f">
+                        <label class="form-label-styled">Component Type <span style="color:#e74c3c">*</span></label>
+                        <select class="form-select-styled" name="left_panel_component"
+                                id="editComponentType" required>
                             {% for value, label in component_choices %}
                             <option value="{{ value }}">{{ label }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Hotspot (Optional)</label>
-                        <select class="form-select hotspot-dropdown" name="hotspot_name" id="editRouterId" data-include-blank="true">
+                    <div class="mb-f">
+                        <label class="form-label-styled">Hotspot (ไม่บังคับ)</label>
+                        <select class="form-select-styled hotspot-dropdown" name="hotspot_name"
+                                id="editRouterId" data-include-blank="true">
                             <option value="">Loading hotspots...</option>
                         </select>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" name="is_active" id="editIsActive">
-                        <label class="form-check-label" for="editIsActive">
-                            Set as active template
-                        </label>
+                    <div class="form-check-styled">
+                        <input type="checkbox" name="is_active" id="editIsActive">
+                        <label for="editIsActive">ตั้งเป็น Active Template</label>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Template</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-primary">
+                        <i class="bi bi-check-lg me-1"></i> บันทึกการแก้ไข
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- ─── Delete Confirmation Modal ─── -->
 <div class="modal fade" id="deleteTemplateModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="template_id" id="deleteTemplateId">
 
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-trash"></i> Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header-danger">
+                    <h5 class="modal-title"><i class="bi bi-trash"></i> ยืนยันการลบ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <p>Are you sure you want to delete the template "<strong id="deleteTemplateName"></strong>"?</p>
-                    <p class="text-danger mb-0"><strong>This action cannot be undone.</strong></p>
+                    <p style="font-family:'Sarabun',sans-serif; font-size:.9rem; color:#334155; margin-bottom:14px;">
+                        คุณต้องการลบ Template <strong id="deleteTemplateName"></strong> ใช่หรือไม่?
+                    </p>
+                    <div class="delete-warn-box">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>การดำเนินการนี้ไม่สามารถยกเลิกได้ และ Hotspot ที่ผูกกับ Template นี้จะไม่มี Template ที่ Active</span>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete Template</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-danger">
+                        <i class="bi bi-trash me-1"></i> ลบ Template
+                    </button>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
-
-<!-- Preview Template Modal -->
-<div class="modal fade" id="previewTemplateModal" tabindex="-1">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-eye"></i> Template Preview</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="previewLoading" class="text-center p-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-3">กำลังโหลดตัวอย่าง...</p>
-                </div>
-                <iframe id="previewIframe"
-                        style="width: 100%; height: calc(100vh - 60px); border: none; display: none;">
-                </iframe>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
-            </div>
         </div>
     </div>
 </div>
@@ -262,25 +649,14 @@
 <script>
 function previewTemplate(templateId, hotspotName) {
     try {
-        console.log('[Preview] Loading template preview:', templateId, 'hotspot:', hotspotName);
-
-        // Build preview URL - use hotspot folder path
-        // If hotspot is specified, use /{hotspot}/login.html, otherwise use /hotspot/login.html (default)
         const hotspotPath = hotspotName || 'hotspot';
         let previewUrl = '/' + hotspotPath + '/login.html?template_id=' + encodeURIComponent(templateId);
-
-        console.log('[Preview] Opening URL in new tab:', previewUrl);
-
-        // Open preview in new tab
         const previewWindow = window.open(previewUrl, '_blank');
-
         if (!previewWindow) {
-            // Popup blocked
             showToast('กรุณาอนุญาตให้เปิดหน้าต่างใหม่ในเบราว์เซอร์', 'error');
         } else {
             showToast('กำลังเปิดตัวอย่างในแท็บใหม่...', 'success');
         }
-
     } catch (error) {
         console.error('[Preview Template Error]', error);
         showToast('ไม่สามารถแสดงตัวอย่างได้', 'error');
@@ -293,10 +669,7 @@ function editTemplate(id, name, component, hotspotName, isActive) {
         document.getElementById('editTemplateName').value = name;
         document.getElementById('editComponentType').value = component;
         document.getElementById('editIsActive').checked = isActive;
-
-        // Load hotspot dropdown with current value
         loadHotspotChoices('editRouterId', hotspotName, true);
-
         new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
     } catch (error) {
         console.error('[Edit Template Error]', error);
@@ -308,7 +681,6 @@ function deleteTemplate(id, name) {
     try {
         document.getElementById('deleteTemplateId').value = id;
         document.getElementById('deleteTemplateName').textContent = name;
-
         new bootstrap.Modal(document.getElementById('deleteTemplateModal')).show();
     } catch (error) {
         console.error('[Delete Template Error]', error);
@@ -316,13 +688,11 @@ function deleteTemplate(id, name) {
     }
 }
 
-// Add form validation and error handling
 document.addEventListener('DOMContentLoaded', function() {
-    const forms = document.querySelectorAll('form');
-    forms.forEach(function(form) {
+    document.querySelectorAll('form').forEach(function(form) {
         const action = form.querySelector('input[name="action"]');
         if (action) {
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', function() {
                 const submitBtn = form.querySelector('button[type="submit"]');
                 if (submitBtn) {
                     submitBtn.disabled = true;
@@ -341,7 +711,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Load hotspot dropdown script -->
 {% load static %}
 <script src="{% static 'webapp/js/hotspot-dropdown.js' %}"></script>
 {% endblock %}

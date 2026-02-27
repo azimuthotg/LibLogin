@@ -1,265 +1,391 @@
 {% extends 'webapp/base.html' %}
 
-{% block title %}Card Content Management - LibLogin{% endblock %}
+{% block title %}Cards - LibLogin Management{% endblock %}
 {% block page_title %}Card Content Management{% endblock %}
 
+{% block extra_css %}
+<style>
+    .stats-strip { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+    .stat-pill {
+        display:flex; align-items:center; gap:8px;
+        background:#fff; border-radius:50px; padding:8px 18px;
+        font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;
+        box-shadow:0 1px 4px rgba(0,0,0,.07); border:1px solid #e9eef4;
+    }
+    .stat-pill .pill-val { font-family:'Kanit',sans-serif; font-weight:700; font-size:1rem; color:#1e293b; }
+    .stat-pill .pill-icon { font-size:.9rem; }
+    .stat-pill.total .pill-icon   { color:#3498db; }
+    .stat-pill.active .pill-icon  { color:#22c55e; }
+    .stat-pill.inactive .pill-icon{ color:#94a3b8; }
+
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
+    .page-header-left h4 { font-family:'Kanit',sans-serif; font-weight:700; font-size:1.2rem; color:#1e293b; margin:0 0 4px; }
+    .page-header-left p  { font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; margin:0; }
+
+    .info-banner {
+        background:linear-gradient(135deg,rgba(52,152,219,.08),rgba(44,62,80,.05));
+        border:1px solid rgba(52,152,219,.2); border-left:4px solid #3498db;
+        border-radius:10px; padding:12px 16px;
+        display:flex; align-items:flex-start; gap:10px;
+        font-family:'Sarabun',sans-serif; font-size:.85rem; color:#334155; margin-bottom:24px;
+    }
+    .info-banner i { color:#3498db; margin-top:1px; }
+
+    .table-card {
+        background:#fff; border-radius:14px; border:1.5px solid #e9eef4;
+        overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,.05);
+    }
+    .table-card table { width:100%; border-collapse:collapse; }
+    .table-card thead th {
+        background:#f8fafc; font-family:'Kanit',sans-serif; font-weight:600;
+        font-size:.78rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase;
+        padding:13px 16px; border-bottom:1.5px solid #e9eef4; white-space:nowrap;
+    }
+    .table-card tbody tr { transition:background .15s; }
+    .table-card tbody tr:hover { background:#f8fafc; }
+    .table-card tbody td {
+        padding:13px 16px; border-bottom:1px solid #f1f5f9;
+        font-family:'Sarabun',sans-serif; font-size:.875rem; color:#334155;
+        vertical-align:middle;
+    }
+    .table-card tbody tr:last-child td { border-bottom:none; }
+
+    .item-icon-cell { width:52px; height:52px; display:flex; align-items:center; justify-content:center; }
+    .item-icon-cell img { width:44px; height:44px; object-fit:contain; border-radius:8px; }
+    .item-icon-cell .icon-emoji { font-size:1.8rem; line-height:1; }
+    .item-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; color:#1e293b; }
+    .item-desc  { font-family:'Sarabun',sans-serif; font-size:.8rem; color:#94a3b8; margin-top:2px; }
+
+    .hotspot-badge { display:inline-flex; align-items:center; gap:4px; background:#f0f4f8; color:#475569; border:1px solid #e2e8f0; border-radius:6px; padding:3px 9px; font-family:'Kanit',sans-serif; font-size:.72rem; font-weight:500; }
+    .order-badge { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:rgba(52,152,219,.1); color:#2980b9; font-family:'Kanit',sans-serif; font-weight:700; font-size:.82rem; }
+    .status-badge { display:inline-flex; align-items:center; gap:5px; font-family:'Kanit',sans-serif; font-size:.72rem; font-weight:600; padding:3px 10px; border-radius:50px; }
+    .status-badge.active   { background:rgba(34,197,94,.12); color:#16a34a; border:1px solid rgba(34,197,94,.25); }
+    .status-badge.inactive { background:rgba(148,163,184,.12); color:#64748b; border:1px solid rgba(148,163,184,.25); }
+    .status-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+    .btn-row { display:flex; gap:6px; }
+    .btn-icon { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; border:none; cursor:pointer; font-size:.85rem; transition:all .15s; }
+    .btn-icon-edit   { background:rgba(44,62,80,.08); color:#2c3e50; }
+    .btn-icon-edit:hover  { background:rgba(44,62,80,.18); }
+    .btn-icon-delete { background:rgba(239,68,68,.08); color:#dc2626; }
+    .btn-icon-delete:hover { background:rgba(239,68,68,.18); }
+
+    .empty-row td { text-align:center; padding:56px 24px !important; }
+    .empty-icon-lg { font-size:2.5rem; color:#cbd5e1; margin-bottom:12px; }
+    .empty-row h6 { font-family:'Kanit',sans-serif; color:#94a3b8; margin-bottom:6px; }
+    .empty-row p  { font-family:'Sarabun',sans-serif; font-size:.82rem; color:#b8c4cf; margin:0; }
+
+    .modal-header-dark { background:linear-gradient(135deg,#1a2535 0%,#2c3e50 100%); padding:18px 20px; border-bottom:none; }
+    .modal-header-dark .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#fff; display:flex; align-items:center; gap:8px; }
+    .modal-header-dark .btn-close { filter:invert(1) brightness(2); }
+    .modal-header-danger { background:linear-gradient(135deg,#991b1b,#dc2626); padding:18px 20px; border-bottom:none; }
+    .modal-header-danger .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#fff; display:flex; align-items:center; gap:8px; }
+    .modal-header-danger .btn-close { filter:invert(1) brightness(2); }
+
+    .modal-body  { padding:20px; }
+    .modal-footer { padding:14px 20px; border-top:1px solid #f1f5f9; }
+
+    .form-label-s { font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; color:#374151; display:block; margin-bottom:6px; }
+    .form-ctrl-s { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#1e293b; background:#fff; transition:border-color .2s,box-shadow .2s; -webkit-appearance:none; appearance:none; }
+    .form-ctrl-s:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+    .form-select-s { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#1e293b; background:#fff; transition:border-color .2s,box-shadow .2s; }
+    .form-select-s:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+    .helper-text { font-family:'Sarabun',sans-serif; font-size:.77rem; color:#94a3b8; margin-top:5px; }
+
+    .icon-option-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .icon-option-box { border:1.5px solid #e2e8f0; border-radius:10px; padding:12px; background:#f8fafc; }
+    .icon-option-label { font-family:'Kanit',sans-serif; font-size:.72rem; font-weight:600; color:#64748b; letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:8px; }
+    .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .check-item { display:flex; align-items:center; gap:8px; padding:10px 12px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:9px; cursor:pointer; }
+    .check-item label { font-family:'Sarabun',sans-serif; font-size:.875rem; color:#374151; cursor:pointer; margin:0; }
+    .check-item input[type="checkbox"] { accent-color:#3498db; width:15px; height:15px; }
+    .delete-warn-box { background:#fef2f2; border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:14px 16px; font-family:'Sarabun',sans-serif; font-size:.85rem; color:#991b1b; display:flex; align-items:flex-start; gap:10px; }
+    .delete-warn-box i { flex-shrink:0; }
+
+    .btn-modal-primary { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; padding:9px 20px; cursor:pointer; transition:all .2s; }
+    .btn-modal-primary:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(52,152,219,.35); }
+    .btn-modal-danger  { background:#dc2626; color:#fff; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; padding:9px 20px; cursor:pointer; }
+    .btn-modal-danger:hover { background:#b91c1c; }
+    .btn-modal-cancel  { background:#f1f5f9; color:#64748b; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.85rem; padding:9px 16px; cursor:pointer; }
+    .btn-modal-cancel:hover { background:#e2e8f0; }
+    .mb-f { margin-bottom:16px; }
+    .section-divider { height:1px; background:#f1f5f9; margin:16px 0; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <!-- Header with Add Button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4><i class="bi bi-grid-3x3"></i> Card Gallery Content</h4>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCardModal">
-            <i class="bi bi-plus-circle"></i> Add New Card
-        </button>
-    </div>
 
-    <!-- Info Alert -->
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i>
-        <strong>Cards</strong> are displayed in the card gallery component on the login page.
-        They will be shown in a grid layout ordered from lowest to highest number.
+<div class="stats-strip">
+    <div class="stat-pill total">
+        <i class="bi bi-grid-3x3 pill-icon"></i>
+        <span class="pill-val">{{ cards|length }}</span>
+        <span>Card ทั้งหมด</span>
     </div>
-
-    <!-- Cards Table -->
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th width="60">Icon</th>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th width="100">Router</th>
-                            <th width="80">Order</th>
-                            <th width="80">Status</th>
-                            <th width="120">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for card in cards %}
-                        <tr>
-                            <td>
-                                {% if card.icon_image %}
-                                <img src="{{ card.icon_image.url }}" width="60" height="60" style="object-fit: contain;">
-                                {% else %}
-                                <span style="font-size: 2rem;">{{ card.icon }}</span>
-                                {% endif %}
-                            </td>
-                            <td><strong>{{ card.title }}</strong></td>
-                            <td>{{ card.description|truncatewords:15 }}</td>
-                            <td>
-                                <span class="badge bg-secondary">
-                                    {{ card.hotspot_name|default:"All" }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge bg-info">{{ card.order }}</span>
-                            </td>
-                            <td>
-                                {% if card.is_active %}
-                                <span class="badge bg-success">Active</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Inactive</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="editCard({{ card.id }}, '{{ card.icon }}', '{{ card.title }}', '{{ card.description }}', '{{ card.hotspot_name|default:'' }}', {{ card.order }}, {{ card.is_active|lower }})" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger" onclick="deleteCard({{ card.id }}, '{{ card.title }}'))" title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">
-                                <i class="bi bi-inbox"></i> No cards found. Create your first card!
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="stat-pill active">
+        <i class="bi bi-check-circle-fill pill-icon"></i>
+        <span class="pill-val">{% for c in cards %}{% if c.is_active %}1{% endif %}{% endfor %}</span>
+        <span>Active</span>
+    </div>
+    <div class="stat-pill inactive">
+        <i class="bi bi-pause-circle pill-icon"></i>
+        <span class="pill-val">{% for c in cards %}{% if not c.is_active %}1{% endif %}{% endfor %}</span>
+        <span>Inactive</span>
     </div>
 </div>
 
-<!-- Create Card Modal -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h4><i class="bi bi-grid-3x3 me-2" style="color:#3498db;"></i>Card Gallery Content</h4>
+        <p>Card จะแสดงผลในรูปแบบ Grid บนหน้า Login เรียงตาม Order จากน้อยไปมาก</p>
+    </div>
+    <button class="btn-modal-primary" data-bs-toggle="modal" data-bs-target="#createCardModal">
+        <i class="bi bi-plus-lg me-1"></i> เพิ่ม Card ใหม่
+    </button>
+</div>
+
+<div class="info-banner">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>Card ใช้แสดงข้อมูลสำคัญในรูปแบบ Gallery Grid — ใช้ Icon Emoji หรืออัปโหลดรูปภาพก็ได้</div>
+</div>
+
+<div class="table-card">
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Icon</th>
+                    <th>Title / Description</th>
+                    <th>Hotspot</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                <tr>
+                    <td>
+                        <div class="item-icon-cell">
+                            {% if card.icon_image %}
+                            <img src="{{ card.icon_image.url }}" alt="icon">
+                            {% else %}
+                            <span class="icon-emoji">{{ card.icon }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="item-title">{{ card.title }}</div>
+                        <div class="item-desc">{{ card.description|truncatewords:12 }}</div>
+                    </td>
+                    <td>
+                        <span class="hotspot-badge">
+                            <i class="bi bi-router"></i>
+                            {{ card.hotspot_name|default:"ทุก Hotspot" }}
+                        </span>
+                    </td>
+                    <td><span class="order-badge">{{ card.order }}</span></td>
+                    <td>
+                        <span class="status-badge {% if card.is_active %}active{% else %}inactive{% endif %}">
+                            <span class="status-dot"></span>
+                            {% if card.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-row">
+                            <button class="btn-icon btn-icon-edit"
+                                    onclick="editCard({{ card.id }}, '{{ card.icon|escapejs }}', '{{ card.title|escapejs }}', '{{ card.description|escapejs }}', '{{ card.hotspot_name|default:''|escapejs }}', {{ card.order }}, {{ card.is_active|lower }})"
+                                    title="แก้ไข">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn-icon btn-icon-delete"
+                                    onclick="deleteCard({{ card.id }}, '{{ card.title|escapejs }}')"
+                                    title="ลบ">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6">
+                        <div class="empty-icon-lg"><i class="bi bi-grid-3x3"></i></div>
+                        <h6>ยังไม่มี Card</h6>
+                        <p>เพิ่ม Card แรกเพื่อเริ่มต้นสร้าง Card Gallery บนหน้า Login</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ─── Create Card Modal ─── -->
 <div class="modal fade" id="createCardModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create">
 
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Create New Card</h5>
+                <div class="modal-header-dark">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> เพิ่ม Card ใหม่</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Icon *</label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Option 1: Emoji</label>
-                                <input type="text" class="form-control" name="icon" placeholder="📚">
+                    <div class="mb-f">
+                        <label class="form-label-s">Icon <span style="color:#e74c3c">*</span></label>
+                        <div class="icon-option-grid">
+                            <div class="icon-option-box">
+                                <span class="icon-option-label">Option 1: Emoji</span>
+                                <input type="text" class="form-ctrl-s" name="icon" placeholder="📚">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Option 2: Upload Image</label>
-                                <input type="file" class="form-control" name="icon_image" accept="image/*">
-                            </div>
-                        </div>
-                        <small class="text-muted">Choose either emoji or upload image (recommended: 100x100px)</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Title *</label>
-                        <input type="text" class="form-control" name="title" required
-                               placeholder="ห้องสมุดดิจิทัล">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Description *</label>
-                        <textarea class="form-control" name="description" rows="3" required
-                                  placeholder="เข้าถึงทรัพยากรดิจิทัลหลากหลาย..."></textarea>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Hotspot (Optional)</label>
-                                <select class="form-select hotspot-dropdown" name="hotspot_name" id="addHotspotName" data-include-blank="true">
-                                    <option value="">Loading hotspots...</option>
-                                </select>
+                            <div class="icon-option-box">
+                                <span class="icon-option-label">Option 2: อัปโหลดรูป</span>
+                                <input type="file" class="form-ctrl-s" name="icon_image" accept="image/*" style="padding:7px 10px;">
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Display Order</label>
-                                <input type="number" class="form-control" name="order" value="0" min="0">
-                                <small class="text-muted">Lower numbers appear first</small>
-                            </div>
+                        <p class="helper-text">เลือก Emoji หรืออัปโหลดรูปภาพ (แนะนำ: 100×100px)</p>
+                    </div>
+
+                    <div class="mb-f">
+                        <label class="form-label-s">Title <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" name="title" required placeholder="ห้องสมุดดิจิทัล">
+                    </div>
+
+                    <div class="mb-f">
+                        <label class="form-label-s">Description <span style="color:#e74c3c">*</span></label>
+                        <textarea class="form-ctrl-s" name="description" rows="3" required placeholder="เข้าถึงทรัพยากรดิจิทัลหลากหลาย..."></textarea>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <div class="form-row-2">
+                        <div>
+                            <label class="form-label-s">Hotspot (ไม่บังคับ)</label>
+                            <select class="form-select-s hotspot-dropdown" name="hotspot_name" id="addHotspotName" data-include-blank="true">
+                                <option value="">Loading hotspots...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label-s">Display Order</label>
+                            <input type="number" class="form-ctrl-s" name="order" value="0" min="0">
+                            <p class="helper-text">เลขน้อยแสดงก่อน</p>
                         </div>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" name="is_active" id="createIsActive" checked>
-                        <label class="form-check-label" for="createIsActive">
-                            Active (show this card)
-                        </label>
+                    <div style="margin-top:14px;" class="check-item">
+                        <input type="checkbox" name="is_active" id="createIsActive" checked>
+                        <label for="createIsActive">Active (แสดง Card นี้)</label>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Card</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-primary"><i class="bi bi-plus-lg me-1"></i> สร้าง Card</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Edit Card Modal -->
+<!-- ─── Edit Card Modal ─── -->
 <div class="modal fade" id="editCardModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="card_id" id="editCardId">
 
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Card</h5>
+                <div class="modal-header-dark">
+                    <h5 class="modal-title"><i class="bi bi-pencil"></i> แก้ไข Card</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Icon *</label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Option 1: Emoji</label>
-                                <input type="text" class="form-control" name="icon" id="editIcon" placeholder="📚">
+                    <div class="mb-f">
+                        <label class="form-label-s">Icon</label>
+                        <div class="icon-option-grid">
+                            <div class="icon-option-box">
+                                <span class="icon-option-label">Option 1: Emoji</span>
+                                <input type="text" class="form-ctrl-s" name="icon" id="editIcon" placeholder="📚">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Option 2: Upload New Image</label>
-                                <input type="file" class="form-control" name="icon_image" accept="image/*">
-                            </div>
-                        </div>
-                        <small class="text-muted">Choose either emoji or upload image (leave both empty to keep current icon)</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Title *</label>
-                        <input type="text" class="form-control" name="title" id="editTitle" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Description *</label>
-                        <textarea class="form-control" name="description" id="editDescription" rows="3" required></textarea>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Hotspot (Optional)</label>
-                                <select class="form-select hotspot-dropdown" name="hotspot_name" id="editRouterId" data-include-blank="true">
-                                    <option value="">Loading hotspots...</option>
-                                </select>
+                            <div class="icon-option-box">
+                                <span class="icon-option-label">Option 2: อัปโหลดรูปใหม่</span>
+                                <input type="file" class="form-ctrl-s" name="icon_image" accept="image/*" style="padding:7px 10px;">
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Display Order</label>
-                                <input type="number" class="form-control" name="order" id="editOrder" min="0">
-                            </div>
+                        <p class="helper-text">เว้นว่างทั้งสองช่องเพื่อคงรูปภาพเดิม</p>
+                    </div>
+
+                    <div class="mb-f">
+                        <label class="form-label-s">Title <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" name="title" id="editTitle" required>
+                    </div>
+
+                    <div class="mb-f">
+                        <label class="form-label-s">Description <span style="color:#e74c3c">*</span></label>
+                        <textarea class="form-ctrl-s" name="description" id="editDescription" rows="3" required></textarea>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <div class="form-row-2">
+                        <div>
+                            <label class="form-label-s">Hotspot (ไม่บังคับ)</label>
+                            <select class="form-select-s hotspot-dropdown" name="hotspot_name" id="editRouterId" data-include-blank="true">
+                                <option value="">Loading hotspots...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label-s">Display Order</label>
+                            <input type="number" class="form-ctrl-s" name="order" id="editOrder" min="0">
                         </div>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" name="is_active" id="editIsActive">
-                        <label class="form-check-label" for="editIsActive">
-                            Active (show this card)
-                        </label>
+                    <div style="margin-top:14px;" class="check-item">
+                        <input type="checkbox" name="is_active" id="editIsActive">
+                        <label for="editIsActive">Active (แสดง Card นี้)</label>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Card</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-primary"><i class="bi bi-check-lg me-1"></i> บันทึกการแก้ไข</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- ─── Delete Card Modal ─── -->
 <div class="modal fade" id="deleteCardModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="card_id" id="deleteCardId">
 
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-trash"></i> Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header-danger">
+                    <h5 class="modal-title"><i class="bi bi-trash"></i> ยืนยันการลบ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <p>Are you sure you want to delete the card "<strong id="deleteCardTitle"></strong>"?</p>
-                    <p class="text-danger mb-0"><strong>This action cannot be undone.</strong></p>
+                    <p style="font-family:'Sarabun',sans-serif; font-size:.9rem; color:#334155; margin-bottom:14px;">
+                        คุณต้องการลบ Card <strong id="deleteCardTitle"></strong> ใช่หรือไม่?
+                    </p>
+                    <div class="delete-warn-box">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>การดำเนินการนี้ไม่สามารถยกเลิกได้</span>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete Card</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-danger"><i class="bi bi-trash me-1"></i> ลบ Card</button>
                 </div>
             </form>
         </div>
@@ -275,10 +401,7 @@ function editCard(id, icon, title, description, routerId, order, isActive) {
         document.getElementById('editDescription').value = description;
         document.getElementById('editOrder').value = order;
         document.getElementById('editIsActive').checked = isActive;
-
-        // Load hotspot dropdown with current value
         loadHotspotChoices('editRouterId', routerId, true);
-
         new bootstrap.Modal(document.getElementById('editCardModal')).show();
     } catch (error) {
         console.error('[Edit Card Error]', error);
@@ -290,7 +413,6 @@ function deleteCard(id, title) {
     try {
         document.getElementById('deleteCardId').value = id;
         document.getElementById('deleteCardTitle').textContent = title;
-
         new bootstrap.Modal(document.getElementById('deleteCardModal')).show();
     } catch (error) {
         console.error('[Delete Card Error]', error);
@@ -298,18 +420,16 @@ function deleteCard(id, title) {
     }
 }
 
-// Add form validation and error handling
 document.addEventListener('DOMContentLoaded', function() {
-    const forms = document.querySelectorAll('form');
-    forms.forEach(function(form) {
+    document.querySelectorAll('form').forEach(function(form) {
         const action = form.querySelector('input[name="action"]');
         if (action) {
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', function() {
                 const submitBtn = form.querySelector('button[type="submit"]');
                 if (submitBtn) {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
-                    setTimeout(function() { submitBtn.disabled = false; }, 3000);
+                    setTimeout(() => submitBtn.disabled = false, 3000);
                 }
             });
         }
@@ -323,7 +443,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Load hotspot dropdown script -->
 {% load static %}
 <script src="{% static 'webapp/js/hotspot-dropdown.js' %}"></script>
 {% endblock %}

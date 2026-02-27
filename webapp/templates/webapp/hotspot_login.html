@@ -5,43 +5,182 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WiFi Login - {{ library_name }}</title>
-    <link rel="stylesheet" href="{% static 'css/hotspot.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Sarabun', sans-serif;
+            background: #1a2535;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+
+        /* Background */
+        #login-background {
+            position: fixed; inset: 0;
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            transition: opacity .8s ease;
+            z-index: 0;
+        }
+        .overlay {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, rgba(26,37,53,.85) 0%, rgba(44,62,80,.75) 100%);
+            backdrop-filter: blur(2px);
+            z-index: 1;
+        }
+
+        /* Card */
+        .login-container {
+            position: relative; z-index: 2;
+            width: 100%; max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255,255,255,.07);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 20px;
+            padding: 36px 32px;
+            box-shadow: 0 24px 64px rgba(0,0,0,.4);
+        }
+
+        /* Logo */
+        .logo-wrap { text-align: center; margin-bottom: 24px; }
+        .logo { max-height: 64px; max-width: 160px; object-fit: contain; filter: brightness(0) invert(1); }
+        .logo-fallback {
+            width: 56px; height: 56px; border-radius: 16px;
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; color: #fff;
+            box-shadow: 0 8px 24px rgba(52,152,219,.4);
+        }
+
+        /* Heading */
+        .heading { text-align: center; margin-bottom: 24px; }
+        .heading h1 { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 1.5rem; color: #fff; margin-bottom: 4px; }
+        .heading .lib-name { font-family: 'Kanit', sans-serif; font-weight: 400; font-size: .85rem; color: rgba(255,255,255,.7); }
+
+        /* Error */
+        .error-box {
+            background: rgba(231,76,60,.15);
+            border: 1px solid rgba(231,76,60,.4);
+            border-left: 4px solid #e74c3c;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex; align-items: center; gap: 10px;
+            font-size: .85rem; color: #fca5a5;
+            margin-bottom: 20px;
+        }
+        .error-box i { font-size: .9rem; flex-shrink: 0; }
+
+        /* Form */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-family: 'Kanit', sans-serif; font-weight: 500; font-size: .8rem;
+            color: rgba(255,255,255,.8); margin-bottom: 7px; letter-spacing: .02em;
+        }
+        .input-wrap { position: relative; }
+        .input-wrap i {
+            position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+            color: rgba(255,255,255,.4); font-size: .9rem; pointer-events: none;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px 12px 38px;
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 10px;
+            font-family: 'Sarabun', sans-serif; font-size: .9rem;
+            color: #fff;
+            transition: border-color .2s, background .2s;
+            -webkit-appearance: none; appearance: none;
+        }
+        .form-group input::placeholder { color: rgba(255,255,255,.35); }
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(255,255,255,.15);
+            box-shadow: 0 0 0 3px rgba(52,152,219,.2);
+        }
+
+        /* Button */
+        .btn-login {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #fff; border: none; border-radius: 10px;
+            font-family: 'Kanit', sans-serif; font-weight: 600; font-size: .95rem;
+            cursor: pointer; margin-top: 8px;
+            transition: all .2s;
+            box-shadow: 0 6px 20px rgba(52,152,219,.4);
+            text-decoration: none;
+        }
+        .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(52,152,219,.55); }
+
+        /* Footer */
+        .footer {
+            text-align: center; margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,.1);
+        }
+        .footer p { font-size: .78rem; color: rgba(255,255,255,.5); line-height: 1.6; }
+        .footer .contact-info { color: rgba(255,255,255,.6); margin-top: 4px; }
+
+        /* Wifi badge */
+        .wifi-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(52,152,219,.2); border: 1px solid rgba(52,152,219,.3);
+            border-radius: 50px; padding: 4px 12px;
+            font-family: 'Kanit', sans-serif; font-size: .72rem; color: #74b9ff;
+            margin-bottom: 16px;
+        }
+        .wifi-badge i { font-size: .8rem; }
+
+        @media (max-width: 480px) {
+            .login-box { padding: 28px 20px; }
+        }
+    </style>
 </head>
 <body>
-    <!-- Background (โหลดจาก API) -->
     <div id="login-background"></div>
     <div class="overlay"></div>
 
-    <!-- Login Container -->
     <div class="login-container">
         <div class="login-box">
             <!-- Logo -->
-            {% if logo_url %}
-            <img src="{{ logo_url }}" alt="Logo" class="logo">
-            {% else %}
-            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo" onerror="this.style.display='none'">
-            {% endif %}
-
-            <h1>ยินดีต้อนรับ</h1>
-            <p class="subtitle">{{ library_name }}</p>
-            <p class="subtitle-en">Office of Academic Resources, Nakhon Phanom University</p>
-
-            <!-- Error Message -->
-            {% if error %}
-            <div class="error-message">
-                {% if error == 'invalid username or password' %}
-                    ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
-                {% elif error == 'user is already connected' %}
-                    ผู้ใช้นี้เชื่อมต่ออยู่แล้ว
-                {% elif error == 'no address available' %}
-                    ไม่มี IP Address ว่างในขณะนี้
-                {% elif error == 'uptime limit reached' %}
-                    เวลาการใช้งานหมดแล้ว
-                {% elif error == 'radius timeout' %}
-                    ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้
+            <div class="logo-wrap">
+                {% if logo_url %}
+                <img src="{{ logo_url }}" alt="Logo" class="logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='inline-flex';">
+                <span id="logo-fallback" class="logo-fallback" style="display:none;"><i class="bi bi-wifi"></i></span>
                 {% else %}
-                    {{ error }}
+                <span class="logo-fallback"><i class="bi bi-wifi"></i></span>
                 {% endif %}
+            </div>
+
+            <div class="heading">
+                <div class="wifi-badge"><i class="bi bi-wifi"></i> WiFi ห้องสมุด</div>
+                <h1>ยินดีต้อนรับ</h1>
+                <div class="lib-name">{{ library_name }}</div>
+            </div>
+
+            <!-- Error -->
+            {% if error %}
+            <div class="error-box">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>
+                    {% if error == 'invalid username or password' %}ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+                    {% elif error == 'user is already connected' %}ผู้ใช้นี้เชื่อมต่ออยู่แล้ว
+                    {% elif error == 'no address available' %}ไม่มี IP Address ว่างในขณะนี้
+                    {% elif error == 'uptime limit reached' %}เวลาการใช้งานหมดแล้ว
+                    {% elif error == 'radius timeout' %}ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้
+                    {% else %}{{ error }}{% endif %}
+                </span>
             </div>
             {% endif %}
 
@@ -49,29 +188,28 @@
             <form name="login" action="{{ link_login_only }}" method="post">
                 <input type="hidden" name="dst" value="{{ link_orig }}" />
                 <input type="hidden" name="popup" value="{{ popup }}" />
-                {% if chap_id %}
-                <input type="hidden" name="chap-id" value="{{ chap_id }}" />
-                {% endif %}
-                {% if chap_challenge %}
-                <input type="hidden" name="chap-challenge" value="{{ chap_challenge }}" />
-                {% endif %}
+                {% if chap_id %}<input type="hidden" name="chap-id" value="{{ chap_id }}" />{% endif %}
+                {% if chap_challenge %}<input type="hidden" name="chap-challenge" value="{{ chap_challenge }}" />{% endif %}
 
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" name="username" id="username"
-                           value="{{ username }}"
-                           placeholder="ชื่อผู้ใช้"
-                           required autofocus>
+                    <label for="username"><i class="bi bi-person me-1"></i>Username</label>
+                    <div class="input-wrap">
+                        <i class="bi bi-person"></i>
+                        <input type="text" name="username" id="username" value="{{ username }}" placeholder="กรอก Username" required autofocus>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" name="password" id="password"
-                           placeholder="รหัสผ่าน"
-                           required>
+                    <label for="password"><i class="bi bi-lock me-1"></i>Password</label>
+                    <div class="input-wrap">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" name="password" id="password" placeholder="กรอก Password" required>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
+                <button type="submit" class="btn-login">
+                    <i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ
+                </button>
             </form>
 
             <div class="footer">
@@ -79,39 +217,30 @@
                 {% if contact_info %}
                 <p class="contact-info">{{ contact_info }}</p>
                 {% else %}
-                <p class="contact-info">โทร. 042-111-222 | อีเมล: support@npu.ac.th</p>
+                <p class="contact-info"><i class="bi bi-headset me-1"></i>ติดต่อเคาน์เตอร์ห้องสมุด</p>
                 {% endif %}
             </div>
         </div>
     </div>
 
     <script>
-        // API Configuration
         const API_BASE_URL = window.location.origin;
         const ROUTER_ID = '{{ hotspot_name }}';
 
-        // Load background image from API
         function loadBackgroundImage() {
             let apiUrl = API_BASE_URL + '/api/login-background/';
-            if (ROUTER_ID) {
-                apiUrl += '?hotspot_name=' + ROUTER_ID;
-            }
+            if (ROUTER_ID) apiUrl += '?hotspot_name=' + ROUTER_ID;
 
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.imageUrl) {
-                        document.getElementById('login-background').style.backgroundImage =
-                            'url(' + data.imageUrl + ')';
-                        console.log('Background loaded:', data.title);
+                        document.getElementById('login-background').style.backgroundImage = 'url(' + data.imageUrl + ')';
                     }
                 })
-                .catch(error => {
-                    console.error('Error loading background:', error);
-                });
+                .catch(error => console.error('Error loading background:', error));
         }
 
-        // Load on page ready
         document.addEventListener('DOMContentLoaded', loadBackgroundImage);
     </script>
 </body>

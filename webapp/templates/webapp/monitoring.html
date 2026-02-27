@@ -1,437 +1,341 @@
 {% extends 'webapp/base.html' %}
 
-{% block title %}Impression Monitoring - LibLogin{% endblock %}
-
+{% block title %}Monitoring - LibLogin{% endblock %}
 {% block page_title %}Page Impression Monitoring{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Summary Cards */
-    .stat-card {
-        border-radius: 8px;
-        padding: 20px;
-        color: white;
-        margin-bottom: 20px;
-        transition: transform 0.2s;
-        height: 150px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    }
-
-    .stat-card.primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .stat-card.success {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-
-    .stat-card.info {
-        background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%);
-    }
-
-    .stat-card.warning {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin: 10px 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .stat-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .stat-icon {
-        font-size: 2rem;
-        opacity: 0.3;
-        position: absolute;
-        right: 20px;
-        top: 20px;
-    }
-
-    /* Charts */
-    .chart-container {
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-    }
-
-    .chart-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: #333;
-    }
-
-    /* Table */
-    .impressions-table {
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .table-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: #333;
-    }
-
-    .table {
-        font-size: 0.9rem;
-    }
-
-    .table thead th {
-        border-top: none;
-        background-color: #f8f9fa;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        color: #6c757d;
-    }
-
-    .badge-unique {
-        background-color: #28a745;
-    }
-
-    .badge-returning {
-        background-color: #6c757d;
-    }
-
-    /* Filters */
+    /* ── Filter Bar ── */
     .filter-bar {
-        background: white;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background:#fff; border-radius:14px; border:1.5px solid #e9eef4;
+        padding:18px 20px; margin-bottom:20px;
+        box-shadow:0 1px 4px rgba(0,0,0,.05);
     }
+    .filter-bar-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+    .filter-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end; }
+    .filter-item label { font-family:'Kanit',sans-serif; font-weight:500; font-size:.78rem; color:#64748b; display:block; margin-bottom:6px; }
+    .form-ctrl-s { width:100%; padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#1e293b; background:#fff; transition:border-color .2s; -webkit-appearance:none; appearance:none; }
+    .form-ctrl-s:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+    .form-select-s { width:100%; padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#1e293b; background:#fff; transition:border-color .2s; }
+    .form-select-s:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+    .btn-refresh-sm { display:flex; align-items:center; gap:6px; justify-content:center; padding:9px 12px; background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:9px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.82rem; cursor:pointer; transition:all .2s; width:100%; }
+    .btn-refresh-sm:hover { transform:translateY(-1px); }
+    .btn-export-sm { display:flex; align-items:center; gap:6px; justify-content:center; padding:9px 12px; background:#f1f5f9; color:#475569; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; cursor:pointer; transition:all .15s; width:100%; }
+    .btn-export-sm:hover { background:#e2e8f0; }
+    .last-updated { font-family:'Sarabun',sans-serif; font-size:.75rem; color:#94a3b8; display:flex; align-items:center; gap:4px; white-space:nowrap; }
 
-    /* Loading State */
-    .loading {
-        text-align: center;
-        padding: 40px;
-        color: #6c757d;
+    /* Hidden date range sections */
+    #presetRangeContainer { display:block; }
+    #customRangeContainer { display:none; }
+
+    /* ── Stat Cards ── */
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+    @media(max-width:900px){ .stat-grid { grid-template-columns:repeat(2,1fr); } }
+    @media(max-width:560px){ .stat-grid { grid-template-columns:1fr; } }
+
+    .stat-card {
+        background:#fff; border-radius:14px; border:1.5px solid #e9eef4;
+        padding:18px 20px; position:relative; overflow:hidden;
+        box-shadow:0 1px 6px rgba(0,0,0,.05);
+        transition:transform .2s, box-shadow .2s;
     }
-
-    .loading i {
-        font-size: 3rem;
-        animation: spin 1s linear infinite;
+    .stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.09); }
+    .stat-card-icon {
+        width:42px; height:42px; border-radius:12px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.1rem; color:#fff; margin-bottom:14px;
     }
+    .stat-card-icon.blue   { background:linear-gradient(135deg,#3498db,#2980b9); }
+    .stat-card-icon.green  { background:linear-gradient(135deg,#22c55e,#16a34a); }
+    .stat-card-icon.purple { background:linear-gradient(135deg,#8b5cf6,#6d28d9); }
+    .stat-card-icon.orange { background:linear-gradient(135deg,#f97316,#ea580c); }
 
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
+    .stat-label { font-family:'Kanit',sans-serif; font-size:.72rem; font-weight:600; color:#94a3b8; letter-spacing:.05em; text-transform:uppercase; margin-bottom:6px; }
+    .stat-value { font-family:'Kanit',sans-serif; font-weight:700; font-size:1.8rem; color:#1e293b; line-height:1; margin-bottom:4px; }
+    .stat-sub   { font-family:'Sarabun',sans-serif; font-size:.78rem; color:#94a3b8; }
 
-    /* Device Type Icons */
-    .device-mobile { color: #3494e6; }
-    .device-desktop { color: #667eea; }
-    .device-tablet { color: #f093fb; }
-    .device-unknown { color: #6c757d; }
+    /* ── Chart Cards ── */
+    .chart-card { background:#fff; border-radius:14px; border:1.5px solid #e9eef4; padding:20px; margin-bottom:20px; box-shadow:0 1px 6px rgba(0,0,0,.05); }
+    .chart-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px; }
+    .chart-card-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; color:#1e293b; display:flex; align-items:center; gap:8px; }
+    .chart-card-title i { color:#3498db; }
+    .charts-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:20px; }
+    @media(max-width:900px){ .charts-row { grid-template-columns:1fr; } }
+
+    /* ── Media Reach Section ── */
+    .reach-metrics-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+    @media(max-width:900px){ .reach-metrics-grid { grid-template-columns:repeat(2,1fr); } }
+    .reach-metric-box { background:#f8fafc; border:1.5px solid #e9eef4; border-radius:10px; padding:14px; text-align:center; }
+    .reach-metric-label { font-family:'Kanit',sans-serif; font-size:.72rem; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+    .reach-metric-value { font-family:'Kanit',sans-serif; font-weight:700; font-size:1.4rem; color:#1e293b; }
+    .reach-metric-sub { font-family:'Sarabun',sans-serif; font-size:.75rem; color:#94a3b8; margin-top:4px; }
+    .reach-metric-badge { display:inline-flex; align-items:center; background:rgba(52,152,219,.1); color:#2980b9; border-radius:50px; padding:2px 8px; font-family:'Kanit',sans-serif; font-size:.7rem; font-weight:600; margin-top:4px; }
+
+    .growth-box { background:#f8fafc; border:1.5px solid #e9eef4; border-radius:10px; padding:14px; height:100%; }
+    .growth-box-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.82rem; color:#334155; margin-bottom:12px; }
+    .growth-row { display:flex; justify-content:space-between; align-items:center; font-family:'Sarabun',sans-serif; font-size:.85rem; color:#64748b; padding:6px 0; border-bottom:1px solid #f1f5f9; }
+    .growth-row:last-child { border-bottom:none; }
+
+    .reach-charts-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    @media(max-width:700px){ .reach-charts-row { grid-template-columns:1fr; } }
+
+    .recommendations-box { background:#f8fafc; border:1.5px solid #e9eef4; border-radius:10px; padding:14px; margin-bottom:16px; }
+    .recommendations-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#1e293b; display:flex; align-items:center; gap:6px; margin-bottom:12px; }
+    .recommendations-title i { color:#f59e0b; }
+
+    .btn-generate { display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.82rem; padding:8px 16px; cursor:pointer; transition:all .2s; }
+    .btn-generate:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(52,152,219,.35); }
+    .btn-export-pdf { display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; color:#475569; border:1.5px solid #e2e8f0; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; padding:8px 16px; cursor:pointer; }
+    .btn-export-pdf:hover { background:#e2e8f0; }
+
+    /* ── Table ── */
+    .table-card { background:#fff; border-radius:14px; border:1.5px solid #e9eef4; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,.05); }
+    .table-card-header { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .table-card-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; color:#1e293b; display:flex; align-items:center; gap:8px; }
+    .table-card-title i { color:#3498db; }
+    .search-input { padding:8px 12px 8px 34px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#1e293b; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") 10px center no-repeat; }
+    .search-input:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+
+    .imp-table { width:100%; border-collapse:collapse; }
+    .imp-table thead th { background:#f8fafc; font-family:'Kanit',sans-serif; font-weight:600; font-size:.76rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; padding:11px 16px; border-bottom:1.5px solid #e9eef4; white-space:nowrap; }
+    .imp-table tbody tr { transition:background .15s; }
+    .imp-table tbody tr:hover { background:#f8fafc; }
+    .imp-table tbody td { padding:11px 16px; border-bottom:1px solid #f1f5f9; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#334155; vertical-align:middle; }
+    .imp-table tbody tr:last-child td { border-bottom:none; }
+
+    .table-footer { padding:12px 20px; border-top:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
+    .row-count { font-family:'Sarabun',sans-serif; font-size:.82rem; color:#94a3b8; }
+    .btn-load-more { display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; color:#475569; border:none; border-radius:8px; padding:7px 14px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.8rem; cursor:pointer; }
+    .btn-load-more:hover { background:#e2e8f0; }
+
+    /* Loading spinner */
+    .loading-center { text-align:center; padding:48px; }
+    .loading-center p { font-family:'Sarabun',sans-serif; font-size:.85rem; color:#94a3b8; margin-top:12px; }
+
+    /* device icons */
+    .device-mobile  { color:#3494e6; }
+    .device-desktop { color:#667eea; }
+    .device-tablet  { color:#8b5cf6; }
+    .device-unknown { color:#94a3b8; }
+
+    /* media reach initial/loading */
+    .reach-initial { text-align:center; padding:48px 24px; }
+    .reach-initial i { font-size:3rem; color:#cbd5e1; }
+    .reach-initial p { font-family:'Sarabun',sans-serif; font-size:.875rem; color:#94a3b8; margin-top:12px; }
 </style>
 {% endblock %}
 
 {% block content %}
+
 <!-- Filter Bar -->
 <div class="filter-bar">
-    <div class="row align-items-end mb-3">
-        <div class="col-md-3">
-            <label for="dateRangeType" class="form-label"><small>Date Range Type</small></label>
-            <select class="form-select" id="dateRangeType" onchange="toggleDateRangeInputs()">
+    <div class="filter-bar-title"><i class="bi bi-funnel"></i> ตัวกรอง & ช่วงเวลา</div>
+    <div class="filter-grid">
+        <div class="filter-item">
+            <label>Date Range Type</label>
+            <select class="form-select-s" id="dateRangeType" onchange="toggleDateRangeInputs()">
                 <option value="preset" selected>Quick Select</option>
                 <option value="custom">Custom Range</option>
             </select>
         </div>
-        <div class="col-md-3" id="presetRangeContainer">
-            <label for="daysFilter" class="form-label"><small>Time Range</small></label>
-            <select class="form-select" id="daysFilter">
+        <div class="filter-item" id="presetRangeContainer">
+            <label>Time Range</label>
+            <select class="form-select-s" id="daysFilter">
                 <option value="1">Last 24 Hours</option>
                 <option value="7" selected>Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="90">Last 90 Days</option>
             </select>
         </div>
-        <div class="col-md-6" id="customRangeContainer" style="display: none;">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="startDate" class="form-label"><small>Start Date</small></label>
-                    <input type="date" class="form-control" id="startDate">
-                </div>
-                <div class="col-md-6">
-                    <label for="endDate" class="form-label"><small>End Date</small></label>
-                    <input type="date" class="form-control" id="endDate">
-                </div>
+        <div class="filter-item" id="customRangeContainer" style="display:none; grid-column:span 2;">
+            <label>Date Range</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <input type="date" class="form-ctrl-s" id="startDate">
+                <input type="date" class="form-ctrl-s" id="endDate">
             </div>
         </div>
-        <div class="col-md-3">
-            <label for="hotspotFilter" class="form-label"><small>Hotspot</small></label>
-            <select class="form-select" id="hotspotFilter">
+        <div class="filter-item">
+            <label>Hotspot</label>
+            <select class="form-select-s" id="hotspotFilter">
                 <option value="all" selected>All Hotspots</option>
-                <!-- Dynamically populated -->
             </select>
         </div>
-        <div class="col-md-3">
-            <button class="btn btn-primary" onclick="loadData()">
+        <div class="filter-item">
+            <label>&nbsp;</label>
+            <button class="btn-refresh-sm" onclick="loadData()">
                 <i class="bi bi-arrow-clockwise"></i> Refresh
             </button>
-            <button class="btn btn-outline-secondary" onclick="exportData()">
-                <i class="bi bi-download"></i> Export
+        </div>
+        <div class="filter-item">
+            <label>&nbsp;</label>
+            <button class="btn-export-sm" onclick="exportData()">
+                <i class="bi bi-download"></i> Export CSV
             </button>
         </div>
-        <div class="col-md-3 text-end">
-            <small class="text-muted" id="lastUpdated">Last updated: Loading...</small>
+        <div class="filter-item" style="display:flex; align-items:flex-end;">
+            <span class="last-updated"><i class="bi bi-clock"></i> <span id="lastUpdated">Last updated: Loading...</span></span>
         </div>
     </div>
 </div>
 
-<!-- Summary Cards (Dashboard Section - 30%) -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="stat-card primary position-relative">
-            <i class="bi bi-eye stat-icon"></i>
-            <div class="stat-label">Total Impressions</div>
-            <div class="stat-value" id="totalImpressions">-</div>
-            <div><small>Page views</small></div>
-        </div>
+<!-- Summary Cards -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon blue"><i class="bi bi-eye"></i></div>
+        <div class="stat-label">Total Impressions</div>
+        <div class="stat-value" id="totalImpressions">-</div>
+        <div class="stat-sub">Page views</div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card success position-relative">
-            <i class="bi bi-person-check stat-icon"></i>
-            <div class="stat-label">Unique Devices</div>
-            <div class="stat-value" id="uniqueDevices">-</div>
-            <div><small>Distinct visitors</small></div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-card-icon green"><i class="bi bi-person-check"></i></div>
+        <div class="stat-label">Unique Devices</div>
+        <div class="stat-value" id="uniqueDevices">-</div>
+        <div class="stat-sub">Distinct visitors</div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card info position-relative">
-            <i class="bi bi-clock stat-icon"></i>
-            <div class="stat-label">Avg Time on Page</div>
-            <div class="stat-value" id="avgTime">-</div>
-            <div><small>Seconds</small></div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-card-icon purple"><i class="bi bi-clock"></i></div>
+        <div class="stat-label">Avg Time on Page</div>
+        <div class="stat-value" id="avgTime">-</div>
+        <div class="stat-sub">Seconds</div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card warning position-relative">
-            <i class="bi bi-trophy stat-icon"></i>
-            <div class="stat-label">Top Hotspot</div>
-            <div class="stat-value" style="font-size: 1.5rem;" id="topHotspot">-</div>
-            <div><small id="topHotspotCount">-</small></div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-card-icon orange"><i class="bi bi-trophy"></i></div>
+        <div class="stat-label">Top Hotspot</div>
+        <div class="stat-value" style="font-size:1.1rem; padding-top:4px;" id="topHotspot">-</div>
+        <div class="stat-sub" id="topHotspotCount">-</div>
     </div>
 </div>
 
 <!-- Charts Row -->
-<div class="row mb-4" style="min-height: 400px;">
-    <!-- Daily Trend Chart -->
-    <div class="col-md-8 d-flex">
-        <div class="chart-container" style="flex: 1;">
-            <div class="chart-title">
-                <i class="bi bi-graph-up"></i> Impression Trend
-            </div>
-            <canvas id="trendChart" height="80"></canvas>
+<div class="charts-row">
+    <div class="chart-card">
+        <div class="chart-card-header">
+            <span class="chart-card-title"><i class="bi bi-graph-up"></i> Impression Trend</span>
         </div>
+        <canvas id="trendChart" height="80"></canvas>
     </div>
-
-    <!-- Device Breakdown Chart -->
-    <div class="col-md-4 d-flex">
-        <div class="chart-container" style="flex: 1;">
-            <div class="chart-title">
-                <i class="bi bi-pie-chart"></i> Device Breakdown
-            </div>
-            <canvas id="deviceChart" height="80"></canvas>
+    <div class="chart-card">
+        <div class="chart-card-header">
+            <span class="chart-card-title"><i class="bi bi-pie-chart"></i> Device Breakdown</span>
         </div>
+        <canvas id="deviceChart" height="80"></canvas>
     </div>
 </div>
 
-<!-- Hotspot Breakdown Chart -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="chart-container">
-            <div class="chart-title">
-                <i class="bi bi-bar-chart"></i> Impressions by Hotspot
-            </div>
-            <canvas id="hotspotChart" height="60"></canvas>
+<!-- Hotspot Chart -->
+<div class="chart-card">
+    <div class="chart-card-header">
+        <span class="chart-card-title"><i class="bi bi-bar-chart"></i> Impressions by Hotspot</span>
+    </div>
+    <canvas id="hotspotChart" height="60"></canvas>
+</div>
+
+<!-- Media Reach Report -->
+<div class="chart-card">
+    <div class="chart-card-header">
+        <span class="chart-card-title"><i class="bi bi-megaphone"></i> Media Reach Assessment Report</span>
+        <div style="display:flex; gap:8px;">
+            <button class="btn-generate" onclick="loadMediaReachReport()">
+                <i class="bi bi-graph-up-arrow"></i> Generate Report
+            </button>
+            <button class="btn-export-pdf" onclick="exportReachReport()">
+                <i class="bi bi-file-earmark-pdf"></i> Export PDF
+            </button>
         </div>
+    </div>
+
+    <!-- Content (hidden until generated) -->
+    <div id="mediaReachContent" style="display:none;">
+        <div class="reach-metrics-grid">
+            <div class="reach-metric-box">
+                <div class="reach-metric-label">Total Reach</div>
+                <div class="reach-metric-value" id="reachTotal">-</div>
+                <div class="reach-metric-sub">Unique Users</div>
+                <div><span class="reach-metric-badge" id="reachRate">-</span></div>
+            </div>
+            <div class="reach-metric-box">
+                <div class="reach-metric-label">Frequency</div>
+                <div class="reach-metric-value" id="reachFrequency">-</div>
+                <div class="reach-metric-sub">Avg Exposures</div>
+            </div>
+            <div class="reach-metric-box">
+                <div class="reach-metric-label">GRP</div>
+                <div class="reach-metric-value" id="reachGRP">-</div>
+                <div class="reach-metric-sub">Gross Rating Point</div>
+            </div>
+            <div class="reach-metric-box">
+                <div class="reach-metric-label">Effective Reach</div>
+                <div class="reach-metric-value" style="font-size:1rem;" id="reachEffective">-</div>
+                <div class="reach-metric-sub">3+ Exposures</div>
+            </div>
+        </div>
+
+        <div class="reach-charts-row">
+            <div>
+                <canvas id="frequencyDistChart" height="150"></canvas>
+            </div>
+            <div>
+                <div class="growth-box">
+                    <div class="growth-box-title"><i class="bi bi-bar-chart-line me-1" style="color:#3498db;"></i> Period-over-Period Growth</div>
+                    <div class="growth-row">
+                        <span>Reach Growth</span>
+                        <strong id="reachGrowth" class="text-success">-</strong>
+                    </div>
+                    <div class="growth-row">
+                        <span>Impression Growth</span>
+                        <strong id="impressionGrowth" class="text-info">-</strong>
+                    </div>
+                    <div style="margin-top:12px; font-family:'Sarabun',sans-serif; font-size:.77rem; color:#94a3b8;">เปรียบเทียบกับช่วงก่อนหน้า</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recommendations-box">
+            <div class="recommendations-title"><i class="bi bi-lightbulb-fill"></i> Recommendations</div>
+            <div id="recommendationsContainer">
+                <div style="text-align:center; color:#94a3b8; font-family:'Sarabun',sans-serif; font-size:.85rem;">
+                    <i class="bi bi-hourglass-split"></i> Loading recommendations...
+                </div>
+            </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="imp-table" style="font-size:.8rem;">
+                <thead>
+                    <tr>
+                        <th colspan="4" style="text-align:center; background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; font-family:'Kanit',sans-serif;">
+                            <i class="bi bi-clipboard-data me-1"></i> Detailed Metrics
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="detailedMetricsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="mediaReachLoading" class="loading-center" style="display:none;">
+        <div class="spinner-border text-primary" role="status" style="width:2rem;height:2rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>กำลังสร้างรายงาน...</p>
+    </div>
+
+    <!-- Initial State -->
+    <div id="mediaReachInitial" class="reach-initial">
+        <i class="bi bi-megaphone"></i>
+        <p>คลิก "Generate Report" เพื่อวิเคราะห์ประสิทธิภาพ Media</p>
     </div>
 </div>
 
-<!-- Media Reach Report Section -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="chart-container">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="chart-title">
-                    <i class="bi bi-megaphone"></i> Media Reach Assessment Report
-                </div>
-                <div>
-                    <button class="btn btn-sm btn-primary" onclick="loadMediaReachReport()">
-                        <i class="bi bi-graph-up-arrow"></i> Generate Report
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="exportReachReport()">
-                        <i class="bi bi-file-earmark-pdf"></i> Export PDF
-                    </button>
-                </div>
-            </div>
-
-            <!-- Report Content (Initially Hidden) -->
-            <div id="mediaReachContent" style="display: none;">
-                <!-- Reach Metrics Row -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <div class="card border-primary">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted mb-2">Total Reach</h6>
-                                <h3 class="text-primary mb-0" id="reachTotal">-</h3>
-                                <small class="text-muted">Unique Users</small>
-                                <div class="mt-2">
-                                    <span class="badge bg-info" id="reachRate">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-success">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted mb-2">Frequency</h6>
-                                <h3 class="text-success mb-0" id="reachFrequency">-</h3>
-                                <small class="text-muted">Avg Exposures</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-warning">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted mb-2">GRP</h6>
-                                <h3 class="text-warning mb-0" id="reachGRP">-</h3>
-                                <small class="text-muted">Gross Rating Point</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-danger">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted mb-2">Effective Reach</h6>
-                                <h3 class="text-danger mb-0" id="reachEffective">-</h3>
-                                <small class="text-muted">3+ Exposures</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Frequency Distribution Chart -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <canvas id="frequencyDistChart" height="150"></canvas>
-                    </div>
-                    <div class="col-md-6">
-                        <!-- Growth Comparison -->
-                        <div class="card">
-                            <div class="card-body">
-                                <h6 class="card-title">Period-over-Period Growth</h6>
-                                <div class="mb-2">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Reach Growth:</span>
-                                        <strong id="reachGrowth" class="text-success">-</strong>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Impression Growth:</span>
-                                        <strong id="impressionGrowth" class="text-info">-</strong>
-                                    </div>
-                                </div>
-                                <hr>
-                                <small class="text-muted">Compared to previous period</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recommendations Section -->
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header bg-info text-white">
-                                <i class="bi bi-lightbulb"></i> Recommendations
-                            </div>
-                            <div class="card-body" id="recommendationsContainer">
-                                <div class="text-center text-muted">
-                                    <i class="bi bi-hourglass-split"></i> Loading recommendations...
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Detailed Metrics Table -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <table class="table table-sm table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th colspan="4" class="text-center bg-primary text-white">
-                                        <i class="bi bi-clipboard-data"></i> Detailed Metrics
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="detailedMetricsBody">
-                                <!-- Populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Loading State -->
-            <div id="mediaReachLoading" class="text-center py-4" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2 text-muted">Generating media reach report...</p>
-            </div>
-
-            <!-- Initial State -->
-            <div id="mediaReachInitial" class="text-center py-5">
-                <i class="bi bi-megaphone" style="font-size: 4rem; color: #dee2e6;"></i>
-                <p class="text-muted mt-3">Click "Generate Report" to analyze advertising effectiveness</p>
-            </div>
-        </div>
+<!-- Recent Impressions Table -->
+<div class="table-card">
+    <div class="table-card-header">
+        <span class="table-card-title"><i class="bi bi-list-ul"></i> Recent Impressions</span>
+        <input type="text" class="search-input" id="searchTable" placeholder="Search IP or MAC...">
     </div>
-</div>
-
-<!-- Recent Impressions Table (Detail Section - 70%) -->
-<div class="impressions-table">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="table-title">
-            <i class="bi bi-list-ul"></i> Recent Impressions
-        </div>
-        <div>
-            <input type="text" class="form-control form-control-sm" id="searchTable" placeholder="Search IP or MAC...">
-        </div>
-    </div>
-
-    <div class="table-responsive">
-        <table class="table table-hover">
+    <div style="overflow-x:auto;">
+        <table class="imp-table">
             <thead>
                 <tr>
                     <th>Timestamp</th>
@@ -445,28 +349,26 @@
             </thead>
             <tbody id="impressionsTableBody">
                 <tr>
-                    <td colspan="7" class="text-center">
-                        <div class="loading">
-                            <i class="bi bi-hourglass-split"></i>
-                            <p>Loading data...</p>
+                    <td colspan="7">
+                        <div class="loading-center">
+                            <div class="spinner-border text-primary" role="status" style="width:1.5rem;height:1.5rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>กำลังโหลดข้อมูล...</p>
                         </div>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-3">
-        <div>
-            <small class="text-muted">Showing <span id="rowCount">0</span> impressions</small>
-        </div>
-        <div>
-            <button class="btn btn-sm btn-outline-primary" onclick="loadMoreData()">
-                <i class="bi bi-plus-circle"></i> Load More
-            </button>
-        </div>
+    <div class="table-footer">
+        <span class="row-count">Showing <span id="rowCount">0</span> impressions</span>
+        <button class="btn-load-more" onclick="loadMoreData()">
+            <i class="bi bi-plus-circle"></i> Load More
+        </button>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -546,7 +448,6 @@
         let url;
 
         if (rangeType === 'custom') {
-            // Custom date range
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
 
@@ -555,7 +456,6 @@
                 return;
             }
 
-            // Validate date range
             if (new Date(startDate) > new Date(endDate)) {
                 alert('Start date must be before end date');
                 return;
@@ -564,7 +464,6 @@
             url = `/api/impression-statistics/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&limit=50`;
             console.log('[Monitoring] Using custom date range:', startDate, 'to', endDate);
         } else {
-            // Preset range (days)
             const days = document.getElementById('daysFilter').value;
             url = `/api/impression-statistics/?days=${days}&hotspot=${hotspot}&limit=50`;
             console.log('[Monitoring] Using preset range: last', days, 'days');
@@ -635,15 +534,15 @@
                     {
                         label: 'Total Impressions',
                         data: totals,
-                        borderColor: 'rgb(102, 126, 234)',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderColor: 'rgb(52, 152, 219)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         tension: 0.4
                     },
                     {
                         label: 'Unique Devices',
                         data: uniques,
-                        borderColor: 'rgb(17, 153, 142)',
-                        backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
                         tension: 0.4
                     }
                 ]
@@ -651,16 +550,8 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true } }
             }
         });
     }
@@ -682,8 +573,8 @@
         const colors = {
             'Mobile': 'rgba(52, 148, 230, 0.8)',
             'Desktop': 'rgba(102, 126, 234, 0.8)',
-            'Tablet': 'rgba(240, 147, 251, 0.8)',
-            'Unknown': 'rgba(108, 117, 125, 0.8)'
+            'Tablet': 'rgba(139, 92, 246, 0.8)',
+            'Unknown': 'rgba(148, 163, 184, 0.8)'
         };
 
         deviceChart = new Chart(ctx, {
@@ -700,11 +591,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    }
-                }
+                plugins: { legend: { position: 'bottom' } }
             }
         });
     }
@@ -726,31 +613,15 @@
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'Total Impressions',
-                        data: impressions,
-                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                    },
-                    {
-                        label: 'Unique Devices',
-                        data: uniques,
-                        backgroundColor: 'rgba(17, 153, 142, 0.8)',
-                    }
+                    { label: 'Total Impressions', data: impressions, backgroundColor: 'rgba(52, 152, 219, 0.8)' },
+                    { label: 'Unique Devices', data: uniques, backgroundColor: 'rgba(34, 197, 94, 0.8)' }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true } }
             }
         });
     }
@@ -761,11 +632,7 @@
         tbody.innerHTML = '';
 
         if (impressions.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center text-muted">No impressions found</td>
-                </tr>
-            `;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; font-family:'Sarabun',sans-serif; color:#94a3b8;">No impressions found</td></tr>`;
             document.getElementById('rowCount').textContent = '0';
             return;
         }
@@ -774,18 +641,18 @@
             const timestamp = new Date(imp.viewed_at);
             const deviceIcon = getDeviceIcon(imp.device_type);
             const uniqueBadge = imp.is_unique_today
-                ? '<span class="badge badge-unique">Unique</span>'
-                : '<span class="badge badge-returning">Returning</span>';
+                ? '<span class="badge bg-success" style="font-size:.7rem;">Unique</span>'
+                : '<span class="badge bg-secondary" style="font-size:.7rem;">Returning</span>';
 
             const row = `
                 <tr>
                     <td>${timestamp.toLocaleString()}</td>
-                    <td><span class="badge bg-primary">${imp.hotspot_name}</span></td>
+                    <td><span class="badge bg-primary" style="font-size:.75rem;">${imp.hotspot_name}</span></td>
                     <td><i class="bi bi-${deviceIcon} ${getDeviceClass(imp.device_type)}"></i> ${imp.device_type || 'unknown'}</td>
-                    <td><code>${imp.ip_address || 'N/A'}</code></td>
+                    <td><code style="font-size:.78rem;">${imp.ip_address || 'N/A'}</code></td>
                     <td>${imp.time_on_page ? imp.time_on_page + 's' : 'N/A'}</td>
                     <td>${uniqueBadge}</td>
-                    <td><small class="text-muted">${imp.mac_hash_short}</small></td>
+                    <td><small style="color:#94a3b8;">${imp.mac_hash_short}</small></td>
                 </tr>
             `;
             tbody.innerHTML += row;
@@ -796,12 +663,7 @@
 
     // Helper functions
     function getDeviceIcon(deviceType) {
-        const icons = {
-            'mobile': 'phone',
-            'desktop': 'laptop',
-            'tablet': 'tablet',
-            'unknown': 'question-circle'
-        };
+        const icons = { 'mobile': 'phone', 'desktop': 'laptop', 'tablet': 'tablet', 'unknown': 'question-circle' };
         return icons[deviceType] || 'question-circle';
     }
 
@@ -818,12 +680,8 @@
     }
 
     function exportData() {
-        if (!currentData) {
-            alert('No data to export');
-            return;
-        }
+        if (!currentData) { alert('No data to export'); return; }
 
-        // Convert to CSV
         const impressions = currentData.recent_impressions;
         const headers = ['Timestamp', 'Hotspot', 'Device', 'IP', 'Time on Page', 'Unique', 'MAC Hash'];
         const rows = impressions.map(imp => [
@@ -837,11 +695,8 @@
         ]);
 
         let csv = headers.join(',') + '\n';
-        rows.forEach(row => {
-            csv += row.map(cell => '"' + cell + '"').join(',') + '\n';
-        });
+        rows.forEach(row => { csv += row.map(cell => '"' + cell + '"').join(',') + '\n'; });
 
-        // Download
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -849,7 +704,6 @@
         a.download = 'impressions_' + new Date().toISOString().split('T')[0] + '.csv';
         a.click();
         window.URL.revokeObjectURL(url);
-
         console.log('[Monitoring] ✓ Data exported to CSV');
     }
 
@@ -860,18 +714,16 @@
     async function loadMediaReachReport() {
         console.log('[Media Reach] Loading report...');
 
-        // Show loading state
         document.getElementById('mediaReachInitial').style.display = 'none';
         document.getElementById('mediaReachContent').style.display = 'none';
         document.getElementById('mediaReachLoading').style.display = 'block';
 
         const rangeType = document.getElementById('dateRangeType').value;
         const hotspot = document.getElementById('hotspotFilter').value;
-        const targetAudience = 10000; // TODO: Make this configurable
+        const targetAudience = 10000;
         let url;
 
         if (rangeType === 'custom') {
-            // Custom date range
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
 
@@ -884,17 +736,13 @@
 
             url = `/api/media-reach-report/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&target_audience=${targetAudience}`;
         } else {
-            // Preset range (days)
             const days = document.getElementById('daysFilter').value;
             url = `/api/media-reach-report/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
         }
 
         try {
             const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status);
-            }
+            if (!response.ok) throw new Error('HTTP ' + response.status);
 
             mediaReachData = await response.json();
 
@@ -908,18 +756,15 @@
         } catch (error) {
             console.error('[Media Reach] Error:', error);
             alert('Error generating media reach report: ' + error.message);
-            // Show initial state again
             document.getElementById('mediaReachLoading').style.display = 'none';
             document.getElementById('mediaReachInitial').style.display = 'block';
         }
     }
 
     function displayMediaReachReport(data) {
-        // Hide loading, show content
         document.getElementById('mediaReachLoading').style.display = 'none';
         document.getElementById('mediaReachContent').style.display = 'block';
 
-        // Update Reach Metrics Cards
         document.getElementById('reachTotal').textContent = data.reach_metrics.total_reach.toLocaleString();
         document.getElementById('reachRate').textContent = data.reach_metrics.reach_rate + '% of target';
         document.getElementById('reachFrequency').textContent = data.reach_metrics.frequency + 'x';
@@ -927,7 +772,6 @@
         document.getElementById('reachEffective').textContent =
             data.effective_reach.total.toLocaleString() + ' (' + data.effective_reach.percentage + '%)';
 
-        // Update Growth Metrics
         const reachGrowthElem = document.getElementById('reachGrowth');
         const reachGrowth = data.growth_comparison.reach_growth;
         reachGrowthElem.textContent = (reachGrowth >= 0 ? '+' : '') + reachGrowth + '%';
@@ -938,22 +782,15 @@
         impressionGrowthElem.textContent = (impressionGrowth >= 0 ? '+' : '') + impressionGrowth + '%';
         impressionGrowthElem.className = impressionGrowth >= 0 ? 'text-success' : 'text-danger';
 
-        // Frequency Distribution Chart
         updateFrequencyDistChart(data.effective_reach.frequency_distribution);
-
-        // Recommendations
         displayRecommendations(data.recommendations);
-
-        // Detailed Metrics Table
         displayDetailedMetrics(data);
     }
 
     function updateFrequencyDistChart(freqDist) {
         const ctx = document.getElementById('frequencyDistChart').getContext('2d');
 
-        if (frequencyDistChart) {
-            frequencyDistChart.destroy();
-        }
+        if (frequencyDistChart) { frequencyDistChart.destroy(); }
 
         const labels = ['1-2 Times\n(Low)', '3-7 Times\n(Optimal)', '8-15 Times\n(High)', '15+ Times\n(Overexposed)'];
         const values = [
@@ -977,10 +814,10 @@
                     label: 'Users',
                     data: values,
                     backgroundColor: [
-                        'rgba(255, 206, 86, 0.8)',  // Yellow - Low
-                        'rgba(75, 192, 192, 0.8)',  // Green - Optimal
-                        'rgba(54, 162, 235, 0.8)',  // Blue - High
-                        'rgba(255, 99, 132, 0.8)'   // Red - Overexposed
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
                     ],
                     borderColor: [
                         'rgba(255, 206, 86, 1)',
@@ -994,14 +831,8 @@
             options: {
                 responsive: true,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Frequency Distribution (Exposure Frequency)',
-                        font: { size: 14, weight: 'bold' }
-                    },
-                    legend: {
-                        display: false
-                    },
+                    title: { display: true, text: 'Frequency Distribution (Exposure Frequency)', font: { size: 14, weight: 'bold' } },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1012,18 +843,8 @@
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Users'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            font: { size: 10 }
-                        }
-                    }
+                    y: { beginAtZero: true, title: { display: true, text: 'Number of Users' } },
+                    x: { ticks: { font: { size: 10 } } }
                 }
             }
         });
@@ -1034,37 +855,24 @@
         container.innerHTML = '';
 
         if (!recommendations || recommendations.length === 0) {
-            container.innerHTML = '<p class="text-muted">No specific recommendations at this time.</p>';
+            container.innerHTML = '<p style="font-family:\'Sarabun\',sans-serif; font-size:.85rem; color:#94a3b8;">No specific recommendations at this time.</p>';
             return;
         }
 
         recommendations.forEach(rec => {
-            const alertClass = {
-                'success': 'alert-success',
-                'warning': 'alert-warning',
-                'danger': 'alert-danger',
-                'info': 'alert-info'
-            }[rec.type] || 'alert-info';
+            const alertClass = { 'success': 'alert-success', 'warning': 'alert-warning', 'danger': 'alert-danger', 'info': 'alert-info' }[rec.type] || 'alert-info';
+            const iconClass  = { 'success': 'bi-check-circle-fill', 'warning': 'bi-exclamation-triangle-fill', 'danger': 'bi-x-circle-fill', 'info': 'bi-info-circle-fill' }[rec.type] || 'bi-info-circle-fill';
 
-            const iconClass = {
-                'success': 'bi-check-circle-fill',
-                'warning': 'bi-exclamation-triangle-fill',
-                'danger': 'bi-x-circle-fill',
-                'info': 'bi-info-circle-fill'
-            }[rec.type] || 'bi-info-circle-fill';
-
-            const html = `
+            container.innerHTML += `
                 <div class="alert ${alertClass} d-flex align-items-start" role="alert">
-                    <i class="bi ${iconClass} me-3" style="font-size: 1.5rem;"></i>
+                    <i class="bi ${iconClass} me-3" style="font-size:1.5rem;"></i>
                     <div class="flex-grow-1">
                         <h6 class="alert-heading mb-1">${rec.category}</h6>
                         <p class="mb-1">${rec.message}</p>
                         <hr class="my-2">
                         <p class="mb-0"><strong>Action:</strong> ${rec.action}</p>
                     </div>
-                </div>
-            `;
-            container.innerHTML += html;
+                </div>`;
         });
     }
 
@@ -1086,7 +894,6 @@
             { label: 'Engaged Users (10s+)', value: data.engagement.engaged_users.toLocaleString() }
         ];
 
-        // Add CPM if cost provided
         if (data.cost_analysis.ad_cost > 0) {
             metrics.push(
                 { label: 'Ad Cost', value: '$' + data.cost_analysis.ad_cost.toFixed(2) },
@@ -1095,28 +902,20 @@
             );
         }
 
-        // Display as 2-column table
         for (let i = 0; i < metrics.length; i += 2) {
-            const row = `
+            tbody.innerHTML += `
                 <tr>
                     <td class="fw-bold">${metrics[i].label}</td>
                     <td>${metrics[i].value}</td>
                     ${i + 1 < metrics.length ?
                         `<td class="fw-bold">${metrics[i + 1].label}</td><td>${metrics[i + 1].value}</td>` :
                         '<td colspan="2"></td>'}
-                </tr>
-            `;
-            tbody.innerHTML += row;
+                </tr>`;
         }
     }
 
     function exportReachReport() {
-        if (!mediaReachData) {
-            alert('Please generate a report first');
-            return;
-        }
-
-        console.log('[PDF Export] Opening PDF in new tab...');
+        if (!mediaReachData) { alert('Please generate a report first'); return; }
 
         const rangeType = document.getElementById('dateRangeType').value;
         const hotspot = document.getElementById('hotspotFilter').value;
@@ -1132,9 +931,7 @@
             url = `/api/export-reach-report-pdf/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
         }
 
-        // Open PDF in new tab
         window.open(url, '_blank');
-
         console.log('[PDF Export] ✓ PDF opened in new tab');
     }
 
@@ -1145,7 +942,6 @@
             searchInput.addEventListener('keyup', function() {
                 const filter = this.value.toLowerCase();
                 const rows = document.querySelectorAll('#impressionsTableBody tr');
-
                 rows.forEach(row => {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(filter) ? '' : 'none';

@@ -1,0 +1,919 @@
+{% extends 'webapp/base.html' %}
+
+{% block title %}Departments - LibLogin Management{% endblock %}
+
+{% block page_title %}Department Management{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+    /* ── Base ─────────────────────────────────────────── */
+    .dept-page {
+        font-family: 'Sarabun', sans-serif;
+    }
+
+    /* ── Page Header ──────────────────────────────────── */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-header-left h2 {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: #64748b;
+        margin: 0;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    /* ── Stats Strip ──────────────────────────────────── */
+    .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .stat-pill {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        border-left: 4px solid transparent;
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .stat-pill:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+    .stat-pill.total  { border-color: #3498db; }
+    .stat-pill.active { border-color: #27ae60; }
+    .stat-pill.wifi   { border-color: #9b59b6; }
+
+    .stat-pill .stat-icon {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .stat-pill.total  .stat-icon { background: #ebf5fb; color: #3498db; }
+    .stat-pill.active .stat-icon { background: #eafaf1; color: #27ae60; }
+    .stat-pill.wifi   .stat-icon { background: #f5eef8; color: #9b59b6; }
+
+    .stat-pill .stat-body {}
+    .stat-pill .stat-num {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 700;
+        font-size: 1.5rem;
+        line-height: 1;
+        color: #1e293b;
+    }
+    .stat-pill .stat-label {
+        font-size: .75rem;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    /* ── Card Grid ────────────────────────────────────── */
+    .dept-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    /* ── Department Card ──────────────────────────────── */
+    .dept-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+        animation: cardIn .45s ease both;
+    }
+
+    .dept-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44,62,80,.15);
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    {% for i in "12345678" %}
+    .dept-card:nth-child({{ forloop.counter }}) { animation-delay: {{ forloop.counter0 }}0ms; }
+    {% endfor %}
+
+    .dept-card-accent {
+        height: 5px;
+        background: linear-gradient(90deg, #2c3e50, #3498db);
+    }
+
+    .dept-card-body {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .dept-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .dept-name {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #1e293b;
+        line-height: 1.3;
+        flex: 1;
+    }
+
+    .dept-status-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        margin-top: 5px;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 3px;
+    }
+
+    .dept-status-dot.active {
+        background: #27ae60;
+        box-shadow: 0 0 0 3px rgba(39,174,96,.15);
+    }
+
+    .dept-status-dot.inactive {
+        background: #95a5a6;
+        box-shadow: 0 0 0 3px rgba(149,165,166,.15);
+    }
+
+    .dept-desc {
+        font-size: .85rem;
+        color: #64748b;
+        line-height: 1.5;
+        margin: 0;
+        min-height: 20px;
+    }
+
+    /* Hotspot chips */
+    .hotspot-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+    }
+
+    .hs-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: linear-gradient(135deg, #ebf5fb, #d6eaf8);
+        color: #1a5276;
+        border: 1px solid #aed6f1;
+        border-radius: 20px;
+        padding: 3px 10px;
+        font-size: .75rem;
+        font-weight: 500;
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .hs-chip i { font-size: .7rem; color: #3498db; }
+
+    .hs-empty {
+        font-size: .8rem;
+        color: #b0bec5;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .hs-empty i { font-size: .9rem; }
+
+    /* Card footer / actions */
+    .dept-card-footer {
+        padding: 12px 20px;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fafbfc;
+    }
+
+    .dept-meta {
+        font-size: .72rem;
+        color: #94a3b8;
+    }
+
+    .dept-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-icon {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .85rem;
+        cursor: pointer;
+        transition: all .18s;
+        background: transparent;
+    }
+
+    .btn-icon.edit {
+        color: #3498db;
+        border-color: #aed6f1;
+        background: #ebf5fb;
+    }
+    .btn-icon.edit:hover { background: #3498db; color: #fff; border-color: #3498db; }
+
+    .btn-icon.del {
+        color: #e74c3c;
+        border-color: #fadbd8;
+        background: #fdf2f2;
+    }
+    .btn-icon.del:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+
+    /* ── Empty State ──────────────────────────────────── */
+    .empty-state {
+        text-align: center;
+        padding: 64px 20px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        animation: cardIn .45s ease both;
+    }
+
+    .empty-state-icon {
+        width: 80px; height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ebf5fb, #d6eaf8);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        color: #3498db;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h4 {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p { color: #94a3b8; font-size: .9rem; margin-bottom: 24px; }
+
+    /* ── Add Button ───────────────────────────────────── */
+    .btn-add-dept {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500;
+        font-size: .9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all .2s;
+        box-shadow: 0 4px 14px rgba(52,152,219,.35);
+    }
+
+    .btn-add-dept:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(52,152,219,.45);
+        color: #fff;
+    }
+
+    /* ── Modal Styling ────────────────────────────────── */
+    .modal-content {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+
+    .modal-header-dark {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        color: #fff;
+        padding: 18px 24px;
+        border-bottom: none;
+    }
+
+    .modal-header-dark .modal-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .modal-header-dark .btn-close {
+        filter: invert(1) brightness(2);
+        opacity: .7;
+    }
+    .modal-header-dark .btn-close:hover { opacity: 1; }
+
+    .modal-header-danger {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: #fff;
+        padding: 18px 24px;
+        border-bottom: none;
+    }
+
+    .modal-header-danger .modal-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .modal-header-danger .btn-close {
+        filter: invert(1) brightness(2);
+        opacity: .7;
+    }
+
+    .modal-body { padding: 24px; }
+
+    .form-label-styled {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500;
+        font-size: .85rem;
+        color: #2c3e50;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-label-styled .req { color: #e74c3c; font-size: .8rem; }
+
+    .form-control-styled {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-family: 'Sarabun', sans-serif;
+        font-size: .9rem;
+        transition: border-color .2s, box-shadow .2s;
+        width: 100%;
+    }
+
+    .form-control-styled:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52,152,219,.12);
+    }
+
+    /* Hotspot picker chips */
+    .hotspot-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 14px;
+        background: #f8fafc;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+
+    .hotspot-picker:empty::after {
+        content: 'ไม่มี Hotspot ที่ active';
+        color: #94a3b8;
+        font-size: .85rem;
+    }
+
+    .hs-toggle-label {
+        cursor: pointer;
+    }
+
+    .hs-toggle-label input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        width: 0; height: 0;
+    }
+
+    .hs-toggle-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1.5px solid #cbd5e1;
+        background: #fff;
+        font-size: .8rem;
+        font-family: 'Kanit', sans-serif;
+        font-weight: 400;
+        color: #64748b;
+        transition: all .18s;
+        user-select: none;
+    }
+
+    .hs-toggle-label input:checked + .hs-toggle-pill {
+        background: linear-gradient(135deg, #ebf5fb, #d6eaf8);
+        border-color: #3498db;
+        color: #1a5276;
+        font-weight: 500;
+    }
+
+    .hs-toggle-label input:checked + .hs-toggle-pill i { color: #3498db; }
+
+    .hs-toggle-pill:hover {
+        border-color: #3498db;
+        background: #f0f8ff;
+    }
+
+    /* Active toggle switch */
+    .switch-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        background: #f8fafc;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+    }
+
+    .switch-row .form-check-input {
+        width: 2.4em;
+        height: 1.3em;
+        cursor: pointer;
+    }
+
+    .switch-row .form-check-input:checked {
+        background-color: #27ae60;
+        border-color: #27ae60;
+    }
+
+    .switch-label {
+        font-family: 'Sarabun', sans-serif;
+        font-size: .9rem;
+        color: #475569;
+        margin: 0;
+    }
+
+    .modal-footer-styled {
+        padding: 16px 24px;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-modal-cancel {
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        color: #64748b;
+        border-radius: 10px;
+        padding: 9px 20px;
+        font-family: 'Kanit', sans-serif;
+        font-size: .85rem;
+        cursor: pointer;
+        transition: all .18s;
+    }
+    .btn-modal-cancel:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+    .btn-modal-submit {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 9px 22px;
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500;
+        font-size: .85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transition: all .18s;
+        box-shadow: 0 3px 10px rgba(52,152,219,.3);
+    }
+    .btn-modal-submit:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(52,152,219,.4); }
+
+    .btn-modal-delete {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 9px 22px;
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500;
+        font-size: .85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transition: all .18s;
+        box-shadow: 0 3px 10px rgba(231,76,60,.3);
+    }
+    .btn-modal-delete:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(231,76,60,.4); }
+
+    /* Delete modal illustration */
+    .delete-warning-box {
+        background: #fdf2f2;
+        border-radius: 12px;
+        border: 1px solid #fadbd8;
+        padding: 16px 20px;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+    }
+
+    .delete-warning-icon {
+        width: 40px; height: 40px;
+        background: #fadbd8;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #e74c3c;
+        flex-shrink: 0;
+    }
+
+    .delete-warning-text strong {
+        font-family: 'Kanit', sans-serif;
+        color: #c0392b;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .delete-warning-text p {
+        font-size: .83rem;
+        color: #922b21;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* No hotspot warning */
+    .no-hotspot-alert {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-top: 20px;
+        font-size: .85rem;
+        color: #92400e;
+    }
+
+    .no-hotspot-alert i { font-size: 1.1rem; color: #d97706; }
+    .no-hotspot-alert a { color: #92400e; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dept-page">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <h2><i class="bi bi-building me-2"></i>จัดการหน่วยงาน</h2>
+        </div>
+        <button class="btn-add-dept" data-bs-toggle="modal" data-bs-target="#addDeptModal">
+            <i class="bi bi-plus-lg"></i> เพิ่มหน่วยงาน
+        </button>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="stats-strip">
+        <div class="stat-pill total">
+            <div class="stat-icon"><i class="bi bi-building"></i></div>
+            <div class="stat-body">
+                <div class="stat-num">{{ departments|length }}</div>
+                <div class="stat-label">หน่วยงานทั้งหมด</div>
+            </div>
+        </div>
+        <div class="stat-pill active">
+            <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-body">
+                <div class="stat-num">{% with departments|length as total %}{{ departments|length }}{% endwith %}</div>
+                <div class="stat-label">กำลังใช้งาน</div>
+            </div>
+        </div>
+        <div class="stat-pill wifi">
+            <div class="stat-icon"><i class="bi bi-wifi"></i></div>
+            <div class="stat-body">
+                <div class="stat-num">{{ hotspots|length }}</div>
+                <div class="stat-label">Hotspot ที่มี</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Cards -->
+    {% if departments %}
+    <div class="dept-grid">
+        {% for dept in departments %}
+        <div class="dept-card">
+            <div class="dept-card-accent"></div>
+            <div class="dept-card-body">
+                <div class="dept-card-top">
+                    <div class="dept-name">{{ dept.name }}</div>
+                    <div class="dept-status-dot {% if dept.is_active %}active{% else %}inactive{% endif %}"
+                         title="{% if dept.is_active %}Active{% else %}Inactive{% endif %}"></div>
+                </div>
+
+                <p class="dept-desc">{{ dept.description|default:"ไม่มีคำอธิบาย" }}</p>
+
+                <div>
+                    <div style="font-size:.72rem; color:#94a3b8; margin-bottom:6px; font-family:'Kanit',sans-serif; text-transform:uppercase; letter-spacing:.05em;">
+                        Hotspot ที่อนุญาต
+                    </div>
+                    <div class="hotspot-chips">
+                        {% for hotspot in dept.hotspots.all %}
+                        <span class="hs-chip">
+                            <i class="bi bi-wifi"></i>{{ hotspot.display_name }}
+                        </span>
+                        {% empty %}
+                        <span class="hs-empty">
+                            <i class="bi bi-wifi-off"></i> ยังไม่ได้กำหนด
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="dept-card-footer">
+                <span class="dept-meta">
+                    {% if dept.is_active %}
+                    <i class="bi bi-circle-fill text-success me-1" style="font-size:.5rem;"></i>Active
+                    {% else %}
+                    <i class="bi bi-circle-fill text-secondary me-1" style="font-size:.5rem;"></i>Inactive
+                    {% endif %}
+                </span>
+                <div class="dept-actions">
+                    <button class="btn-icon edit"
+                            title="แก้ไข"
+                            onclick="editDept(
+                                {{ dept.pk }},
+                                '{{ dept.name|escapejs }}',
+                                '{{ dept.description|escapejs }}',
+                                {{ dept.is_active|yesno:'true,false' }},
+                                [{% for h in dept.hotspots.all %}{{ h.pk }}{% if not forloop.last %},{% endif %}{% endfor %}]
+                            )">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn-icon del"
+                            title="ลบ"
+                            onclick="deleteDept({{ dept.pk }}, '{{ dept.name|escapejs }}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="bi bi-building"></i></div>
+        <h4>ยังไม่มีหน่วยงาน</h4>
+        <p>เริ่มต้นด้วยการเพิ่มหน่วยงานแรก<br>แล้วกำหนด Hotspot ที่อนุญาตให้เข้าถึง</p>
+        <button class="btn-add-dept" data-bs-toggle="modal" data-bs-target="#addDeptModal">
+            <i class="bi bi-plus-lg"></i> เพิ่มหน่วยงานแรก
+        </button>
+    </div>
+    {% endif %}
+
+    {% if not hotspots %}
+    <div class="no-hotspot-alert mt-4">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>ยังไม่มี Hotspot ที่ active ในระบบ —
+            <a href="/admin/api/hotspot/" target="_blank">เพิ่ม Hotspot ผ่าน Admin Panel</a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+
+<!-- ── Add Department Modal ─────────────────────────── -->
+<div class="modal fade" id="addDeptModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+
+                <div class="modal-header modal-header-dark">
+                    <div class="modal-title">
+                        <i class="bi bi-building-add"></i> เพิ่มหน่วยงานใหม่
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label-styled">
+                            <i class="bi bi-building"></i> ชื่อหน่วยงาน
+                            <span class="req">*</span>
+                        </label>
+                        <input type="text" class="form-control-styled" name="name" required
+                               placeholder="เช่น คณะวิทยาศาสตร์, สำนักหอสมุด">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-styled">
+                            <i class="bi bi-card-text"></i> คำอธิบาย
+                        </label>
+                        <textarea class="form-control-styled" name="description" rows="2"
+                                  placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-styled">
+                            <i class="bi bi-wifi"></i> Hotspot ที่อนุญาต
+                            <span style="font-weight:400; color:#94a3b8;">(เลือกได้หลายรายการ)</span>
+                        </label>
+                        <div class="hotspot-picker">
+                            {% for hotspot in hotspots %}
+                            <label class="hs-toggle-label">
+                                <input type="checkbox" name="hotspot_ids" value="{{ hotspot.pk }}" id="add_hs_{{ hotspot.pk }}">
+                                <span class="hs-toggle-pill">
+                                    <i class="bi bi-wifi"></i>{{ hotspot.display_name }}
+                                </span>
+                            </label>
+                            {% empty %}
+                            <span style="color:#94a3b8; font-size:.85rem;">ไม่มี Hotspot ที่ active</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="switch-row">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="addIsActive" checked role="switch">
+                        <label class="switch-label" for="addIsActive">เปิดใช้งาน (Active)</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer-styled">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-submit">
+                        <i class="bi bi-building-add"></i> เพิ่มหน่วยงาน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ── Edit Department Modal ────────────────────────── -->
+<div class="modal fade" id="editDeptModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="dept_id" id="editDeptId">
+
+                <div class="modal-header modal-header-dark">
+                    <div class="modal-title">
+                        <i class="bi bi-pencil-square"></i> แก้ไขหน่วยงาน
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label-styled">
+                            <i class="bi bi-building"></i> ชื่อหน่วยงาน
+                            <span class="req">*</span>
+                        </label>
+                        <input type="text" class="form-control-styled" name="name" id="editDeptName" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-styled">
+                            <i class="bi bi-card-text"></i> คำอธิบาย
+                        </label>
+                        <textarea class="form-control-styled" name="description" id="editDeptDesc" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-styled">
+                            <i class="bi bi-wifi"></i> Hotspot ที่อนุญาต
+                            <span style="font-weight:400; color:#94a3b8;">(เลือกได้หลายรายการ)</span>
+                        </label>
+                        <div class="hotspot-picker">
+                            {% for hotspot in hotspots %}
+                            <label class="hs-toggle-label">
+                                <input class="edit-hotspot-cb" type="checkbox" name="hotspot_ids"
+                                       value="{{ hotspot.pk }}" id="edit_hs_{{ hotspot.pk }}">
+                                <span class="hs-toggle-pill">
+                                    <i class="bi bi-wifi"></i>{{ hotspot.display_name }}
+                                </span>
+                            </label>
+                            {% empty %}
+                            <span style="color:#94a3b8; font-size:.85rem;">ไม่มี Hotspot ที่ active</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="switch-row">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="editIsActive" role="switch">
+                        <label class="switch-label" for="editIsActive">เปิดใช้งาน (Active)</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer-styled">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-submit">
+                        <i class="bi bi-check-lg"></i> บันทึกการแก้ไข
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ── Delete Confirm Modal ─────────────────────────── -->
+<div class="modal fade" id="deleteDeptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="dept_id" id="deleteDeptId">
+
+                <div class="modal-header modal-header-danger">
+                    <div class="modal-title">
+                        <i class="bi bi-exclamation-triangle"></i> ยืนยันการลบ
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="delete-warning-box">
+                        <div class="delete-warning-icon"><i class="bi bi-trash3"></i></div>
+                        <div class="delete-warning-text">
+                            <strong>ลบหน่วยงาน "<span id="deleteDeptName"></span>"</strong>
+                            <p>การกระทำนี้ไม่สามารถย้อนกลับได้<br>ข้อมูลหน่วยงานและการกำหนด Hotspot จะถูกลบออกทั้งหมด</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-styled">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-delete">
+                        <i class="bi bi-trash3"></i> ยืนยันการลบ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    function editDept(id, name, description, isActive, hotspotIds) {
+        document.getElementById('editDeptId').value = id;
+        document.getElementById('editDeptName').value = name;
+        document.getElementById('editDeptDesc').value = description;
+        document.getElementById('editIsActive').checked = isActive;
+
+        document.querySelectorAll('.edit-hotspot-cb').forEach(cb => {
+            cb.checked = hotspotIds.includes(parseInt(cb.value));
+        });
+
+        new bootstrap.Modal(document.getElementById('editDeptModal')).show();
+    }
+
+    function deleteDept(id, name) {
+        document.getElementById('deleteDeptId').value = id;
+        document.getElementById('deleteDeptName').textContent = name;
+        new bootstrap.Modal(document.getElementById('deleteDeptModal')).show();
+    }
+</script>
+{% endblock %}

@@ -40,3 +40,4 @@ local_settings.py
 *.PNG
 Capture.PNG
 .claude/
+capture/

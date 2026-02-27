@@ -1,0 +1,304 @@
+{% extends 'webapp/base.html' %}
+{% block title %}Users - LibLogin Management{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+
+/* Stats */
+.u-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.u-stat { background:#fff; border-radius:12px; padding:18px 20px; box-shadow:0 1px 4px rgba(0,0,0,.08); display:flex; align-items:center; gap:14px; border-left:4px solid transparent; transition:transform .2s, box-shadow .2s; }
+.u-stat:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,.12); }
+.u-stat.total  { border-color:#3498db; }
+.u-stat.staff  { border-color:#e67e22; }
+.u-stat.active { border-color:#27ae60; }
+.u-stat-ic { width:38px;height:38px; border-radius:10px; display:flex;align-items:center;justify-content:center; font-size:1.1rem; flex-shrink:0; }
+.u-stat.total  .u-stat-ic { background:#ebf5fb; color:#3498db; }
+.u-stat.staff  .u-stat-ic { background:#fef9e7; color:#e67e22; }
+.u-stat.active .u-stat-ic { background:#eafaf1; color:#27ae60; }
+.u-stat-num { font-family:'Kanit',sans-serif; font-weight:700; font-size:1.5rem; color:#1e293b; line-height:1; }
+.u-stat-lbl { font-size:.72rem; color:#94a3b8; margin-top:3px; }
+
+/* Table card */
+.tbl-card { background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); overflow:hidden; }
+.tbl-card-hdr { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
+.tbl-card-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#2c3e50; display:flex; align-items:center; gap:8px; }
+
+/* Table */
+.u-table { width:100%; border-collapse:separate; border-spacing:0; font-family:'Sarabun',sans-serif; font-size:.875rem; }
+.u-table thead th { font-family:'Kanit',sans-serif; font-size:.7rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.07em; padding:0 16px 12px; border-bottom:1px solid #f1f5f9; white-space:nowrap; }
+.u-table tbody tr { transition:background .15s; }
+.u-table tbody tr:hover { background:#f8fafc; }
+.u-table tbody td { padding:14px 16px; color:#374151; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+.u-table tbody tr:last-child td { border-bottom:none; }
+
+/* User row */
+.user-avatar { width:34px;height:34px; border-radius:9px; background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; flex-shrink:0; }
+.user-cell { display:flex; align-items:center; gap:10px; }
+.you-tag { display:inline-block; padding:1px 7px; border-radius:5px; background:#ebf5fb; color:#2471a3; font-size:.68rem; font-family:'Kanit',sans-serif; border:1px solid #aed6f1; }
+.role-pill { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.7rem; font-family:'Kanit',sans-serif; }
+.role-pill.staff { background:#fef9e7; color:#d68910; border:1px solid #f9e79f; }
+.role-pill.user  { background:#f8f9fa; color:#6c757d; border:1px solid #dee2e6; }
+.status-dot { display:inline-flex; align-items:center; gap:5px; font-size:.8rem; }
+.status-dot::before { content:''; width:7px;height:7px; border-radius:50%; flex-shrink:0; }
+.status-dot.on::before  { background:#27ae60; }
+.status-dot.off::before { background:#95a5a6; }
+.last-login-cell { font-size:.8rem; color:#64748b; white-space:nowrap; }
+
+/* Action buttons */
+.act-btn { width:30px;height:30px; border-radius:7px; border:1px solid transparent; display:inline-flex; align-items:center; justify-content:center; font-size:.8rem; cursor:pointer; transition:all .18s; background:transparent; }
+.act-btn.edit { color:#3498db; border-color:#aed6f1; background:#ebf5fb; }
+.act-btn.edit:hover { background:#3498db; color:#fff; border-color:#3498db; }
+.act-btn.key { color:#e67e22; border-color:#fad7a0; background:#fef9e7; }
+.act-btn.key:hover { background:#e67e22; color:#fff; border-color:#e67e22; }
+.act-btn.del { color:#e74c3c; border-color:#fadbd8; background:#fdf2f2; }
+.act-btn.del:hover { background:#e74c3c; color:#fff; border-color:#e74c3c; }
+.act-btn:disabled { opacity:.35; cursor:not-allowed; pointer-events:none; }
+
+/* Add button */
+.btn-add { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:10px; padding:9px 18px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.875rem; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:0 3px 10px rgba(52,152,219,.3); transition:all .2s; }
+.btn-add:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(52,152,219,.4); color:#fff; }
+
+/* Modals */
+.modal-content { border:none; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.mhdr-dark { background:linear-gradient(135deg,#2c3e50,#34495e); color:#fff; padding:16px 22px; border-bottom:none; }
+.mhdr-dark .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+.mhdr-dark .btn-close { filter:invert(1) brightness(2); opacity:.7; }
+.mhdr-danger { background:linear-gradient(135deg,#c0392b,#e74c3c); color:#fff; padding:16px 22px; border-bottom:none; }
+.mhdr-danger .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+.mhdr-danger .btn-close { filter:invert(1) brightness(2); opacity:.7; }
+.mhdr-warning { background:linear-gradient(135deg,#d35400,#e67e22); color:#fff; padding:16px 22px; border-bottom:none; }
+.mhdr-warning .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+.mhdr-warning .btn-close { filter:invert(1) brightness(2); opacity:.7; }
+.mbody { padding:22px; }
+.mftr { padding:14px 22px; background:#f8fafc; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; gap:10px; }
+
+.flbl { font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; color:#374151; display:block; margin-bottom:6px; }
+.flbl .req { color:#e74c3c; }
+.finput { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; transition:border-color .2s,box-shadow .2s; }
+.finput:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+.fhint { font-size:.75rem; color:#94a3b8; margin-top:4px; }
+.switch-row { display:flex; align-items:center; gap:10px; padding:10px 13px; background:#f8fafc; border-radius:9px; border:1.5px solid #e2e8f0; }
+.switch-row .form-check-input { width:2.2em; height:1.2em; cursor:pointer; }
+.switch-row .form-check-input:checked { background-color:#27ae60; border-color:#27ae60; }
+.switch-lbl { font-family:'Sarabun',sans-serif; font-size:.875rem; color:#475569; margin:0; }
+
+.btn-mc { background:#fff; border:1.5px solid #e2e8f0; color:#64748b; border-radius:9px; padding:8px 18px; font-family:'Kanit',sans-serif; font-size:.82rem; cursor:pointer; transition:all .18s; }
+.btn-mc:hover { background:#f1f5f9; }
+.btn-ms { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:9px; padding:8px 20px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(52,152,219,.25); transition:all .18s; }
+.btn-ms:hover { transform:translateY(-1px); }
+.btn-mw { background:linear-gradient(135deg,#d35400,#e67e22); color:#fff; border:none; border-radius:9px; padding:8px 20px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(230,126,34,.25); transition:all .18s; }
+.btn-mw:hover { transform:translateY(-1px); }
+.btn-md { background:linear-gradient(135deg,#c0392b,#e74c3c); color:#fff; border:none; border-radius:9px; padding:8px 20px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(231,76,60,.25); transition:all .18s; }
+.btn-md:hover { transform:translateY(-1px); }
+
+.del-box { background:#fdf2f2; border:1px solid #fadbd8; border-radius:11px; padding:14px 18px; display:flex; gap:14px; align-items:flex-start; }
+.del-box-ic { width:38px;height:38px; background:#fadbd8; border-radius:9px; display:flex;align-items:center;justify-content:center; font-size:1rem; color:#e74c3c; flex-shrink:0; }
+.del-box strong { font-family:'Kanit',sans-serif; color:#c0392b; display:block; margin-bottom:4px; }
+.del-box p { font-size:.82rem; color:#922b21; margin:0; }
+
+.switch-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hdr">
+    <p style="color:#64748b; margin:0; font-family:'Sarabun',sans-serif; font-size:.875rem;">จัดการบัญชีผู้ใช้งานระบบ</p>
+    <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="bi bi-person-plus"></i> เพิ่มผู้ใช้
+    </button>
+</div>
+
+<!-- Stats -->
+<div class="u-stats">
+    <div class="u-stat total">
+        <div class="u-stat-ic"><i class="bi bi-people"></i></div>
+        <div><div class="u-stat-num">{{ users|length }}</div><div class="u-stat-lbl">ทั้งหมด</div></div>
+    </div>
+    <div class="u-stat staff">
+        <div class="u-stat-ic"><i class="bi bi-shield-check"></i></div>
+        <div><div class="u-stat-num">{{ staff_count }}</div><div class="u-stat-lbl">Staff / Admin</div></div>
+    </div>
+    <div class="u-stat active">
+        <div class="u-stat-ic"><i class="bi bi-person-check"></i></div>
+        <div><div class="u-stat-num">{{ active_count }}</div><div class="u-stat-lbl">Active</div></div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="tbl-card">
+    <div class="tbl-card-hdr">
+        <div class="tbl-card-title"><i class="bi bi-people"></i> รายชื่อผู้ใช้ ({{ users|length }} คน)</div>
+    </div>
+    <div style="padding:0 8px 8px;">
+        <table class="u-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">{{ u.username|first|upper }}</div>
+                            <div>
+                                <div style="font-weight:600; color:#1e293b;">{{ u.username }}
+                                    {% if u == request.user %}<span class="you-tag ms-1">You</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:#64748b;">{{ u.email|default:"—" }}</td>
+                    <td>
+                        {% if u.is_staff %}
+                        <span class="role-pill staff"><i class="bi bi-shield-fill me-1"></i>Staff</span>
+                        {% else %}
+                        <span class="role-pill user">User</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="status-dot on">Active</span>
+                        {% else %}
+                        <span class="status-dot off">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="last-login-cell">
+                        {% if u.last_login %}{{ u.last_login|date:"d/m/Y H:i" }}{% else %}<span style="color:#b0bec5;">ยังไม่เคย</span>{% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:5px;">
+                            <button class="act-btn edit" title="แก้ไข"
+                                    onclick="editUser({{ u.pk }},'{{ u.username|escapejs }}','{{ u.email|escapejs }}',{{ u.is_staff|yesno:'true,false' }},{{ u.is_active|yesno:'true,false' }})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="act-btn key" title="เปลี่ยนรหัสผ่าน"
+                                    onclick="changePassword({{ u.pk }},'{{ u.username|escapejs }}')">
+                                <i class="bi bi-key"></i>
+                            </button>
+                            <button class="act-btn del" title="{% if u == request.user %}ไม่สามารถลบตัวเองได้{% else %}ลบ{% endif %}"
+                                    onclick="deleteUser({{ u.pk }},'{{ u.username|escapejs }}')"
+                                    {% if u == request.user %}disabled{% endif %}>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center; padding:40px; color:#94a3b8;">ไม่มีผู้ใช้งาน</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add">
+                <div class="mhdr-dark modal-header"><div class="modal-title"><i class="bi bi-person-plus"></i> เพิ่มผู้ใช้ใหม่</div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="mbody">
+                    <div class="mb-3"><label class="flbl">Username <span class="req">*</span></label><input type="text" class="finput" name="username" required></div>
+                    <div class="mb-3"><label class="flbl">Email</label><input type="email" class="finput" name="email"></div>
+                    <div class="mb-3"><label class="flbl">Password <span class="req">*</span></label><input type="password" class="finput" name="password" required minlength="8"><div class="fhint">ขั้นต่ำ 8 ตัวอักษร</div></div>
+                    <div class="mb-3"><label class="flbl">Confirm Password <span class="req">*</span></label><input type="password" class="finput" name="password2" required minlength="8"></div>
+                    <div class="switch-grid">
+                        <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_staff" id="addIsStaff" role="switch"><label class="switch-lbl" for="addIsStaff">Staff (Admin)</label></div>
+                        <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_active" id="addIsActive" checked role="switch"><label class="switch-lbl" for="addIsActive">Active</label></div>
+                    </div>
+                </div>
+                <div class="mftr"><button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn-ms"><i class="bi bi-person-plus"></i> เพิ่มผู้ใช้</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="edit"><input type="hidden" name="user_id" id="editUserId">
+                <div class="mhdr-dark modal-header"><div class="modal-title"><i class="bi bi-pencil-square"></i> แก้ไขผู้ใช้</div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="mbody">
+                    <div class="mb-3"><label class="flbl">Username <span class="req">*</span></label><input type="text" class="finput" name="username" id="editUsername" required></div>
+                    <div class="mb-3"><label class="flbl">Email</label><input type="email" class="finput" name="email" id="editEmail"></div>
+                    <div class="switch-grid">
+                        <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_staff" id="editIsStaff" role="switch"><label class="switch-lbl" for="editIsStaff">Staff (Admin)</label></div>
+                        <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_active" id="editIsActive" role="switch"><label class="switch-lbl" for="editIsActive">Active</label></div>
+                    </div>
+                </div>
+                <div class="mftr"><button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn-ms"><i class="bi bi-check-lg"></i> บันทึก</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_password"><input type="hidden" name="user_id" id="cpUserId">
+                <div class="mhdr-warning modal-header"><div class="modal-title"><i class="bi bi-key"></i> เปลี่ยนรหัสผ่าน</div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="mbody">
+                    <p style="font-size:.85rem; color:#64748b; margin-bottom:18px;">เปลี่ยนรหัสผ่านสำหรับ: <strong id="cpUsername" style="color:#1e293b;"></strong></p>
+                    <div class="mb-3"><label class="flbl">Password ใหม่ <span class="req">*</span></label><input type="password" class="finput" name="password" required minlength="8"><div class="fhint">ขั้นต่ำ 8 ตัวอักษร</div></div>
+                    <div class="mb-0"><label class="flbl">ยืนยัน Password <span class="req">*</span></label><input type="password" class="finput" name="password2" required minlength="8"></div>
+                </div>
+                <div class="mftr"><button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn-mw"><i class="bi bi-key"></i> เปลี่ยนรหัสผ่าน</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="user_id" id="deleteUserId">
+                <div class="mhdr-danger modal-header"><div class="modal-title"><i class="bi bi-exclamation-triangle"></i> ยืนยันการลบ</div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="mbody">
+                    <div class="del-box">
+                        <div class="del-box-ic"><i class="bi bi-trash3"></i></div>
+                        <div><strong>ลบผู้ใช้ "<span id="deleteUsername"></span>"</strong><p>การกระทำนี้ไม่สามารถย้อนกลับได้</p></div>
+                    </div>
+                </div>
+                <div class="mftr"><button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn-md"><i class="bi bi-trash3"></i> ยืนยันลบ</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editUser(id, username, email, isStaff, isActive) {
+    document.getElementById('editUserId').value = id;
+    document.getElementById('editUsername').value = username;
+    document.getElementById('editEmail').value = email;
+    document.getElementById('editIsStaff').checked = isStaff;
+    document.getElementById('editIsActive').checked = isActive;
+    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+}
+function changePassword(id, username) {
+    document.getElementById('cpUserId').value = id;
+    document.getElementById('cpUsername').textContent = username;
+    document.querySelectorAll('#changePasswordModal input[type="password"]').forEach(el => el.value = '');
+    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+}
+function deleteUser(id, username) {
+    document.getElementById('deleteUserId').value = id;
+    document.getElementById('deleteUsername').textContent = username;
+    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+}
+</script>
+{% endblock %}

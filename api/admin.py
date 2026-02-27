@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.core.cache import cache
-from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, LandingPageURL
+from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, LandingPageURL, Department
 
 
 @admin.register(BackgroundImage)
@@ -334,3 +334,39 @@ class LandingPageURLAdmin(admin.ModelAdmin):
         for hotspot_name in hotspot_names:
             cache_key = f'landing_url_{hotspot_name}'
             cache.delete(cache_key)
+
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ['name', 'hotspot_list', 'is_active', 'created_by', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'description']
+    list_editable = ['is_active']
+    filter_horizontal = ['hotspots']
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('Department Information', {
+            'fields': ('name', 'description', 'is_active')
+        }),
+        ('Hotspot Access', {
+            'fields': ('hotspots',),
+            'description': 'เลือก Hotspot ที่หน่วยงานนี้สามารถเข้าถึงได้'
+        }),
+        ('Metadata', {
+            'fields': ('created_by', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def hotspot_list(self, obj):
+        hotspots = obj.hotspots.all()
+        if not hotspots:
+            return '-'
+        return ', '.join(h.display_name for h in hotspots)
+    hotspot_list.short_description = 'Hotspots'
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)

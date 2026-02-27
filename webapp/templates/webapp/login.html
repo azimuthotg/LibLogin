@@ -4,337 +4,360 @@
 
 {% block extra_css %}
 <style>
-    .login-container {
+    body { background: #f0f4f8; }
+
+    .login-wrap {
         min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Left panel */
+    .login-panel-left {
+        background: var(--sidebar-bg, #1a2535);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 56px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-panel-left::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 80% 60% at 20% 80%, rgba(52,152,219,.18) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 50% at 80% 20%, rgba(44,62,80,.6) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    /* Decorative grid dots */
+    .login-panel-left::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+    }
+
+    .left-content { position: relative; z-index: 1; max-width: 360px; }
+
+    .left-brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 48px;
+    }
+
+    .left-brand-icon {
+        width: 48px; height: 48px;
+        background: linear-gradient(135deg, #3498db, #2c3e50);
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        color: white;
+        box-shadow: 0 8px 24px rgba(52,152,219,.35);
+    }
+
+    .left-brand-text .b-name {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: #ffffff;
+        display: block;
+        line-height: 1;
+    }
+
+    .left-brand-text .b-sub {
+        font-size: .72rem;
+        color: #8fa3b8;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .left-headline {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 1.75rem;
+        color: #ffffff;
+        line-height: 1.3;
+        margin-bottom: 16px;
+    }
+
+    .left-desc {
+        font-family: 'Sarabun', sans-serif;
+        color: #8fa3b8;
+        font-size: .9rem;
+        line-height: 1.7;
+        margin-bottom: 40px;
+    }
+
+    .left-features {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #d0dce8;
+        font-size: .85rem;
+        font-family: 'Sarabun', sans-serif;
+    }
+
+    .feature-dot {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        background: rgba(52,152,219,.2);
+        border: 1px solid rgba(52,152,219,.3);
+        display: flex; align-items: center; justify-content: center;
+        font-size: .75rem;
+        color: #5dade2;
+        flex-shrink: 0;
+    }
+
+    /* Right panel */
+    .login-panel-right {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 48px 56px;
+        background: #f0f4f8;
     }
 
-    .login-card {
-        max-width: 450px;
+    .login-form-box {
         width: 100%;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        padding: 40px;
+        max-width: 400px;
     }
 
-    .login-header {
-        text-align: center;
-        margin-bottom: 30px;
+    .form-heading {
+        margin-bottom: 32px;
     }
 
-    .login-header i {
-        font-size: 4rem;
-        color: #667eea;
-        margin-bottom: 15px;
+    .form-heading h2 {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 700;
+        font-size: 1.6rem;
+        color: #1e293b;
+        margin-bottom: 6px;
     }
 
-    .login-header h2 {
-        color: #2c3e50;
-        font-weight: bold;
-        margin-bottom: 5px;
+    .form-heading p {
+        color: #64748b;
+        font-size: .875rem;
+        font-family: 'Sarabun', sans-serif;
+        margin: 0;
     }
 
-    .login-header p {
-        color: #7f8c8d;
-        font-size: 0.9rem;
+    /* Alert override for login page */
+    .login-alert {
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: .85rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: 'Sarabun', sans-serif;
+        border: none;
     }
 
-    .form-control {
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        /* Prevent zoom on iOS when focus */
+    .login-alert.error {
+        background: #fdf2f2;
+        color: #c0392b;
+        border-left: 4px solid #e74c3c;
+    }
+
+    /* Form fields */
+    .field-group { margin-bottom: 20px; }
+
+    .field-label {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500;
+        font-size: .82rem;
+        color: #374151;
+        display: block;
+        margin-bottom: 7px;
+        letter-spacing: .01em;
+    }
+
+    .field-input-wrap {
+        position: relative;
+    }
+
+    .field-input-wrap .field-icon {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: .9rem;
+        pointer-events: none;
+    }
+
+    .field-input {
+        width: 100%;
+        padding: 11px 14px 11px 38px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-family: 'Sarabun', sans-serif;
+        font-size: .9rem;
+        color: #1e293b;
+        background: #fff;
+        transition: border-color .2s, box-shadow .2s;
         -webkit-appearance: none;
         appearance: none;
     }
 
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        /* Prevent page zoom on mobile when focusing input */
-        font-size: max(1rem, 16px);
+    .field-input:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52,152,219,.12);
     }
 
-    .btn-login {
+    .field-input::placeholder { color: #b0bec5; }
+
+    /* Submit button */
+    .btn-submit {
+        width: 100%;
         padding: 12px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: #fff;
         border: none;
-        color: white;
-        font-weight: bold;
-        transition: transform 0.2s;
-        /* Ensure minimum touch target size (44x44px) */
-        min-height: 44px;
-    }
-
-    .btn-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .form-label {
+        border-radius: 10px;
+        font-family: 'Kanit', sans-serif;
         font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 8px;
+        font-size: .95rem;
+        cursor: pointer;
+        transition: all .2s;
+        box-shadow: 0 4px 14px rgba(52,152,219,.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 46px;
+        margin-top: 8px;
     }
 
-    /* ========================================
-       Responsive Design
-       ======================================== */
+    .btn-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(52,152,219,.45);
+    }
 
-    /* Tablet Portrait (768px and below) */
+    .login-footer-note {
+        text-align: center;
+        margin-top: 24px;
+        font-size: .78rem;
+        color: #94a3b8;
+        font-family: 'Sarabun', sans-serif;
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
-        .login-card {
-            padding: 35px 28px;
-            max-width: 420px;
-        }
-
-        .login-header i {
-            font-size: 3.5rem;
-            margin-bottom: 12px;
-        }
-
-        .login-header h2 {
-            font-size: 1.6rem;
-        }
-
-        .login-header p {
-            font-size: 0.85rem;
-        }
-
-        .form-control {
-            padding: 11px;
-            font-size: 0.95rem;
-        }
-
-        .btn-login {
-            padding: 11px;
-            font-size: 0.95rem;
-        }
-    }
-
-    /* Mobile Large (576px and below) */
-    @media (max-width: 576px) {
-        .login-container {
-            padding: 20px;
-        }
-
-        .login-card {
-            padding: 32px 25px;
-            max-width: 100%;
-        }
-
-        .login-header i {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-
-        .login-header h2 {
-            font-size: 1.5rem;
-        }
-
-        .login-header p {
-            font-size: 0.8rem;
-        }
-
-        .form-control {
-            padding: 10px;
-            font-size: 0.9rem;
-        }
-
-        .form-label {
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-        }
-
-        .btn-login {
-            padding: 10px;
-            font-size: 0.9rem;
-            min-height: 44px;
-        }
-
-        .alert {
-            font-size: 0.85rem;
-        }
-    }
-
-    /* Mobile Standard (480px and below) */
-    @media (max-width: 480px) {
-        .login-card {
-            padding: 30px 22px;
-            border-radius: 12px;
-        }
-
-        .login-header {
-            margin-bottom: 25px;
-        }
-
-        .login-header i {
-            font-size: 2.5rem;
-            margin-bottom: 8px;
-        }
-
-        .login-header h2 {
-            font-size: 1.4rem;
-        }
-
-        .login-header p {
-            font-size: 0.75rem;
-        }
-
-        .form-control {
-            padding: 9px;
-            font-size: 0.85rem;
-            border-radius: 6px;
-        }
-
-        .form-label {
-            font-size: 0.85rem;
-        }
-
-        .btn-login {
-            padding: 9px;
-            font-size: 0.85rem;
-            border-radius: 6px;
-        }
-
-        .mb-3 {
-            margin-bottom: 1rem !important;
-        }
-
-        .mb-4 {
-            margin-bottom: 1.25rem !important;
-        }
-
-        .mt-4 {
-            margin-top: 1.25rem !important;
-        }
-    }
-
-    /* Mobile Small (380px and below) */
-    @media (max-width: 380px) {
-        .login-container {
-            padding: 15px;
-        }
-
-        .login-card {
-            padding: 25px 20px;
-            border-radius: 10px;
-        }
-
-        .login-header {
-            margin-bottom: 20px;
-        }
-
-        .login-header i {
-            font-size: 2.2rem;
-            margin-bottom: 6px;
-        }
-
-        .login-header h2 {
-            font-size: 1.3rem;
-        }
-
-        .login-header p {
-            font-size: 0.7rem;
-        }
-
-        .form-control {
-            padding: 8px;
-            font-size: 0.8rem;
-        }
-
-        .form-label {
-            font-size: 0.8rem;
-        }
-
-        .btn-login {
-            padding: 8px;
-            font-size: 0.8rem;
-        }
+        .login-wrap { grid-template-columns: 1fr; }
+        .login-panel-left { display: none; }
+        .login-panel-right { padding: 40px 24px; }
     }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="login-container">
-    <div class="login-card">
-        <div class="login-header">
-            <i class="bi bi-shield-lock"></i>
-            <h2>LibLogin Management</h2>
-            <p>เข้าสู่ระบบจัดการหน้า Login ของห้องสมุด</p>
-        </div>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
-        {% if messages %}
+<div class="login-wrap">
+    <!-- Left Panel -->
+    <div class="login-panel-left">
+        <div class="left-content">
+            <div class="left-brand">
+                <div class="left-brand-icon"><i class="bi bi-wifi"></i></div>
+                <div class="left-brand-text">
+                    <span class="b-name">LibLogin</span>
+                    <span class="b-sub">Management System</span>
+                </div>
+            </div>
+
+            <div class="left-headline">ระบบจัดการหน้า Login<br>WiFi ห้องสมุด</div>
+            <p class="left-desc">จัดการ Background Image, Template และเนื้อหา สำหรับหน้า Login ของ MikroTik Hotspot ได้จากที่เดียว</p>
+
+            <div class="left-features">
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-images"></i></div>
+                    จัดการภาพพื้นหลังหลาย Hotspot
+                </div>
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-palette"></i></div>
+                    ปรับแต่ง Template และ Slide Content
+                </div>
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-graph-up"></i></div>
+                    ติดตาม Analytics และ Impressions
+                </div>
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-building"></i></div>
+                    จัดการหน่วยงานและสิทธิ์ Hotspot
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="login-panel-right">
+        <div class="login-form-box">
+            <div class="form-heading">
+                <h2>เข้าสู่ระบบ</h2>
+                <p>สำหรับบรรณารักษ์และผู้ดูแลระบบเท่านั้น</p>
+            </div>
+
+            {% if messages %}
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="login-alert error">
+                <i class="bi bi-exclamation-circle-fill"></i>
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             {% endfor %}
-        {% endif %}
+            {% endif %}
 
-        {% if form.non_field_errors %}
-        <div class="alert alert-danger">
-            {{ form.non_field_errors }}
-        </div>
-        {% endif %}
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
 
-        <form method="post" action="{% url 'login' %}">
-            {% csrf_token %}
-
-            <div class="mb-3">
-                <label for="id_username" class="form-label">
-                    <i class="bi bi-person"></i> Username
-                </label>
-                <input type="text"
-                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-                       id="id_username"
-                       name="username"
-                       placeholder="Enter your username"
-                       required
-                       autofocus>
-                {% if form.username.errors %}
-                <div class="invalid-feedback">
-                    {{ form.username.errors }}
+                <div class="field-group">
+                    <label class="field-label" for="id_username">Username</label>
+                    <div class="field-input-wrap">
+                        <i class="bi bi-person field-icon"></i>
+                        <input type="text" class="field-input" id="id_username" name="username"
+                               placeholder="กรอก username" required autofocus>
+                    </div>
                 </div>
-                {% endif %}
-            </div>
 
-            <div class="mb-4">
-                <label for="id_password" class="form-label">
-                    <i class="bi bi-lock"></i> Password
-                </label>
-                <input type="password"
-                       class="form-control {% if form.password.errors %}is-invalid{% endif %}"
-                       id="id_password"
-                       name="password"
-                       placeholder="Enter your password"
-                       required>
-                {% if form.password.errors %}
-                <div class="invalid-feedback">
-                    {{ form.password.errors }}
+                <div class="field-group">
+                    <label class="field-label" for="id_password">Password</label>
+                    <div class="field-input-wrap">
+                        <i class="bi bi-lock field-icon"></i>
+                        <input type="password" class="field-input" id="id_password" name="password"
+                               placeholder="กรอก password" required>
+                    </div>
                 </div>
-                {% endif %}
-            </div>
 
-            <input type="hidden" name="next" value="{{ next }}">
+                <button type="submit" class="btn-submit">
+                    <i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ
+                </button>
+            </form>
 
-            <button type="submit" class="btn btn-login w-100">
-                <i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ
-            </button>
-        </form>
-
-        <div class="text-center mt-4 text-muted" style="font-size: 0.85rem;">
-            <p class="mb-0">
-                <i class="bi bi-info-circle"></i>
-                สำหรับบรรณารักษ์และผู้ดูแลระบบเท่านั้น
+            <p class="login-footer-note">
+                <i class="bi bi-shield-check me-1"></i>
+                LibLogin v1.0 &nbsp;·&nbsp; Library WiFi Management
             </p>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

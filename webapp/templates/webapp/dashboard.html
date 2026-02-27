@@ -1,235 +1,564 @@
 {% extends 'webapp/base.html' %}
 
 {% block title %}Dashboard - LibLogin Management{% endblock %}
-
 {% block page_title %}Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ── Stat Cards ─────────────────────────────────── */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 1100px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px)  { .stat-grid { grid-template-columns: 1fr; } }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform .2s, box-shadow .2s;
+        animation: fadeUp .4s ease both;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,.1);
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0ms; }
+    .stat-card:nth-child(2) { animation-delay: 60ms; }
+    .stat-card:nth-child(3) { animation-delay: 120ms; }
+    .stat-card:nth-child(4) { animation-delay: 180ms; }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-icon-wrap {
+        width: 50px; height: 50px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .stat-icon-wrap.blue   { background: #ebf5fb; color: #3498db; }
+    .stat-icon-wrap.green  { background: #eafaf1; color: #27ae60; }
+    .stat-icon-wrap.purple { background: #f4ecf7; color: #8e44ad; }
+    .stat-icon-wrap.orange { background: #fef9e7; color: #e67e22; }
+
+    .stat-body {}
+    .stat-num {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: #1e293b;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: .78rem;
+        color: #94a3b8;
+        margin-top: 4px;
+        font-family: 'Sarabun', sans-serif;
+    }
+
+    /* ── Main Grid ──────────────────────────────────── */
+    .dash-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+        align-items: start;
+    }
+
+    @media (max-width: 960px) { .dash-grid { grid-template-columns: 1fr; } }
+
+    /* ── Shared Card Style ──────────────────────────── */
+    .d-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        overflow: hidden;
+        animation: fadeUp .45s ease both;
+        animation-delay: 240ms;
+    }
+
+    .d-card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .d-card-header-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: .95rem;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .d-card-body { padding: 20px; }
+
+    /* ── Recent Images Table ────────────────────────── */
+    .recent-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: .85rem;
+        font-family: 'Sarabun', sans-serif;
+    }
+
+    .recent-table thead th {
+        font-family: 'Kanit', sans-serif;
+        font-size: .72rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        padding: 0 16px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        white-space: nowrap;
+    }
+
+    .recent-table tbody tr {
+        transition: background .15s;
+    }
+
+    .recent-table tbody tr:hover { background: #f8fafc; }
+
+    .recent-table tbody td {
+        padding: 12px 16px;
+        color: #374151;
+        border-bottom: 1px solid #f8fafc;
+        vertical-align: middle;
+    }
+
+    .img-thumb {
+        width: 72px; height: 44px;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+    }
+
+    .img-thumb-placeholder {
+        width: 72px; height: 44px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: #cbd5e1;
+        font-size: 1.2rem;
+    }
+
+    .badge-hs {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: .72rem;
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .badge-hs.named { background: #ebf5fb; color: #1a5276; border: 1px solid #aed6f1; }
+    .badge-hs.default { background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; }
+
+    .badge-status {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: .72rem;
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .badge-status.active   { background: #eafaf1; color: #1e8449; }
+    .badge-status.inactive { background: #f8f9fa; color: #6c757d; }
+
+    .btn-tbl-edit {
+        width: 28px; height: 28px;
+        border-radius: 7px;
+        border: 1px solid #aed6f1;
+        background: #ebf5fb;
+        color: #3498db;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: .8rem;
+        text-decoration: none;
+        transition: all .15s;
+    }
+    .btn-tbl-edit:hover { background: #3498db; color: #fff; border-color: #3498db; }
+
+    /* Empty state */
+    .empty-state-inline {
+        text-align: center;
+        padding: 40px 20px;
+        color: #94a3b8;
+    }
+    .empty-state-inline i { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+    .empty-state-inline p { margin: 0 0 16px; font-size: .875rem; }
+
+    /* ── Right Column ───────────────────────────────── */
+    .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+    .d-card.right-col-card { animation-delay: 300ms; }
+
+    /* Quick Actions */
+    .quick-actions { display: flex; flex-direction: column; gap: 8px; }
+
+    .qa-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        background: #fff;
+        color: #374151;
+        text-decoration: none;
+        font-size: .875rem;
+        font-family: 'Sarabun', sans-serif;
+        transition: all .18s;
+    }
+
+    .qa-btn:hover {
+        background: #f0f8ff;
+        border-color: #3498db;
+        color: #1a5276;
+        transform: translateX(3px);
+    }
+
+    .qa-btn .qa-icon {
+        width: 30px; height: 30px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .85rem;
+        flex-shrink: 0;
+    }
+
+    .qa-btn.primary .qa-icon { background: linear-gradient(135deg, #2c3e50, #3498db); color: #fff; }
+    .qa-btn.outline .qa-icon { background: #ebf5fb; color: #3498db; }
+    .qa-btn.dark    .qa-icon { background: #f1f5f9; color: #475569; }
+
+    /* User info card */
+    .user-info-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .ui-row {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .ui-label {
+        font-size: .7rem;
+        font-family: 'Kanit', sans-serif;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+    }
+
+    .ui-value {
+        font-size: .875rem;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: .7rem;
+        font-family: 'Kanit', sans-serif;
+        font-weight: 500;
+    }
+
+    .role-badge.admin { background: #fef9e7; color: #d68910; border: 1px solid #f9e79f; }
+    .role-badge.staff { background: #ebf5fb; color: #2471a3; border: 1px solid #aed6f1; }
+
+    /* API Endpoint */
+    .api-endpoint-wrap {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .api-url-field {
+        flex: 1;
+        padding: 10px 12px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: .78rem;
+        color: #475569;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .btn-copy {
+        padding: 10px 16px;
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-family: 'Kanit', sans-serif;
+        font-size: .8rem;
+        color: #475569;
+        cursor: pointer;
+        display: flex; align-items: center; gap: 6px;
+        transition: all .18s;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .btn-copy:hover { background: #f0f8ff; border-color: #3498db; color: #3498db; }
+    .btn-copy.copied { background: #eafaf1; border-color: #27ae60; color: #27ae60; }
+
+    .api-hint {
+        font-size: .75rem;
+        color: #94a3b8;
+        margin-top: 10px;
+        line-height: 1.5;
+        font-family: 'Sarabun', sans-serif;
+    }
+
+    .api-hint code {
+        background: #f1f5f9;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: .75rem;
+        color: #3498db;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <!-- Statistics Cards -->
-    <div class="row">
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Total Images</h6>
-                            <h2 class="mt-2 mb-0">{{ total_images }}</h2>
-                        </div>
-                        <i class="bi bi-images" style="font-size: 3rem; opacity: 0.5;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Active Images</h6>
-                            <h2 class="mt-2 mb-0">{{ active_images }}</h2>
-                        </div>
-                        <i class="bi bi-check-circle" style="font-size: 3rem; opacity: 0.5;"></i>
-                    </div>
-                </div>
-            </div>
+<!-- Stat Cards -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon-wrap blue"><i class="bi bi-images"></i></div>
+        <div class="stat-body">
+            <div class="stat-num">{{ total_images }}</div>
+            <div class="stat-label">Background ทั้งหมด</div>
         </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Routers</h6>
-                            <h2 class="mt-2 mb-0">{{ total_routers }}</h2>
-                        </div>
-                        <i class="bi bi-hdd-network" style="font-size: 3rem; opacity: 0.5;"></i>
-                    </div>
-                </div>
-            </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon-wrap green"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-body">
+            <div class="stat-num">{{ active_images }}</div>
+            <div class="stat-label">กำลังใช้งาน</div>
         </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon-wrap purple"><i class="bi bi-hdd-network"></i></div>
+        <div class="stat-body">
+            <div class="stat-num">{{ total_routers }}</div>
+            <div class="stat-label">Hotspot / Router</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon-wrap orange"><i class="bi bi-people"></i></div>
+        <div class="stat-body">
+            <div class="stat-num">{{ total_users }}</div>
+            <div class="stat-label">ผู้ใช้งานระบบ</div>
+        </div>
+    </div>
+</div>
 
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Total Users</h6>
-                            <h2 class="mt-2 mb-0">{{ total_users }}</h2>
-                        </div>
-                        <i class="bi bi-people" style="font-size: 3rem; opacity: 0.5;"></i>
-                    </div>
-                </div>
+<!-- Main Content Grid -->
+<div class="dash-grid">
+
+    <!-- Recent Images -->
+    <div class="d-card">
+        <div class="d-card-header">
+            <div class="d-card-header-title">
+                <i class="bi bi-clock-history"></i> Background Images ล่าสุด
             </div>
+            <a href="{% url 'backgrounds' %}" style="font-size:.8rem; color:#3498db; text-decoration:none; font-family:'Sarabun',sans-serif;">
+                ดูทั้งหมด <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div style="padding: 0 8px 8px;">
+            {% if recent_images %}
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>Preview</th>
+                        <th>ชื่อ</th>
+                        <th>Hotspot</th>
+                        <th>Status</th>
+                        <th>วันที่</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for image in recent_images %}
+                    <tr>
+                        <td>
+                            {% if image.image %}
+                            <img src="{{ image.image.url }}" alt="{{ image.title }}" class="img-thumb">
+                            {% else %}
+                            <div class="img-thumb-placeholder"><i class="bi bi-image"></i></div>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight:500; color:#1e293b;">{{ image.title }}</td>
+                        <td>
+                            {% if image.hotspot_name %}
+                            <span class="badge-hs named"><i class="bi bi-wifi"></i>{{ image.hotspot_name }}</span>
+                            {% else %}
+                            <span class="badge-hs default">Default</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if image.is_active %}
+                            <span class="badge-status active">Active</span>
+                            {% else %}
+                            <span class="badge-status inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td style="color:#94a3b8; white-space:nowrap;">{{ image.uploaded_at|date:"d/m/Y" }}</td>
+                        <td>
+                            <a href="{% url 'backgrounds' %}" class="btn-tbl-edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state-inline">
+                <i class="bi bi-inbox"></i>
+                <p>ยังไม่มี Background Image</p>
+                <a href="{% url 'backgrounds' %}" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border-radius:9px; text-decoration:none; font-family:'Kanit',sans-serif; font-size:.85rem; box-shadow:0 3px 10px rgba(52,152,219,.3);">
+                    <i class="bi bi-plus-lg"></i> อัปโหลดภาพแรก
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-clock-history"></i> Recent Background Images
+    <!-- Right Column -->
+    <div class="right-col">
+
+        <!-- Quick Actions -->
+        <div class="d-card right-col-card">
+            <div class="d-card-header">
+                <div class="d-card-header-title">
+                    <i class="bi bi-lightning-charge"></i> Quick Actions
                 </div>
-                <div class="card-body">
-                    {% if recent_images %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Preview</th>
-                                    <th>Title</th>
-                                    <th>Hotspot Name</th>
-                                    <th>Status</th>
-                                    <th>Uploaded</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for image in recent_images %}
-                                <tr>
-                                    <td>
-                                        <img src="{{ image.image.url }}" alt="{{ image.title }}"
-                                             style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
-                                    </td>
-                                    <td>{{ image.title }}</td>
-                                    <td>
-                                        {% if image.hotspot_name %}
-                                        <span class="badge bg-info">{{ image.hotspot_name }}</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Default</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if image.is_active %}
-                                        <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ image.uploaded_at|date:"d/m/Y H:i" }}</td>
-                                    <td>
-                                        <a href="{% url 'backgrounds' %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                        <p class="mt-2">No background images uploaded yet</p>
-                        <a href="{% url 'backgrounds' %}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Upload Your First Image
-                        </a>
-                    </div>
+            </div>
+            <div class="d-card-body">
+                <div class="quick-actions">
+                    <a href="{% url 'backgrounds' %}" class="qa-btn primary">
+                        <div class="qa-icon"><i class="bi bi-upload"></i></div>
+                        อัปโหลด Background
+                    </a>
+                    <a href="{% url 'templates' %}" class="qa-btn outline">
+                        <div class="qa-icon"><i class="bi bi-palette"></i></div>
+                        จัดการ Templates
+                    </a>
+                    <a href="{% url 'departments' %}" class="qa-btn outline">
+                        <div class="qa-icon"><i class="bi bi-building"></i></div>
+                        จัดการหน่วยงาน
+                    </a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'settings' %}" class="qa-btn dark">
+                        <div class="qa-icon"><i class="bi bi-gear"></i></div>
+                        System Settings
+                    </a>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-lightning"></i> Quick Actions
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'backgrounds' %}" class="btn btn-primary">
-                            <i class="bi bi-upload"></i> Upload New Background
-                        </a>
-                        <a href="{% url 'backgrounds' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-images"></i> Manage Backgrounds
-                        </a>
-                        {% if user.is_staff %}
-                        <a href="{% url 'settings' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-gear"></i> System Settings
-                        </a>
-                        <a href="/admin/" class="btn btn-outline-dark" target="_blank">
-                            <i class="bi bi-shield-lock"></i> Admin Panel
-                        </a>
-                        {% endif %}
-                    </div>
+        <!-- User Info -->
+        <div class="d-card right-col-card" style="animation-delay:360ms;">
+            <div class="d-card-header">
+                <div class="d-card-header-title">
+                    <i class="bi bi-person-circle"></i> ข้อมูลผู้ใช้
                 </div>
             </div>
-
-            <div class="card mt-3">
-                <div class="card-header">
-                    <i class="bi bi-info-circle"></i> System Information
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <strong>Logged in as:</strong><br>
-                            <span class="text-muted">{{ user.username }}</span>
+            <div class="d-card-body">
+                <div class="user-info-list">
+                    <div class="ui-row">
+                        <span class="ui-label">Username</span>
+                        <span class="ui-value">
+                            {{ user.username }}
                             {% if user.is_staff %}
-                            <span class="badge bg-warning text-dark ms-1">Admin</span>
+                            <span class="role-badge admin">Admin</span>
+                            {% else %}
+                            <span class="role-badge staff">Staff</span>
                             {% endif %}
-                        </li>
-                        <li class="mb-2">
-                            <strong>Email:</strong><br>
-                            <span class="text-muted">{{ user.email|default:"Not set" }}</span>
-                        </li>
-                        <li class="mb-0">
-                            <strong>Last login:</strong><br>
-                            <span class="text-muted">{{ user.last_login|date:"d/m/Y H:i" }}</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- API Endpoint Info -->
-    <div class="row mt-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-code-slash"></i> API Endpoint for MikroTik
-                </div>
-                <div class="card-body">
-                    <p class="mb-2"><strong>Public API Endpoint:</strong></p>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control font-monospace" id="apiEndpoint"
-                               value="{{ request.scheme }}://{{ request.get_host }}/api/login-background/" readonly>
-                        <button class="btn btn-outline-secondary" type="button" onclick="copyEndpoint()">
-                            <i class="bi bi-clipboard"></i> Copy
-                        </button>
+                        </span>
                     </div>
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle"></i>
-                        Use this URL in your MikroTik login.html to fetch the background image.
-                        Add <code>?hotspot_name=YOUR_ID</code> for router-specific backgrounds.
-                    </small>
+                    <div class="ui-row">
+                        <span class="ui-label">Email</span>
+                        <span class="ui-value">{{ user.email|default:"ยังไม่ได้ตั้งค่า" }}</span>
+                    </div>
+                    <div class="ui-row">
+                        <span class="ui-label">Login ล่าสุด</span>
+                        <span class="ui-value">{{ user.last_login|date:"d/m/Y H:i"|default:"-" }}</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- API Endpoint -->
+<div class="d-card" style="animation-delay:420ms; margin-top: 0;">
+    <div class="d-card-header">
+        <div class="d-card-header-title">
+            <i class="bi bi-code-slash"></i> API Endpoint สำหรับ MikroTik
+        </div>
+    </div>
+    <div class="d-card-body">
+        <div class="api-endpoint-wrap">
+            <div class="api-url-field" id="apiEndpointDisplay">
+                {{ request.scheme }}://{{ request.get_host }}/api/login-background/
+            </div>
+            <input type="text" id="apiEndpoint" value="{{ request.scheme }}://{{ request.get_host }}/api/login-background/" style="position:absolute;opacity:0;pointer-events:none;" readonly>
+            <button class="btn-copy" id="btnCopy" onclick="copyEndpoint()">
+                <i class="bi bi-clipboard"></i> Copy
+            </button>
+        </div>
+        <p class="api-hint">
+            <i class="bi bi-info-circle me-1"></i>
+            ใช้ URL นี้ใน MikroTik login.html เพื่อดึง Background Image
+            เพิ่ม <code>?hotspot_name=YOUR_ID</code> สำหรับ router เฉพาะ
+        </p>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     function copyEndpoint() {
-        const endpoint = document.getElementById('apiEndpoint');
-        endpoint.select();
+        const input = document.getElementById('apiEndpoint');
+        const btn = document.getElementById('btnCopy');
+        input.select();
         document.execCommand('copy');
 
-        // Show feedback
-        const btn = event.target.closest('button');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('btn-success');
-
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+        btn.classList.add('copied');
         setTimeout(() => {
-            btn.innerHTML = originalHTML;
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-outline-secondary');
+            btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+            btn.classList.remove('copied');
         }, 2000);
     }
 </script>

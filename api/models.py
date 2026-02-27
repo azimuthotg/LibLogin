@@ -361,6 +361,39 @@ class DailyReachStats(models.Model):
         return f"{self.hotspot_name} - {self.date} ({self.unique_devices} unique, {self.total_impressions} total)"
 
 
+class Department(models.Model):
+    """Model for managing departments and their allowed hotspot access"""
+    name = models.CharField(max_length=255, unique=True, help_text="ชื่อหน่วยงาน (e.g., คณะวิทยาศาสตร์, สำนักหอสมุด)")
+    description = models.TextField(blank=True, help_text="รายละเอียดหน่วยงาน")
+    hotspots = models.ManyToManyField(
+        'Hotspot',
+        blank=True,
+        related_name='departments',
+        help_text="Hotspot ที่หน่วยงานนี้สามารถเข้าถึงได้"
+    )
+    is_active = models.BooleanField(default=True, help_text="หน่วยงานนี้ยังใช้งานอยู่")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_departments'
+    )
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Department"
+        verbose_name_plural = "Departments"
+
+    def __str__(self):
+        return self.name
+
+    def hotspot_count(self):
+        return self.hotspots.count()
+
+
 class LandingPageURL(models.Model):
     """Landing page URL for post-login redirect (per hotspot)"""
 

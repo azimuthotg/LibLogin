@@ -1,349 +1,470 @@
 {% extends 'webapp/base.html' %}
 {% load static %}
 
-{% block title %}System Settings - LibLogin{% endblock %}
-
+{% block title %}Settings - LibLogin{% endblock %}
 {% block page_title %}System Settings{% endblock %}
 
+{% block extra_css %}
+<style>
+    .settings-grid { display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start; }
+    @media(max-width:900px){ .settings-grid { grid-template-columns:1fr; } }
+
+    /* ── Section Cards ── */
+    .section-card {
+        background:#fff; border-radius:14px; border:1.5px solid #e9eef4;
+        overflow:hidden; margin-bottom:20px;
+        box-shadow:0 1px 6px rgba(0,0,0,.05);
+    }
+    .section-header {
+        padding:16px 20px; border-bottom:1px solid #f1f5f9;
+        display:flex; align-items:center; justify-content:space-between;
+        gap:12px;
+    }
+    .section-header-left { display:flex; align-items:center; gap:10px; }
+    .section-header-icon {
+        width:36px; height:36px; border-radius:10px;
+        background:linear-gradient(135deg,#3498db,#2c3e50);
+        display:flex; align-items:center; justify-content:center;
+        color:#fff; font-size:.9rem; flex-shrink:0;
+    }
+    .section-header-icon.orange { background:linear-gradient(135deg,#e67e22,#d35400); }
+    .section-header-icon.warn   { background:linear-gradient(135deg,#f39c12,#e67e22); }
+    .section-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#1e293b; }
+    .section-body  { padding:20px; }
+
+    /* ── Form Elements ── */
+    .form-label-s { font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; color:#374151; display:block; margin-bottom:6px; }
+    .form-ctrl-s { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#1e293b; background:#fff; transition:border-color .2s,box-shadow .2s; -webkit-appearance:none; appearance:none; }
+    .form-ctrl-s:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+    .form-select-s { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#1e293b; background:#fff; transition:border-color .2s; }
+    .form-select-s:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+    .helper-text { font-family:'Sarabun',sans-serif; font-size:.77rem; color:#94a3b8; margin-top:5px; }
+    .mb-f { margin-bottom:16px; }
+
+    /* Logo preview */
+    .logo-preview { display:flex; align-items:center; gap:12px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; }
+    .logo-preview img { max-height:60px; border-radius:6px; }
+    .logo-preview span { font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; }
+
+    /* Save button */
+    .btn-save { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:9px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; padding:11px 24px; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:7px; }
+    .btn-save:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(52,152,219,.35); }
+
+    /* ── Hotspot Table ── */
+    .hs-table { width:100%; border-collapse:collapse; }
+    .hs-table thead th { background:#f8fafc; font-family:'Kanit',sans-serif; font-weight:600; font-size:.76rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; padding:11px 14px; border-bottom:1.5px solid #e9eef4; }
+    .hs-table tbody tr { transition:background .15s; }
+    .hs-table tbody tr:hover { background:#f8fafc; }
+    .hs-table tbody td { padding:11px 14px; border-bottom:1px solid #f1f5f9; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#334155; vertical-align:middle; }
+    .hs-table tbody tr:last-child td { border-bottom:none; }
+
+    .hs-name { font-family:'Kanit',sans-serif; font-weight:600; font-size:.875rem; color:#1e293b; }
+    .hs-display { font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; }
+    .status-badge { display:inline-flex; align-items:center; gap:5px; font-family:'Kanit',sans-serif; font-size:.72rem; font-weight:600; padding:3px 10px; border-radius:50px; }
+    .status-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .s-ready    { background:rgba(34,197,94,.12); color:#16a34a; border:1px solid rgba(34,197,94,.25); }
+    .s-warning  { background:rgba(234,179,8,.12); color:#a16207; border:1px solid rgba(234,179,8,.25); }
+    .s-error    { background:rgba(239,68,68,.12); color:#dc2626; border:1px solid rgba(239,68,68,.25); }
+    .s-unchecked{ background:rgba(148,163,184,.12); color:#64748b; border:1px solid rgba(148,163,184,.25); }
+
+    .btn-row { display:flex; gap:5px; }
+    .btn-icon { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:7px; border:none; cursor:pointer; font-size:.8rem; transition:all .15s; }
+    .btn-icon-check  { background:rgba(52,152,219,.1); color:#2980b9; }
+    .btn-icon-check:hover  { background:rgba(52,152,219,.2); }
+    .btn-icon-edit   { background:rgba(44,62,80,.08); color:#2c3e50; }
+    .btn-icon-edit:hover   { background:rgba(44,62,80,.18); }
+    .btn-icon-delete { background:rgba(239,68,68,.08); color:#dc2626; }
+    .btn-icon-delete:hover { background:rgba(239,68,68,.18); }
+
+    .btn-add-hs { display:inline-flex; align-items:center; gap:6px; background:rgba(52,152,219,.1); color:#2980b9; border:1.5px solid rgba(52,152,219,.2); border-radius:8px; padding:7px 14px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.8rem; cursor:pointer; transition:all .15s; }
+    .btn-add-hs:hover { background:rgba(52,152,219,.2); }
+
+    /* Countdown badge */
+    .refresh-badge { display:inline-flex; align-items:center; gap:5px; background:#f0f4f8; color:#64748b; border:1px solid #e2e8f0; border-radius:50px; padding:4px 12px; font-family:'Kanit',sans-serif; font-size:.75rem; font-weight:500; }
+
+    /* ── Sidebar Cards ── */
+    .info-tip-card { background:#fff; border-radius:14px; border:1.5px solid #e9eef4; overflow:hidden; margin-bottom:16px; box-shadow:0 1px 6px rgba(0,0,0,.05); }
+    .tip-header { padding:14px 18px; border-bottom:1px solid #f1f5f9; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#1e293b; display:flex; align-items:center; gap:8px; }
+    .tip-header i { color:#3498db; }
+    .tip-body  { padding:16px 18px; }
+    .tip-list { list-style:none; padding:0; margin:0; }
+    .tip-list li { display:flex; align-items:flex-start; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; padding:5px 0; border-bottom:1px solid #f8fafc; }
+    .tip-list li:last-child { border-bottom:none; }
+    .tip-list li i { color:#3498db; margin-top:2px; font-size:.8rem; flex-shrink:0; }
+
+    /* Code block */
+    .code-block { background:#1a2535; color:#e2e8f0; border-radius:10px; padding:14px 16px; font-family:monospace; font-size:.78rem; line-height:1.6; overflow-x:auto; margin-bottom:12px; }
+    .btn-copy { display:flex; align-items:center; gap:6px; justify-content:center; width:100%; background:#f1f5f9; color:#475569; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.8rem; cursor:pointer; transition:all .15s; }
+    .btn-copy:hover { background:#e2e8f0; }
+
+    /* Adv card */
+    .adv-section { background:#fffbf0; border:1.5px solid rgba(234,179,8,.3); border-radius:12px; padding:16px; }
+    .adv-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; color:#92400e; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+    .db-info-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(234,179,8,.15); font-family:'Sarabun',sans-serif; font-size:.85rem; color:#78350f; }
+    .db-info-row:last-child { border-bottom:none; }
+    .db-info-row strong { color:#451a03; }
+    .code-field { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px 12px; font-family:monospace; font-size:.78rem; color:#475569; word-break:break-all; }
+
+    /* Legend */
+    .legend-grid { display:grid; gap:6px; }
+    .legend-item { display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; }
+    .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+    /* Modals */
+    .modal-header-dark { background:linear-gradient(135deg,#1a2535,#2c3e50); padding:18px 20px; border-bottom:none; }
+    .modal-header-dark .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#fff; display:flex; align-items:center; gap:8px; }
+    .modal-header-dark .btn-close { filter:invert(1) brightness(2); }
+    .modal-header-danger { background:linear-gradient(135deg,#991b1b,#dc2626); padding:18px 20px; border-bottom:none; }
+    .modal-header-danger .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#fff; display:flex; align-items:center; gap:8px; }
+    .modal-header-danger .btn-close { filter:invert(1) brightness(2); }
+    .modal-body  { padding:20px; }
+    .modal-footer { padding:14px 20px; border-top:1px solid #f1f5f9; }
+    .check-item { display:flex; align-items:center; gap:8px; padding:10px 12px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:9px; cursor:pointer; }
+    .check-item label { font-family:'Sarabun',sans-serif; font-size:.875rem; color:#374151; cursor:pointer; margin:0; }
+    .check-item input[type="checkbox"] { accent-color:#3498db; width:15px; height:15px; }
+    .btn-modal-primary { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; padding:9px 20px; cursor:pointer; transition:all .2s; }
+    .btn-modal-primary:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(52,152,219,.35); }
+    .btn-modal-danger  { background:#dc2626; color:#fff; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; padding:9px 20px; cursor:pointer; }
+    .btn-modal-danger:hover { background:#b91c1c; }
+    .btn-modal-cancel  { background:#f1f5f9; color:#64748b; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.85rem; padding:9px 16px; cursor:pointer; }
+    .btn-modal-cancel:hover { background:#e2e8f0; }
+
+    .delete-warn-box { background:#fef2f2; border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:14px 16px; font-family:'Sarabun',sans-serif; font-size:.85rem; color:#991b1b; }
+    .delete-warn-box ul { padding-left:16px; margin:8px 0 0; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-gear"></i> Library Information
-                </div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="organization_name" class="form-label">Organization Name</label>
-                            <input type="text" class="form-control" id="organization_name" name="organization_name"
-                                   value="{{ settings.organization_name|default:'' }}"
-                                   placeholder="e.g., มหาวิทยาลัยXXX, ABC University">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i>
-                                Name of your organization (used in reports and headers)
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="library_name" class="form-label">Library Name *</label>
-                            <input type="text" class="form-control" id="library_name" name="library_name"
-                                   value="{{ settings.library_name|default:'Library Login System' }}" required>
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i>
-                                System/Library name (different from organization name)
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="contact_info" class="form-label">Contact Information</label>
-                            <textarea class="form-control" id="contact_info" name="contact_info" rows="4"
-                                      placeholder="Enter contact information, support hours, etc.">{{ settings.contact_info|default:'' }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="default_hotspot_name" class="form-label">Default Hotspot Name</label>
-                            <input type="text" class="form-control" id="default_hotspot_name" name="default_hotspot_name"
-                                   value="{{ settings.default_hotspot_name|default:'' }}"
-                                   placeholder="Default router identifier">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i>
-                                This router ID will be used as default if not specified
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="hotspot_status_refresh_interval" class="form-label">Hotspot Status Auto-Refresh Interval</label>
-                            <select class="form-select" id="hotspot_status_refresh_interval" name="hotspot_status_refresh_interval">
-                                <option value="5" {% if settings.hotspot_status_refresh_interval == 5 %}selected{% endif %}>5 minutes</option>
-                                <option value="10" {% if settings.hotspot_status_refresh_interval == 10 or not settings.hotspot_status_refresh_interval %}selected{% endif %}>10 minutes</option>
-                                <option value="15" {% if settings.hotspot_status_refresh_interval == 15 %}selected{% endif %}>15 minutes</option>
-                                <option value="30" {% if settings.hotspot_status_refresh_interval == 30 %}selected{% endif %}>30 minutes</option>
-                                <option value="60" {% if settings.hotspot_status_refresh_interval == 60 %}selected{% endif %}>60 minutes</option>
-                            </select>
-                            <small class="text-muted">
-                                <i class="bi bi-arrow-repeat"></i>
-                                How often to automatically refresh hotspot connection status in Hotspot Management
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="logo" class="form-label">Library Logo</label>
-                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i>
-                                Upload a logo for your library (PNG, JPG, SVG recommended)
-                            </small>
-
-                            {% if settings.logo %}
-                            <div class="mt-3">
-                                <p class="mb-2"><strong>Current Logo:</strong></p>
-                                <img src="{{ settings.logo.url }}" alt="Current Logo"
-                                     style="max-height: 100px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Save Settings
-                            </button>
-                        </div>
-                    </form>
+<div class="settings-grid">
+    <!-- ── Left Column ── -->
+    <div>
+        <!-- Library Information -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <div class="section-header-icon"><i class="bi bi-building"></i></div>
+                    <span class="section-title">Library Information</span>
                 </div>
             </div>
+            <div class="section-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
 
-            <!-- Hotspot Management Section -->
-            <div class="card mt-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-router"></i> Hotspot Management</span>
-                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addHotspotModal">
-                        <i class="bi bi-plus-circle"></i> Add New Hotspot
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <p class="text-muted mb-0">
-                            <i class="bi bi-info-circle"></i> Manage hotspot configurations and monitor connection status
-                        </p>
-                        <span class="badge bg-secondary" id="refreshCountdown">Next refresh: --:--</span>
+                    <div class="mb-f">
+                        <label class="form-label-s" for="organization_name">Organization Name</label>
+                        <input type="text" class="form-ctrl-s" id="organization_name" name="organization_name"
+                               value="{{ settings.organization_name|default:'' }}"
+                               placeholder="เช่น มหาวิทยาลัยXXX">
+                        <p class="helper-text"><i class="bi bi-info-circle me-1"></i>ชื่อองค์กร ใช้ในรายงานและส่วนหัว</p>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle" id="hotspotsTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="30"></th>
-                                    <th>Hotspot Name</th>
-                                    <th>Display Name</th>
-                                    <th>Status</th>
-                                    <th>Last Checked</th>
-                                    <th width="200">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="hotspotsTableBody">
-                                <tr>
-                                    <td colspan="6" class="text-center py-4">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="mt-2 text-muted">Loading hotspots...</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="mb-f">
+                        <label class="form-label-s" for="library_name">Library Name <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" id="library_name" name="library_name"
+                               value="{{ settings.library_name|default:'Library Login System' }}" required>
+                        <p class="helper-text"><i class="bi bi-info-circle me-1"></i>ชื่อระบบ/ห้องสมุด (แตกต่างจาก Organization)</p>
                     </div>
 
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-lightbulb"></i> <strong>Status Legend:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>🟢 <strong>Ready</strong> - Folder exists, login.html found, and config matched</li>
-                            <li>🟡 <strong>Warning</strong> - Folder exists but configuration mismatch</li>
-                            <li>🔴 <strong>Error</strong> - Folder or login.html not found</li>
-                            <li>⚪ <strong>Unchecked</strong> - Connection not tested yet</li>
-                        </ul>
+                    <div class="mb-f">
+                        <label class="form-label-s" for="contact_info">Contact Information</label>
+                        <textarea class="form-ctrl-s" id="contact_info" name="contact_info" rows="3"
+                                  placeholder="ข้อมูลติดต่อ, ชั่วโมงทำการ, ฯลฯ">{{ settings.contact_info|default:'' }}</textarea>
                     </div>
-                </div>
+
+                    <div class="mb-f">
+                        <label class="form-label-s" for="default_hotspot_name">Default Hotspot Name</label>
+                        <input type="text" class="form-ctrl-s" id="default_hotspot_name" name="default_hotspot_name"
+                               value="{{ settings.default_hotspot_name|default:'' }}"
+                               placeholder="Default router identifier">
+                        <p class="helper-text"><i class="bi bi-router me-1"></i>Hotspot ID ที่ใช้เป็นค่า Default ถ้าไม่ระบุ</p>
+                    </div>
+
+                    <div class="mb-f">
+                        <label class="form-label-s" for="hotspot_status_refresh_interval">Auto-Refresh Interval</label>
+                        <select class="form-select-s" id="hotspot_status_refresh_interval" name="hotspot_status_refresh_interval">
+                            <option value="5"  {% if settings.hotspot_status_refresh_interval == 5  %}selected{% endif %}>5 minutes</option>
+                            <option value="10" {% if settings.hotspot_status_refresh_interval == 10 or not settings.hotspot_status_refresh_interval %}selected{% endif %}>10 minutes</option>
+                            <option value="15" {% if settings.hotspot_status_refresh_interval == 15 %}selected{% endif %}>15 minutes</option>
+                            <option value="30" {% if settings.hotspot_status_refresh_interval == 30 %}selected{% endif %}>30 minutes</option>
+                            <option value="60" {% if settings.hotspot_status_refresh_interval == 60 %}selected{% endif %}>60 minutes</option>
+                        </select>
+                        <p class="helper-text"><i class="bi bi-arrow-repeat me-1"></i>ความถี่ในการตรวจสถานะ Hotspot อัตโนมัติ</p>
+                    </div>
+
+                    <div class="mb-f">
+                        <label class="form-label-s" for="logo">Library Logo</label>
+                        <input type="file" class="form-ctrl-s" id="logo" name="logo" accept="image/*" style="padding:7px 10px;">
+                        <p class="helper-text"><i class="bi bi-image me-1"></i>PNG, JPG, SVG แนะนำ — ใช้ในหน้า Login และรายงาน</p>
+                        {% if settings.logo %}
+                        <div class="logo-preview">
+                            <img src="{{ settings.logo.url }}" alt="Current Logo">
+                            <span>Logo ปัจจุบัน</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end;">
+                        <button type="submit" class="btn-save">
+                            <i class="bi bi-save"></i> บันทึกการตั้งค่า
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            {% if user.is_superuser %}
-            <div class="card mt-4">
-                <div class="card-header bg-warning">
-                    <i class="bi bi-exclamation-triangle"></i> Advanced Settings
-                </div>
-                <div class="card-body">
-                    <h6>Database Information</h6>
-                    <ul class="list-unstyled">
-                        <li><strong>Total Images:</strong> {{ total_images }}</li>
-                        <li><strong>Total Users:</strong> {{ total_users }}</li>
-                        <li><strong>Storage Used:</strong> <span id="storageSize">Calculating...</span></li>
-                    </ul>
-
-                    <hr>
-
-                    <h6>API Configuration</h6>
-                    <div class="mb-3">
-                        <label class="form-label">Public API Endpoint:</label>
-                        <input type="text" class="form-control font-monospace" readonly
-                               value="{{ request.scheme }}://{{ request.get_host }}/api/login-background/">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Admin API Endpoint:</label>
-                        <input type="text" class="form-control font-monospace" readonly
-                               value="{{ request.scheme }}://{{ request.get_host }}/api/backgrounds/">
-                    </div>
-                </div>
-            </div>
-            {% endif %}
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-info-circle"></i> Help & Documentation
+        <!-- Hotspot Management -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <div class="section-header-icon orange"><i class="bi bi-router"></i></div>
+                    <div>
+                        <div class="section-title">Hotspot Management</div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <h6>MikroTik Integration</h6>
-                    <p class="small">To integrate with MikroTik Hotspot, add this JavaScript to your login.html:</p>
-
-                    <pre class="bg-light p-3 rounded" style="font-size: 0.75rem;"><code>&lt;script&gt;
-fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?hotspot_name=YOUR_ID')
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      document.body.style.backgroundImage =
-        `url($${data.imageUrl})`;
-    }
-  });
-&lt;/script&gt;</code></pre>
-
-                    <button class="btn btn-sm btn-outline-primary w-100" onclick="copyCode()">
-                        <i class="bi bi-clipboard"></i> Copy Code
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="refresh-badge" id="refreshCountdown">
+                        <i class="bi bi-arrow-repeat"></i> Next refresh: --:--
+                    </span>
+                    <button class="btn-add-hs" data-bs-toggle="modal" data-bs-target="#addHotspotModal">
+                        <i class="bi bi-plus-lg"></i> Add Hotspot
                     </button>
                 </div>
             </div>
-
-            <div class="card mt-3">
-                <div class="card-header">
-                    <i class="bi bi-question-circle"></i> Quick Tips
+            <div class="section-body" style="padding-top:0;">
+                <div style="overflow-x:auto;">
+                    <table class="hs-table" id="hotspotsTable">
+                        <thead>
+                            <tr>
+                                <th style="width:30px;"></th>
+                                <th>Hotspot Name</th>
+                                <th>Display Name</th>
+                                <th>Status</th>
+                                <th>Last Checked</th>
+                                <th style="width:120px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hotspotsTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center; padding:32px;">
+                                    <div class="spinner-border text-primary" role="status" style="width:1.5rem;height:1.5rem;">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p style="font-family:'Sarabun',sans-serif; font-size:.85rem; color:#94a3b8; margin:8px 0 0;">กำลังโหลด Hotspot...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card-body">
-                    <ul class="small mb-0">
-                        <li class="mb-2">Use router-specific backgrounds for different locations</li>
-                        <li class="mb-2">Recommended image size: 1920x1080 pixels</li>
-                        <li class="mb-2">Images are automatically optimized on upload</li>
-                        <li class="mb-2">Only one background can be active per router at a time</li>
-                        <li>Use the API endpoint in your MikroTik configuration</li>
-                    </ul>
+
+                <div style="margin-top:16px; background:#f8fafc; border-radius:10px; padding:14px 16px; border:1px solid #e9eef4;">
+                    <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; margin-bottom:10px;">Status Legend</div>
+                    <div class="legend-grid">
+                        <div class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span> <strong>Ready</strong> — Folder พร้อม, login.html ครบ, config ตรง</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#eab308;"></span> <strong>Warning</strong> — Folder มีแต่ config ไม่ตรง</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> <strong>Error</strong> — ไม่พบ Folder หรือ login.html</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#94a3b8;"></span> <strong>Unchecked</strong> — ยังไม่ได้ตรวจสอบ</div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <i class="bi bi-shield-check"></i> Security
+        <!-- Advanced Settings (superuser only) -->
+        {% if user.is_superuser %}
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <div class="section-header-icon warn"><i class="bi bi-exclamation-triangle"></i></div>
+                    <span class="section-title">Advanced Settings</span>
                 </div>
-                <div class="card-body">
-                    <ul class="small mb-0">
-                        <li class="mb-2">Change default admin password</li>
-                        <li class="mb-2">Only authorized users can manage images</li>
-                        <li class="mb-2">API endpoint is CORS-enabled for MikroTik</li>
-                        <li>Regular backups recommended</li>
-                    </ul>
+            </div>
+            <div class="section-body">
+                <div class="adv-section">
+                    <div class="adv-title"><i class="bi bi-database"></i> Database Information</div>
+                    <div class="db-info-row"><span>Total Images</span><strong>{{ total_images }}</strong></div>
+                    <div class="db-info-row"><span>Total Users</span><strong>{{ total_users }}</strong></div>
+                    <div class="db-info-row"><span>Storage Used</span><strong><span id="storageSize">N/A</span></strong></div>
                 </div>
+
+                <div style="margin-top:16px;">
+                    <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#374151; margin-bottom:10px;">API Configuration</div>
+                    <div class="mb-f">
+                        <label class="form-label-s">Public API Endpoint</label>
+                        <div class="code-field">
+                            <i class="bi bi-globe" style="color:#3498db;"></i>
+                            {{ request.scheme }}://{{ request.get_host }}/api/login-background/
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label-s">Admin API Endpoint</label>
+                        <div class="code-field">
+                            <i class="bi bi-lock" style="color:#e67e22;"></i>
+                            {{ request.scheme }}://{{ request.get_host }}/api/backgrounds/
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Right Sidebar ── -->
+    <div>
+        <!-- MikroTik Integration -->
+        <div class="info-tip-card">
+            <div class="tip-header"><i class="bi bi-code-slash"></i> MikroTik Integration</div>
+            <div class="tip-body">
+                <p style="font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; margin-bottom:10px;">เพิ่ม JavaScript นี้ใน login.html ของ MikroTik:</p>
+                <div class="code-block">&lt;script&gt;
+fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?hotspot_name=YOUR_ID')
+  .then(r =&gt; r.json())
+  .then(data =&gt; {
+    if (data.success) {
+      document.body.style.backgroundImage =
+        `url(${data.imageUrl})`;
+    }
+  });
+&lt;/script&gt;</div>
+                <button class="btn-copy" onclick="copyCode()">
+                    <i class="bi bi-clipboard"></i> Copy Code
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="info-tip-card">
+            <div class="tip-header"><i class="bi bi-lightbulb"></i> Quick Tips</div>
+            <div class="tip-body">
+                <ul class="tip-list">
+                    <li><i class="bi bi-check-circle-fill"></i> ใช้ Background เฉพาะสำหรับแต่ละสถานที่</li>
+                    <li><i class="bi bi-image"></i> ขนาดรูปแนะนำ: 1920×1080 px</li>
+                    <li><i class="bi bi-lightning-fill"></i> รูปภาพจะถูก optimize อัตโนมัติเมื่ออัปโหลด</li>
+                    <li><i class="bi bi-toggle-on"></i> Active ได้แค่ 1 Background ต่อ Router</li>
+                    <li><i class="bi bi-router"></i> ใช้ API Endpoint ใน MikroTik config</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Security -->
+        <div class="info-tip-card">
+            <div class="tip-header"><i class="bi bi-shield-check"></i> Security</div>
+            <div class="tip-body">
+                <ul class="tip-list">
+                    <li><i class="bi bi-key-fill"></i> เปลี่ยน Password Admin เป็นประจำ</li>
+                    <li><i class="bi bi-person-check-fill"></i> เฉพาะผู้ได้รับอนุญาตจัดการรูปภาพได้</li>
+                    <li><i class="bi bi-globe"></i> API Endpoint รองรับ CORS สำหรับ MikroTik</li>
+                    <li><i class="bi bi-hdd-fill"></i> แนะนำ Backup ข้อมูลสม่ำเสมอ</li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Hotspot Modal -->
+<!-- ─── Add Hotspot Modal ─── -->
 <div class="modal fade" id="addHotspotModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
+            <div class="modal-header-dark">
                 <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add New Hotspot</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="addHotspotForm">
-                    <div class="mb-3">
-                        <label for="add_hotspot_name" class="form-label">Hotspot Name (Technical) *</label>
-                        <input type="text" class="form-control" id="add_hotspot_name" required
+                    <div class="mb-f">
+                        <label class="form-label-s">Hotspot Name (Technical) <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" id="add_hotspot_name" required
                                pattern="hotspot(_[a-z0-9]+)?" placeholder="e.g., hotspot_cafe">
-                        <small class="text-muted">Must start with 'hotspot' and use lowercase letters, numbers, and underscores only</small>
+                        <p class="helper-text">ต้องขึ้นต้นด้วย 'hotspot' ใช้ตัวพิมพ์เล็ก, ตัวเลข, และ _ เท่านั้น</p>
                     </div>
-                    <div class="mb-3">
-                        <label for="add_display_name" class="form-label">Display Name *</label>
-                        <input type="text" class="form-control" id="add_display_name" required placeholder="e.g., Cafe Hotspot">
+                    <div class="mb-f">
+                        <label class="form-label-s">Display Name <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" id="add_display_name" required placeholder="e.g., Cafe Hotspot">
                     </div>
-                    <div class="mb-3">
-                        <label for="add_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="add_description" rows="3" placeholder="Optional description"></textarea>
+                    <div class="mb-f">
+                        <label class="form-label-s">Description</label>
+                        <textarea class="form-ctrl-s" id="add_description" rows="3" placeholder="คำอธิบาย (ไม่บังคับ)"></textarea>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="add_is_active" checked>
-                        <label class="form-check-label" for="add_is_active">Active</label>
+                    <div class="check-item">
+                        <input type="checkbox" id="add_is_active" checked>
+                        <label for="add_is_active">Active</label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="addHotspot()">
-                    <i class="bi bi-save"></i> Add Hotspot
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn-modal-primary" onclick="addHotspot()">
+                    <i class="bi bi-save me-1"></i> Add Hotspot
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Hotspot Modal -->
+<!-- ─── Edit Hotspot Modal ─── -->
 <div class="modal fade" id="editHotspotModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
+            <div class="modal-header-dark">
                 <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Hotspot</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="editHotspotForm">
                     <input type="hidden" id="edit_hotspot_id">
-                    <div class="mb-3">
-                        <label for="edit_hotspot_name" class="form-label">Hotspot Name (Technical)</label>
-                        <input type="text" class="form-control" id="edit_hotspot_name" readonly>
-                        <small class="text-muted">Cannot be changed after creation</small>
+                    <div class="mb-f">
+                        <label class="form-label-s">Hotspot Name (Technical)</label>
+                        <input type="text" class="form-ctrl-s" id="edit_hotspot_name" readonly style="background:#f8fafc; color:#94a3b8;">
+                        <p class="helper-text">ไม่สามารถเปลี่ยนได้หลังจากสร้างแล้ว</p>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit_display_name" class="form-label">Display Name *</label>
-                        <input type="text" class="form-control" id="edit_display_name" required>
+                    <div class="mb-f">
+                        <label class="form-label-s">Display Name <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" id="edit_display_name" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="edit_description" rows="3"></textarea>
+                    <div class="mb-f">
+                        <label class="form-label-s">Description</label>
+                        <textarea class="form-ctrl-s" id="edit_description" rows="3"></textarea>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="edit_is_active">
-                        <label class="form-check-label" for="edit_is_active">Active</label>
+                    <div class="check-item">
+                        <input type="checkbox" id="edit_is_active">
+                        <label for="edit_is_active">Active</label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveHotspot()">
-                    <i class="bi bi-save"></i> Save Changes
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn-modal-primary" onclick="saveHotspot()">
+                    <i class="bi bi-save me-1"></i> Save Changes
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- ─── Delete Hotspot Modal ─── -->
 <div class="modal fade" id="deleteHotspotModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
+            <div class="modal-header-danger">
                 <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Delete Hotspot</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-3">Are you sure you want to delete this hotspot?</p>
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i> <strong>Warning:</strong> This will also delete:
-                    <ul class="mb-0 mt-2">
-                        <li>All templates for this hotspot</li>
-                        <li>All background images for this hotspot</li>
-                        <li>All slides for this hotspot</li>
-                        <li>All cards for this hotspot</li>
+                <p style="font-family:'Sarabun',sans-serif; font-size:.9rem; color:#334155; margin-bottom:14px;">
+                    คุณต้องการลบ Hotspot <strong id="delete_hotspot_name"></strong> ใช่หรือไม่?
+                </p>
+                <div class="delete-warn-box">
+                    <strong><i class="bi bi-exclamation-triangle-fill me-1"></i> คำเตือน:</strong> การลบจะทำให้ข้อมูลต่อไปนี้ถูกลบด้วย:
+                    <ul>
+                        <li>Templates ทั้งหมดของ Hotspot นี้</li>
+                        <li>Background Images ทั้งหมดของ Hotspot นี้</li>
+                        <li>Slides และ Cards ทั้งหมดของ Hotspot นี้</li>
                     </ul>
                 </div>
-                <p class="mb-0"><strong>Hotspot:</strong> <span id="delete_hotspot_name"></span></p>
                 <input type="hidden" id="delete_hotspot_id">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmDeleteHotspot()">
-                    <i class="bi bi-trash"></i> Delete Permanently
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn-modal-danger" onclick="confirmDeleteHotspot()">
+                    <i class="bi bi-trash me-1"></i> Delete Permanently
                 </button>
             </div>
         </div>
@@ -353,34 +474,20 @@ fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?hotsp
 {% endblock %}
 
 {% block extra_js %}
-<!-- Set refresh interval for hotspot management -->
 <script>
     window.HOTSPOT_REFRESH_INTERVAL = {% if settings.hotspot_status_refresh_interval %}{{ settings.hotspot_status_refresh_interval }}{% else %}10{% endif %};
 </script>
-
-<!-- Load hotspot management JavaScript -->
 <script src="{% static 'webapp/js/hotspot-management.js' %}"></script>
-
-<!-- Helper functions -->
 <script>
     function copyCode() {
-        const code = document.querySelector('pre code').textContent;
+        const code = document.querySelector('.code-block').textContent;
         navigator.clipboard.writeText(code).then(() => {
-            const btn = event.target.closest('button');
-            const originalHTML = btn.innerHTML;
+            const btn = document.querySelector('.btn-copy');
+            const orig = btn.innerHTML;
             btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
-            btn.classList.remove('btn-outline-primary');
-            btn.classList.add('btn-success');
-
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-outline-primary');
-            }, 2000);
+            btn.style.background = '#d1fae5'; btn.style.color = '#065f46';
+            setTimeout(() => { btn.innerHTML = orig; btn.style = ''; }, 2000);
         });
     }
-
-    // Calculate storage size (placeholder - would need backend support)
-    document.getElementById('storageSize')?.textContent = 'N/A';
 </script>
 {% endblock %}
