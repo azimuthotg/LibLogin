@@ -39,3 +39,4 @@ local_settings.py
 # Screenshots and temporary files
 *.PNG
 Capture.PNG
+.claude/
