@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="expires" content="-1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internet hotspot - Log in</title>-
+    <link rel="stylesheet" href="http://202.29.55.222:8291/css/login.css?v=8">
+</head>
+
+<body>
+    <!-- Layer 1: Dynamic Background (Full Screen) -->
+    <div id="dynamic-background"></div>
+
+    <!-- Layer 2: Split Screen Layout -->
+    <div class="split-container">
+
+        <!-- Left Panel: Dynamic Component -->
+        <div class="left-panel" id="left-panel">
+            <!-- Content will be dynamically loaded based on template config -->
+            <div class="slide-content">
+                <div id="slide-icon" class="slide-icon">📚</div>
+                <h2 id="slide-title" class="slide-title">Loading...</h2>
+                <p id="slide-description" class="slide-description">
+                    กำลังโหลดข้อมูล...
+                </p>
+
+                <div class="dots" id="slide-dots">
+                    <!-- Dots will be generated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Login Form -->
+        <div class="right-panel">
+            <div class="login-card">
+                <img src="http://202.29.55.222:8291/static/logo_arc.png" alt="Logo" style="display: block; margin: 0 auto 15px; max-width: 120px; height: auto;">
+                <h2>เข้าสู่ระบบ WiFi</h2>
+
+                <!-- MikroTik CHAP Authentication (if enabled) -->
+                $(if chap-id)
+                <form name="sendin" action="$(link-login-only)" method="post" style="display:none">
+                    <input type="hidden" name="username" />
+                    <input type="hidden" name="password" />
+                    <input type="hidden" name="dst" value="$(link-orig)" />
+                    <input type="hidden" name="popup" value="true" />
+                </form>
+
+                <script src="md5.js"></script>
+                <script>
+                    function doLogin() {
+                        document.sendin.username.value = document.login.username.value;
+                        document.sendin.password.value = hexMD5('$(chap-id)' + document.login.password.value + '$(chap-challenge)');
+                        document.sendin.submit();
+                        return false;
+                    }
+                </script>
+                $(endif)
+
+                <!-- Main Login Form -->
+                <form name="login" action="$(link-login-only)" method="post" $(if chap-id) onSubmit="return doLogin()" $(endif)>
+                    <input type="hidden" name="dst" value="$(link-orig)" />
+                    <input type="hidden" name="popup" value="true" />
+
+                    <!-- Error/Info Message -->
+                    <p class="info $(if error)alert$(endif)">
+                        $(if error == "")
+                        $(if trial == 'yes')
+                        Free trial available, <a href="$(link-login-only)?dst=$(link-orig-esc)&amp;username=T-$(mac-esc)" style="color: white;">click here</a>.
+                        $(endif)
+                        $(endif)
+                        $(if error)$(error)$(endif)
+                    </p>
+
+                    <!-- Username Input -->
+                    <label>
+                        <input name="username" type="text" value="$(username)" placeholder="Username" required />
+                    </label>
+
+                    <!-- Password Input -->
+                    <label>
+                        <input name="password" type="password" placeholder="Password" required />
+                    </label>
+
+                    <!-- Submit Button -->
+                    <input type="submit" value="เชื่อมต่อ" />
+                </form>
+
+                <p class="info bt">สำนักวิทยบริการ มหาวิทยาลัยนครพนม</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Global Configuration -->
+    <script>
+        // === HARDCODED HOTSPOT NAME (GLOBAL) ===
+        // Set this to match the folder name (e.g., 'hotspot', 'hotspot_office', 'hotspot_lib', 'hotspot_ai')
+        window.HOTSPOT_NAME = 'hotspot_wifi';
+
+        // Global helper function
+        window.getHotspotName = function() {
+            console.log('[Hotspot Detection] Using hardcoded hotspot_name:', window.HOTSPOT_NAME);
+            return window.HOTSPOT_NAME;
+        };
+
+        window.getTemplateID = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('template_id') || null;
+        };
+    </script>
+
+    <!-- Dynamic Background Loading Script -->
+    <script>
+        (function() {
+            // Configuration - Point to Django API Server
+            // Use current origin for development, fallback to production server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
+            const API_ENDPOINT = '/api/login-background/';
+            const MAX_RETRIES = 3;
+            const RETRY_DELAY = 2000; // 2 seconds
+
+            let retryCount = 0;
+
+            // Load background image from Django API with retry logic
+            function loadBackgroundImage() {
+                const hotspotName = getHotspotName();
+                let apiUrl = API_SERVER + API_ENDPOINT;
+
+                // Add hotspot_name parameter if available
+                if (hotspotName) {
+                    apiUrl += '?hotspot_name=' + encodeURIComponent(hotspotName);
+                }
+
+                console.log('[Background] Fetching from:', apiUrl, '(Attempt ' + (retryCount + 1) + ')');
+
+                fetch(apiUrl, {
+                    method: 'GET',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        if (data && data.success && data.imageUrl) {
+                            console.log('[Background] ✓ Loaded successfully:', data.title || 'Untitled');
+
+                            // Set background image with preloading
+                            const img = new Image();
+                            img.onload = function() {
+                                const bgElement = document.getElementById('dynamic-background');
+                                bgElement.style.backgroundImage = 'url("' + data.imageUrl + '")';
+                                bgElement.style.opacity = '1';
+                                console.log('[Background] ✓ Image rendered');
+                            };
+                            img.onerror = function() {
+                                console.error('[Background] ✗ Image failed to load:', data.imageUrl);
+                            };
+                            img.src = data.imageUrl;
+
+                            retryCount = 0; // Reset retry count on success
+                        } else {
+                            console.warn('[Background] ⚠ No active background found in API response');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('[Background] ✗ Error:', error.message);
+
+                        // Retry logic
+                        if (retryCount < MAX_RETRIES) {
+                            retryCount++;
+                            console.log('[Background] ⟳ Retrying in ' + (RETRY_DELAY / 1000) + 's...');
+                            setTimeout(loadBackgroundImage, RETRY_DELAY);
+                        } else {
+                            console.error('[Background] ✗ Max retries reached. Using default background.');
+                        }
+                    });
+            }
+
+            // Load background when page is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadBackgroundImage);
+            } else {
+                loadBackgroundImage();
+            }
+        })();
+    </script>
+
+    <!-- Dynamic Template Loading Script -->
+    <script>
+        (function() {
+            // Configuration - Point to Django API Server
+            // Use current origin for development, fallback to production server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
+            const TEMPLATE_API = '/api/template-config/';
+            const MAX_RETRIES = 3;
+            const RETRY_DELAY = 2000; // 2 seconds
+
+            let slides = [];
+            let cards = [];
+            let currentSlide = 0;
+            let slideInterval = null;
+            let retryCount = 0;
+            let isLoading = false;
+            const CACHE_KEY = 'liblogin_template_cache';
+
+            // ⚡ Cache Duration: Disabled in development, enabled in production
+            const IS_DEVELOPMENT = window.location.hostname === 'localhost' ||
+                                   window.location.hostname === '127.0.0.1' ||
+                                   window.location.hostname.startsWith('192.168.') ||
+                                   window.location.hostname.startsWith('172.');
+            const CACHE_DURATION = IS_DEVELOPMENT ? 0 : (5 * 60 * 1000); // 0 in dev, 5 min in production
+
+            console.log('[Cache] Mode:', IS_DEVELOPMENT ? 'DEVELOPMENT (Cache Disabled)' : 'PRODUCTION (Cache 5 min)');
+
+            // Cache helpers
+            function getCachedData() {
+                try {
+                    // Skip cache entirely in development mode
+                    if (IS_DEVELOPMENT) {
+                        console.log('[Cache] 🚀 Development mode - Cache disabled');
+                        return null;
+                    }
+
+                    const cached = localStorage.getItem(CACHE_KEY);
+                    if (!cached) return null;
+
+                    const data = JSON.parse(cached);
+                    const now = Date.now();
+
+                    // Check if cache is still valid
+                    if (data.timestamp && (now - data.timestamp < CACHE_DURATION)) {
+                        console.log('[Cache] ✓ Using cached template data');
+                        return data.content;
+                    } else {
+                        console.log('[Cache] ⚠ Cache expired');
+                        localStorage.removeItem(CACHE_KEY);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('[Cache] ✗ Error reading cache:', error);
+                    localStorage.removeItem(CACHE_KEY);
+                    return null;
+                }
+            }
+
+            function setCachedData(data) {
+                try {
+                    const cacheData = {
+                        timestamp: Date.now(),
+                        content: data
+                    };
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                    console.log('[Cache] ✓ Template data cached');
+                } catch (error) {
+                    console.error('[Cache] ✗ Error writing cache:', error);
+                }
+            }
+
+            // Show loading state
+            function showLoading() {
+                isLoading = true;
+                const leftPanel = document.getElementById('left-panel');
+                if (leftPanel) {
+                    leftPanel.innerHTML = `
+                        <div class="slide-content" style="text-align: center; opacity: 0.7;">
+                            <div class="slide-icon" style="font-size: 3rem; animation: pulse 1.5s infinite;">⏳</div>
+                            <h2 class="slide-title">กำลังโหลด...</h2>
+                            <p class="slide-description">โปรดรอสักครู่</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Show error state with retry button
+            function showError(message) {
+                isLoading = false;
+                const leftPanel = document.getElementById('left-panel');
+                if (leftPanel) {
+                    leftPanel.innerHTML = `
+                        <div class="slide-content" style="text-align: center;">
+                            <div class="slide-icon" style="font-size: 3rem;">⚠️</div>
+                            <h2 class="slide-title">เกิดข้อผิดพลาด</h2>
+                            <p class="slide-description">${message || 'ไม่สามารถโหลดข้อมูลได้'}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Initialize slideshow component
+            function initSlideshow(slidesData) {
+                try {
+                    console.log('[Slideshow] Initializing with', slidesData.length, 'slides');
+                    slides = slidesData;
+
+                    if (!slides || slides.length === 0) {
+                        console.warn('[Slideshow] No slides data provided');
+                        showError('ไม่พบข้อมูลสไลด์');
+                        return;
+                    }
+
+                    const leftPanel = document.getElementById('left-panel');
+                    if (!leftPanel) {
+                        console.error('[Slideshow] Left panel element not found');
+                        return;
+                    }
+
+                    leftPanel.innerHTML = `
+                        <div class="slide-content">
+                            <div id="slide-icon" class="slide-icon"></div>
+                            <h2 id="slide-title" class="slide-title"></h2>
+                            <p id="slide-description" class="slide-description"></p>
+                            <div id="slide-link" class="slide-link"></div>
+                            <div class="dots" id="slide-dots"></div>
+                        </div>
+                    `;
+
+                    // Generate dots
+                    const dotsContainer = document.getElementById('slide-dots');
+                    slides.forEach(function(_, index) {
+                        const dot = document.createElement('span');
+                        dot.className = 'dot' + (index === 0 ? ' active' : '');
+                        dot.onclick = function() { changeSlide(index); };
+                        dotsContainer.appendChild(dot);
+                    });
+
+                    // Show first slide
+                    showSlide(0);
+
+                    // Auto-change slides every 5 seconds
+                    if (slideInterval) clearInterval(slideInterval);
+                    slideInterval = setInterval(function() {
+                        currentSlide = (currentSlide + 1) % slides.length;
+                        showSlide(currentSlide);
+                    }, 5000);
+
+                    console.log('[Slideshow] ✓ Initialized successfully');
+                } catch (error) {
+                    console.error('[Slideshow] ✗ Initialization error:', error);
+                    showError('ไม่สามารถแสดงสไลด์ได้');
+                }
+            }
+
+            // Show specific slide
+            function showSlide(index) {
+                try {
+                    if (!slides || slides.length === 0 || index < 0 || index >= slides.length) {
+                        console.error('[Slideshow] Invalid slide index:', index);
+                        return;
+                    }
+
+                    const slide = slides[index];
+                    const content = document.querySelector('.slide-content');
+                    if (!content) {
+                        console.error('[Slideshow] Slide content element not found');
+                        return;
+                    }
+
+                    content.style.opacity = '0';
+
+                    setTimeout(function() {
+                        const iconElement = document.getElementById('slide-icon');
+                        const titleElement = document.getElementById('slide-title');
+                        const descElement = document.getElementById('slide-description');
+                        const linkElement = document.getElementById('slide-link');
+
+                        if (!iconElement || !titleElement || !descElement || !linkElement) {
+                            console.error('[Slideshow] Required elements not found');
+                            return;
+                        }
+
+                        // Image size mapping
+                        const imageSizes = {
+                            'square_600': { width: 600, height: 600 },
+                            'square_400': { width: 400, height: 400 },
+                            'square_200': { width: 200, height: 200 },
+                            'landscape_600': { width: 600, height: 450 },
+                            'landscape_400': { width: 400, height: 300 },
+                            'landscape_200': { width: 200, height: 150 }
+                        };
+
+                        const imageSize = imageSizes[slide.image_size] || { width: 400, height: 400 };
+
+                        // Use image if available, otherwise use emoji
+                        if (slide.icon_image_url) {
+                            const img = new Image();
+                            img.onload = function() {
+                                iconElement.innerHTML = '<img src="' + slide.icon_image_url + '" alt="icon" loading="lazy" style="width: ' + imageSize.width + 'px; height: ' + imageSize.height + 'px; object-fit: cover; border-radius: 10px; margin-bottom: 20px;">';
+                            };
+                            img.onerror = function() {
+                                console.error('[Slideshow] Icon image failed to load, using fallback');
+                                iconElement.textContent = slide.icon || '📚';
+                            };
+                            img.src = slide.icon_image_url;
+                        } else {
+                            iconElement.textContent = slide.icon || '📚';
+                        }
+
+                        // Show/hide title based on show_title field
+                        if (slide.show_title !== false && slide.title) {
+                            titleElement.textContent = slide.title;
+                            titleElement.style.display = 'block';
+                        } else {
+                            titleElement.textContent = '';
+                            titleElement.style.display = 'none';
+                        }
+
+                        // Show/hide description based on show_description field
+                        if (slide.show_description !== false && slide.description) {
+                            descElement.textContent = slide.description;
+                            descElement.style.display = 'block';
+                        } else {
+                            descElement.textContent = '';
+                            descElement.style.display = 'none';
+                        }
+
+                        // Show/hide link button based on show_link field
+                        if (slide.show_link && slide.link_url) {
+                            const linkText = slide.link_text || 'อ่านต่อ';
+                            linkElement.innerHTML = '<a href="' + slide.link_url + '" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 6px 12px rgba(0,0,0,0.15)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 6px rgba(0,0,0,0.1)\';">' + linkText + ' <span style="margin-left: 5px;">→</span></a>';
+                            linkElement.style.display = 'block';
+                        } else {
+                            linkElement.innerHTML = '';
+                            linkElement.style.display = 'none';
+                        }
+
+                        // Update dots
+                        document.querySelectorAll('.dot').forEach(function(dot, i) {
+                            if (i === index) {
+                                dot.classList.add('active');
+                            } else {
+                                dot.classList.remove('active');
+                            }
+                        });
+
+                        content.style.opacity = '1';
+                    }, 300);
+                } catch (error) {
+                    console.error('[Slideshow] ✗ Error showing slide:', error);
+                }
+            }
+
+            // Change slide (manual)
+            window.changeSlide = function(index) {
+                currentSlide = index;
+                showSlide(currentSlide);
+            };
+
+            // Initialize fullbg component (no content overlay)
+            function initFullBg() {
+                const leftPanel = document.getElementById('left-panel');
+                leftPanel.innerHTML = ''; // Empty - just show background
+            }
+
+            // Initialize card gallery component
+            function initCardGallery(cardsData) {
+                try {
+                    console.log('[CardGallery] Initializing with', cardsData.length, 'cards');
+                    cards = cardsData;
+
+                    if (!cards || cards.length === 0) {
+                        console.warn('[CardGallery] No cards data provided');
+                        showError('ไม่พบข้อมูลการ์ด');
+                        return;
+                    }
+
+                    const leftPanel = document.getElementById('left-panel');
+                    if (!leftPanel) {
+                        console.error('[CardGallery] Left panel element not found');
+                        return;
+                    }
+
+                    let cardsHTML = '<div class="card-gallery">';
+
+                    cards.forEach(function(card) {
+                        let iconHTML;
+                        if (card.icon_image_url) {
+                            iconHTML = '<img src="' + card.icon_image_url + '" alt="icon" loading="lazy" style="width: 60px; height: 60px; object-fit: contain;" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'📚\';">';
+                        } else {
+                            iconHTML = '<span style="font-size: 3rem;">' + (card.icon || '📚') + '</span>';
+                        }
+
+                        cardsHTML += `
+                            <div class="info-card">
+                                <div class="card-icon">` + iconHTML + `</div>
+                                <h3 class="card-title">` + (card.title || 'ไม่มีหัวข้อ') + `</h3>
+                                <p class="card-description">` + (card.description || '') + `</p>
+                            </div>
+                        `;
+                    });
+
+                    cardsHTML += '</div>';
+                    leftPanel.innerHTML = cardsHTML;
+                    console.log('[CardGallery] ✓ Rendered successfully');
+                } catch (error) {
+                    console.error('[CardGallery] ✗ Initialization error:', error);
+                    showError('ไม่สามารถแสดงการ์ดได้');
+                }
+            }
+
+            // Load template configuration
+            function loadTemplateConfig() {
+                if (isLoading) {
+                    console.log('[Template] Already loading, skipping...');
+                    return;
+                }
+
+                // Try to use cached data first
+                const cachedData = getCachedData();
+                if (cachedData && cachedData.success) {
+                    console.log('[Template] Loading from cache');
+                    processTemplateData(cachedData);
+                    return;
+                }
+
+                showLoading();
+
+                const hotspotName = getHotspotName();
+                const templateID = getTemplateID();
+                let apiUrl = API_SERVER + TEMPLATE_API;
+
+                // Build URL with template_id and hotspot_name parameters
+                const params = [];
+                if (templateID) {
+                    params.push('template_id=' + encodeURIComponent(templateID));
+                }
+                if (hotspotName) {
+                    params.push('hotspot_name=' + encodeURIComponent(hotspotName));
+                }
+                // Cache busting in development mode
+                if (IS_DEVELOPMENT) {
+                    params.push('_t=' + Date.now());
+                }
+                if (params.length > 0) {
+                    apiUrl += '?' + params.join('&');
+                }
+
+                console.log('[Template] Fetching config from:', apiUrl, '(Attempt ' + (retryCount + 1) + ')');
+
+                fetch(apiUrl, {
+                    method: 'GET',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        isLoading = false;
+
+                        if (!data) {
+                            throw new Error('Empty response from server');
+                        }
+
+                        if (data.success) {
+                            // Cache the data
+                            setCachedData(data);
+
+                            // Process the data
+                            processTemplateData(data);
+
+                            retryCount = 0; // Reset retry count on success
+                        } else {
+                            console.warn('[Template] ⚠ Server returned success=false');
+                            useFallbackTemplate();
+                        }
+                    })
+                    .catch(function(error) {
+                        isLoading = false;
+                        console.error('[Template] ✗ Error:', error.message);
+
+                        // Retry logic
+                        if (retryCount < MAX_RETRIES) {
+                            retryCount++;
+                            console.log('[Template] ⟳ Retrying in ' + (RETRY_DELAY / 1000) + 's...');
+                            setTimeout(loadTemplateConfig, RETRY_DELAY);
+                        } else {
+                            console.error('[Template] ✗ Max retries reached. Using fallback template.');
+                            useFallbackTemplate();
+                        }
+                    });
+            }
+
+            // Process template data (from API or cache)
+            function processTemplateData(data) {
+                console.log('[Template] ✓ Loaded:', data.template_name || 'Unknown');
+                console.log('[Template] Component type:', data.left_panel_component || 'None');
+
+                // Initialize component based on type
+                if (data.left_panel_component === 'slideshow') {
+                    initSlideshow(data.slides || []);
+                } else if (data.left_panel_component === 'fullbg') {
+                    initFullBg();
+                    console.log('[Template] ✓ Full background mode activated');
+                } else if (data.left_panel_component === 'cardgallery') {
+                    initCardGallery(data.cards || []);
+                } else {
+                    console.warn('[Template] ⚠ Unknown component type:', data.left_panel_component);
+                    useFallbackTemplate();
+                }
+            }
+
+            // Use fallback template when API fails
+            function useFallbackTemplate() {
+                console.log('[Template] Using fallback template');
+                initSlideshow([
+                    {
+                        icon: '📚',
+                        title: 'ยินดีต้อนรับสู่ห้องสมุด',
+                        description: 'ระบบ WiFi ฟรีสำหรับนักศึกษาและบุคลากร'
+                    }
+                ]);
+            }
+
+            // Load template when page is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadTemplateConfig);
+            } else {
+                loadTemplateConfig();
+            }
+        })();
+    </script>
+
+    <!-- Landing Page URL Loading Script -->
+    <script>
+        (function() {
+            // Configuration - Point to Django API Server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
+            const LANDING_URL_API = '/api/landing-url/';
+
+            // Load landing URL and override dst parameter if custom URL is configured
+            function loadLandingURL() {
+                const hotspotName = window.HOTSPOT_NAME || 'unknown';
+                const apiUrl = API_SERVER + LANDING_URL_API + '?hotspot_name=' + encodeURIComponent(hotspotName);
+
+                console.log('[Landing URL] Fetching from:', apiUrl);
+
+                fetch(apiUrl, {
+                    method: 'GET',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        if (data && data.success && data.landing_url && !data.fallback) {
+                            console.log('[Landing URL] ✓ Using custom landing URL:', data.landing_url);
+
+                            // Override dst parameter in all forms
+                            const forms = document.querySelectorAll('form[name="login"], form[name="sendin"]');
+                            forms.forEach(function(form) {
+                                const dstInput = form.querySelector('input[name="dst"]');
+                                if (dstInput) {
+                                    dstInput.value = data.landing_url;
+                                    console.log('[Landing URL] ✓ Updated dst in form:', form.name || 'unnamed');
+                                }
+                            });
+                        } else {
+                            console.log('[Landing URL] Using default MikroTik redirect ($(link-orig))');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('[Landing URL] ✗ Error:', error.message);
+                        console.log('[Landing URL] Falling back to default MikroTik redirect');
+                        // Fail silently - keep using $(link-orig)
+                    });
+            }
+
+            // Load landing URL when page is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadLandingURL);
+            } else {
+                loadLandingURL();
+            }
+        })();
+    </script>
+
+    <!-- Page Impression Tracking Script -->
+    <script>
+        (function() {
+            // Configuration
+            // Use current origin for development, fallback to production server
+            const API_SERVER = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+                ? window.location.origin
+                : 'http://202.29.55.222:8291';
+            const TRACK_API = '/api/track-impression/';
+            const TRACK_DELAY = 2000; // Wait 2 seconds to ensure real view
+
+            let pageLoadTime = Date.now();
+            let impressionTracked = false;
+
+            // Track impression after delay (ensures user actually viewed the page)
+            function trackImpression() {
+                // Prevent duplicate tracking
+                if (impressionTracked) {
+                    console.log('[Tracking] Already tracked, skipping');
+                    return;
+                }
+
+                try {
+                    const timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000);
+
+                    const impressionData = {
+                        hotspot_name: window.HOTSPOT_NAME || 'unknown',
+                        mac: '$(mac)',
+                        ip: '$(ip)',
+                        user_agent: navigator.userAgent,
+                        time_on_page: timeOnPage
+                    };
+
+                    console.log('[Tracking] Sending impression data:', impressionData.hotspot_name);
+
+                    fetch(API_SERVER + TRACK_API, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(impressionData),
+                        // Use keepalive to ensure request completes even if page navigates away
+                        keepalive: true
+                    })
+                        .then(function(response) {
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error('HTTP ' + response.status);
+                        })
+                        .then(function(data) {
+                            if (data.success) {
+                                impressionTracked = true;
+                                console.log('[Tracking] ✓ Impression tracked successfully');
+                            } else {
+                                console.warn('[Tracking] ⚠ API returned error:', data.message);
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('[Tracking] ✗ Error:', error.message);
+                            // Fail silently - don't affect user experience
+                        });
+
+                } catch (error) {
+                    console.error('[Tracking] ✗ Exception:', error);
+                    // Fail silently
+                }
+            }
+
+            // Track on page load (after delay)
+            setTimeout(trackImpression, TRACK_DELAY);
+
+            // Track again when user leaves (update time_on_page)
+            window.addEventListener('beforeunload', function() {
+                if (impressionTracked) {
+                    // Update time on page if already tracked
+                    const timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000);
+                    const updateData = {
+                        hotspot_name: window.HOTSPOT_NAME || 'unknown',
+                        mac: '$(mac)',
+                        ip: '$(ip)',
+                        user_agent: navigator.userAgent,
+                        time_on_page: timeOnPage
+                    };
+
+                    // Use sendBeacon for reliable tracking on page unload
+                    if (navigator.sendBeacon) {
+                        const blob = new Blob([JSON.stringify(updateData)], {type: 'application/json'});
+                        navigator.sendBeacon(API_SERVER + TRACK_API, blob);
+                        console.log('[Tracking] ✓ Updated time on page via beacon:', timeOnPage, 'seconds');
+                    }
+                }
+            });
+
+            console.log('[Tracking] Impression tracking initialized');
+        })();
+    </script>
+</body>
+
+</html>

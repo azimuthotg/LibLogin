@@ -1,0 +1,340 @@
+{% extends 'webapp/base.html' %}
+
+{% block title %}Login - LibLogin Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-card {
+        max-width: 450px;
+        width: 100%;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        padding: 40px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .login-header i {
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .login-header h2 {
+        color: #2c3e50;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .login-header p {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        /* Prevent zoom on iOS when focus */
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        /* Prevent page zoom on mobile when focusing input */
+        font-size: max(1rem, 16px);
+    }
+
+    .btn-login {
+        padding: 12px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        font-weight: bold;
+        transition: transform 0.2s;
+        /* Ensure minimum touch target size (44x44px) */
+        min-height: 44px;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    /* ========================================
+       Responsive Design
+       ======================================== */
+
+    /* Tablet Portrait (768px and below) */
+    @media (max-width: 768px) {
+        .login-card {
+            padding: 35px 28px;
+            max-width: 420px;
+        }
+
+        .login-header i {
+            font-size: 3.5rem;
+            margin-bottom: 12px;
+        }
+
+        .login-header h2 {
+            font-size: 1.6rem;
+        }
+
+        .login-header p {
+            font-size: 0.85rem;
+        }
+
+        .form-control {
+            padding: 11px;
+            font-size: 0.95rem;
+        }
+
+        .btn-login {
+            padding: 11px;
+            font-size: 0.95rem;
+        }
+    }
+
+    /* Mobile Large (576px and below) */
+    @media (max-width: 576px) {
+        .login-container {
+            padding: 20px;
+        }
+
+        .login-card {
+            padding: 32px 25px;
+            max-width: 100%;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .login-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .login-header p {
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .btn-login {
+            padding: 10px;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+
+        .alert {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* Mobile Standard (480px and below) */
+    @media (max-width: 480px) {
+        .login-card {
+            padding: 30px 22px;
+            border-radius: 12px;
+        }
+
+        .login-header {
+            margin-bottom: 25px;
+        }
+
+        .login-header i {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .login-header h2 {
+            font-size: 1.4rem;
+        }
+
+        .login-header p {
+            font-size: 0.75rem;
+        }
+
+        .form-control {
+            padding: 9px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+        }
+
+        .btn-login {
+            padding: 9px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.25rem !important;
+        }
+
+        .mt-4 {
+            margin-top: 1.25rem !important;
+        }
+    }
+
+    /* Mobile Small (380px and below) */
+    @media (max-width: 380px) {
+        .login-container {
+            padding: 15px;
+        }
+
+        .login-card {
+            padding: 25px 20px;
+            border-radius: 10px;
+        }
+
+        .login-header {
+            margin-bottom: 20px;
+        }
+
+        .login-header i {
+            font-size: 2.2rem;
+            margin-bottom: 6px;
+        }
+
+        .login-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .login-header p {
+            font-size: 0.7rem;
+        }
+
+        .form-control {
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+        }
+
+        .btn-login {
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-shield-lock"></i>
+            <h2>LibLogin Management</h2>
+            <p>เข้าสู่ระบบจัดการหน้า Login ของห้องสมุด</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="id_username" class="form-label">
+                    <i class="bi bi-person"></i> Username
+                </label>
+                <input type="text"
+                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                       id="id_username"
+                       name="username"
+                       placeholder="Enter your username"
+                       required
+                       autofocus>
+                {% if form.username.errors %}
+                <div class="invalid-feedback">
+                    {{ form.username.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_password" class="form-label">
+                    <i class="bi bi-lock"></i> Password
+                </label>
+                <input type="password"
+                       class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                       id="id_password"
+                       name="password"
+                       placeholder="Enter your password"
+                       required>
+                {% if form.password.errors %}
+                <div class="invalid-feedback">
+                    {{ form.password.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <button type="submit" class="btn btn-login w-100">
+                <i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ
+            </button>
+        </form>
+
+        <div class="text-center mt-4 text-muted" style="font-size: 0.85rem;">
+            <p class="mb-0">
+                <i class="bi bi-info-circle"></i>
+                สำหรับบรรณารักษ์และผู้ดูแลระบบเท่านั้น
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

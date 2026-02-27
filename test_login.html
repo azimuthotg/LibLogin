@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Redirect</title>
+</head>
+<body>
+    <h1>Test MikroTik Variables</h1>
+    <p>link-login-only = $(link-login-only)</p>
+    <p>link-orig = $(link-orig)</p>
+    <p>mac = $(mac)</p>
+    <p>ip = $(ip)</p>
+    <hr>
+    <a href="$(link-login-only)">Click to login (MikroTik default)</a>
+    <hr>
+    <a href="http://202.29.55.222:8291/hotspot/login/?link-login-only=$(link-login-only)&link-orig=$(link-orig)">Click to Django</a>
+    <hr>
+    <p>Redirecting in 5 seconds...</p>
+    <meta http-equiv="refresh" content="5;url=http://202.29.55.222:8291/hotspot/login/?link-login-only=$(link-login-only)&link-orig=$(link-orig)&mac=$(mac)&ip=$(ip)">
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LibLogin Management{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --sidebar-bg: #34495e;
+            --sidebar-hover: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ecf0f1;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--sidebar-bg);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar .nav-link {
+            color: #bdc3c7;
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: var(--sidebar-hover);
+            color: white;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .navbar-custom {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .sidebar-brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-brand h4 {
+            margin: 0;
+            font-weight: bold;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            {% if user.is_authenticated %}
+            <!-- Sidebar -->
+            <nav class="sidebar">
+                <div class="sidebar-brand">
+                    <h4><i class="bi bi-image"></i> LibLogin</h4>
+                    <small>Management System</small>
+                </div>
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'backgrounds' %}active{% endif %}" href="{% url 'backgrounds' %}">
+                            <i class="bi bi-images"></i> Background Images
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'templates' %}active{% endif %}" href="{% url 'templates' %}">
+                            <i class="bi bi-palette"></i> Templates
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'slides' %}active{% endif %}" href="{% url 'slides' %}">
+                            <i class="bi bi-collection"></i> Slide Content
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}" href="{% url 'cards' %}">
+                            <i class="bi bi-grid-3x3"></i> Card Content
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'monitoring' %}active{% endif %}" href="{% url 'monitoring' %}">
+                            <i class="bi bi-graph-up"></i> Monitoring
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'landing_pages' %}active{% endif %}" href="{% url 'landing_pages' %}">
+                            <i class="bi bi-link-45deg"></i> Landing Pages
+                        </a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
+                            <i class="bi bi-gear"></i> Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/" target="_blank">
+                            <i class="bi bi-shield-lock"></i> Admin Panel
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item mt-4">
+                        <a class="nav-link" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="position-absolute bottom-0 p-3 text-muted" style="font-size: 0.8rem; width: 250px;">
+                    <i class="bi bi-person-circle"></i> {{ user.username }}
+                    {% if user.is_staff %}
+                    <span class="badge bg-warning text-dark ms-1">Admin</span>
+                    {% endif %}
+                </div>
+            </nav>
+            {% endif %}
+
+            <!-- Main Content -->
+            <main class="{% if user.is_authenticated %}main-content{% endif %} col">
+                {% if user.is_authenticated %}
+                <nav class="navbar-custom">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <h2 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h2>
+                        <div>
+                            <span class="text-muted">
+                                <i class="bi bi-calendar"></i>
+                                <span id="current-date"></span>
+                            </span>
+                        </div>
+                    </div>
+                </nav>
+                {% endif %}
+
+                {% if messages %}
+                <div class="container-fluid">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Container for Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 9999;">
+        <!-- Toasts will be dynamically added here -->
+    </div>
+    {% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Update current date
+        const dateElement = document.getElementById('current-date');
+        if (dateElement) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            dateElement.textContent = new Date().toLocaleDateString('th-TH', options);
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info', duration = 5000) {
+            const toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                console.error('Toast container not found');
+                return;
+            }
+
+            // Map type to Bootstrap color classes
+            const typeMap = {
+                'success': 'bg-success text-white',
+                'error': 'bg-danger text-white',
+                'warning': 'bg-warning text-dark',
+                'info': 'bg-info text-white'
+            };
+
+            const iconMap = {
+                'success': 'bi-check-circle-fill',
+                'error': 'bi-exclamation-circle-fill',
+                'warning': 'bi-exclamation-triangle-fill',
+                'info': 'bi-info-circle-fill'
+            };
+
+            const toastClass = typeMap[type] || typeMap['info'];
+            const iconClass = iconMap[type] || iconMap['info'];
+
+            // Create unique ID for toast
+            const toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+            // Create toast element
+            const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center ${toastClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${iconClass} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            // Add toast to container
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+            // Initialize and show toast
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: duration
+            });
+
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+
+            toast.show();
+        }
+
+        // Global error handler for fetch requests
+        window.handleFetchError = function(error, customMessage) {
+            console.error('[Error]', error);
+            const message = customMessage || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+            showToast(message, 'error');
+        };
+
+        // Form submission handler with error handling
+        window.handleFormSubmit = function(formElement, onSuccess) {
+            formElement.addEventListener('submit', function(e) {
+                const submitButton = formElement.querySelector('button[type="submit"]');
+
+                try {
+                    // Disable submit button to prevent double submission
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        const originalText = submitButton.innerHTML;
+                        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังดำเนินการ...';
+
+                        // Re-enable after 3 seconds (fallback)
+                        setTimeout(function() {
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                submitButton.innerHTML = originalText;
+                            }
+                        }, 3000);
+                    }
+
+                    if (onSuccess) {
+                        onSuccess(e);
+                    }
+                } catch (error) {
+                    console.error('[Form Submit Error]', error);
+                    showToast('เกิดข้อผิดพลาดในการส่งฟอร์ม', 'error');
+
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                }
+            });
+        };
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

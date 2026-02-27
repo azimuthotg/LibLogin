@@ -1,0 +1,551 @@
+/*
+ * LibLogin Hotspot CSS
+ * สำหรับหน้า MikroTik Hotspot ทุกหน้า
+ * รองรับ: Login, Logout, Status, Error
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Background Image */
+#login-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #667eea;
+    z-index: -1;
+    transition: background-image 0.5s ease-in-out;
+}
+
+/* Overlay */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 0;
+}
+
+/* Container */
+.login-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Login Box */
+.login-box {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+    /* Ensure minimum readable width on very small screens */
+    min-width: 280px;
+}
+
+/* Status Box (wider) */
+.status-box-wide {
+    max-width: 600px;
+}
+
+/* Logo */
+.logo {
+    max-width: 120px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.logo-small {
+    max-width: 80px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+/* Typography */
+h1 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.subtitle {
+    color: #34495e;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.subtitle-en {
+    color: #95a5a6;
+    font-size: 0.8rem;
+    margin-bottom: 30px;
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #34495e;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    /* Prevent zoom on iOS when focus */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    /* Prevent page zoom on mobile when focusing input */
+    font-size: max(1rem, 16px);
+}
+
+/* Buttons */
+.btn-login,
+.btn-danger,
+.btn-secondary {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    /* Ensure minimum touch target size (44x44px) */
+    min-height: 44px;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: white;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(149, 165, 166, 0.4);
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.button-group .btn-login,
+.button-group .btn-danger,
+.button-group .btn-secondary {
+    flex: 1;
+}
+
+/* Error Message */
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #e74c3c;
+    text-align: left;
+}
+
+.error-message-big {
+    background: #fee;
+    color: #c33;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border-left: 4px solid #e74c3c;
+    font-size: 1.1rem;
+}
+
+/* Success Icon */
+.success-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: #27ae60;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+/* Error Icon */
+.error-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+/* Logout Info */
+.logout-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.logout-info p {
+    margin: 10px 0;
+    color: #555;
+}
+
+.redirect-message {
+    color: #7f8c8d !important;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 15px !important;
+    text-align: center;
+}
+
+/* Status Grid */
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.status-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.status-label {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.status-value {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Error Help */
+.error-help {
+    background: #e8f4f8;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.error-help h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.error-help ul {
+    margin-left: 20px;
+    color: #555;
+}
+
+.error-help li {
+    margin: 8px 0;
+}
+
+/* Footer */
+.footer {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    color: #7f8c8d;
+    font-size: 0.85rem;
+}
+
+.contact-info {
+    font-size: 0.8rem;
+    color: #95a5a6;
+    margin-top: 5px;
+}
+
+.auto-refresh {
+    font-size: 0.8rem;
+    color: #95a5a6;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
+/* Responsive */
+
+/* Tablet Portrait */
+@media (max-width: 768px) {
+    .status-box-wide {
+        max-width: 100%;
+    }
+
+    .login-container {
+        padding: 15px;
+    }
+}
+
+/* Mobile Large (576px and below) */
+@media (max-width: 576px) {
+    .login-box {
+        padding: 35px 25px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .subtitle-en {
+        font-size: 0.75rem;
+        margin-bottom: 25px;
+    }
+
+    .logo {
+        max-width: 110px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        padding: 11px 14px;
+        font-size: 0.95rem;
+    }
+
+    label {
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+    }
+
+    .btn-login,
+    .btn-danger,
+    .btn-secondary {
+        padding: 11px 18px;
+        font-size: 0.95rem;
+    }
+}
+
+/* Mobile (480px and below) */
+@media (max-width: 480px) {
+    .login-box {
+        padding: 30px 20px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+    }
+
+    .subtitle-en {
+        font-size: 0.7rem;
+        margin-bottom: 20px;
+    }
+
+    .logo {
+        max-width: 100px;
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    label {
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+    }
+
+    .btn-login,
+    .btn-danger,
+    .btn-secondary {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    .status-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .status-item {
+        padding: 12px;
+    }
+
+    .status-label {
+        font-size: 0.8rem;
+    }
+
+    .status-value {
+        font-size: 1rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .footer {
+        margin-top: 20px;
+        padding-top: 15px;
+        font-size: 0.8rem;
+    }
+
+    .contact-info {
+        font-size: 0.75rem;
+    }
+
+    .error-message {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Mobile Small (380px and below) */
+@media (max-width: 380px) {
+    .login-box {
+        padding: 25px 18px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+    }
+
+    .subtitle-en {
+        font-size: 0.65rem;
+    }
+
+    .logo {
+        max-width: 90px;
+        margin-bottom: 12px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        padding: 9px 11px;
+        font-size: 0.85rem;
+    }
+
+    .btn-login,
+    .btn-danger,
+    .btn-secondary {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+    }
+
+    .form-group {
+        margin-bottom: 14px;
+    }
+}
+
+/* Loading Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-box {
+    animation: fadeIn 0.5s ease-out;
+}

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test LibLogin Production Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #login-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #667eea;
+            transition: background-image 0.5s ease-in-out;
+            z-index: -1;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .server-info {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-left: 4px solid #3498db;
+        }
+
+        .server-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .server-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .server-info strong {
+            color: #2c3e50;
+        }
+
+        .status-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .status-box h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .status-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .status-item strong {
+            color: #555;
+        }
+
+        .status.success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status.error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .link {
+            color: #3498db;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Debug Panel (มุมขวาบน) */
+        .debug-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .debug-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .debug-header:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+
+        .debug-content {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            transition: max-height 0.3s ease;
+        }
+
+        .debug-content.collapsed {
+            max-height: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .debug-content .server-info,
+        .debug-content .status-box {
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+
+        .debug-content h3 {
+            font-size: 0.9rem;
+        }
+
+        /* Logo */
+        .logo {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        /* Subtitle English */
+        .subtitle-en {
+            color: #95a5a6;
+            font-size: 0.8rem;
+            margin-bottom: 30px;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            font-size: 0.8rem;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+
+        /* ปรับ Login Box ให้ดูเป็นทางการ */
+        .login-box h1 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .login-box .subtitle {
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .debug-panel {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="login-background"></div>
+    <div class="overlay"></div>
+
+    <!-- Debug Panel (มุมขวาบน - ซ่อนได้) -->
+    <div class="debug-panel" id="debugPanel">
+        <div class="debug-header" onclick="toggleDebug()">
+            🔧 Debug Info <span id="debugToggle">▼</span>
+        </div>
+        <div class="debug-content" id="debugContent">
+            <div class="server-info">
+                <h3>📡 ข้อมูล Server</h3>
+                <p><strong>Server IP:</strong> 202.29.55.222</p>
+                <p><strong>Port:</strong> 8291</p>
+                <p><strong>URL:</strong> http://202.29.55.222:8291</p>
+                <p><strong>API Endpoint:</strong> /api/login-background/</p>
+            </div>
+
+            <div class="status-box">
+                <h3>📊 Connection Status</h3>
+                <div id="statusContent">
+                    <div class="spinner"></div>
+                    <p>กำลังโหลดข้อมูล...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Card (เหมือนจริง - สำหรับ Production) -->
+    <div class="login-container">
+        <div class="login-box">
+            <!-- Logo (ถ้ามี) -->
+            <img src="img/logo.svg" alt="NPU Logo" class="logo" onerror="this.style.display='none'">
+
+            <h1>ยินดีต้อนรับ</h1>
+            <p class="subtitle">สำนักวิทยบริการ มหาวิทยาลัยนครพนม</p>
+            <p class="subtitle-en">Office of Academic Resources, Nakhon Phanom University</p>
+
+            <form onsubmit="event.preventDefault(); testLogin();">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="ชื่อผู้ใช้" value="testuser" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="รหัสผ่าน" value="testpass" required>
+                </div>
+
+                <button type="submit">เข้าสู่ระบบ</button>
+            </form>
+
+            <div class="footer">
+                <p>ติดต่อเจ้าหน้าที่ หากมีปัญหาในการเข้าใช้งาน</p>
+                <p class="contact-info">โทร. 042-111-222 | อีเมล: support@npu.ac.th</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Production Server Configuration
+        const API_BASE_URL = 'http://202.29.55.222:8291';
+        const ROUTER_ID = '';  // เว้นว่างสำหรับ default background
+
+        function loadBackgroundImage() {
+            const statusContent = document.getElementById('statusContent');
+            const apiUrl = `${API_BASE_URL}/api/login-background/`;
+
+            console.log('Testing API:', apiUrl);
+
+            fetch(apiUrl)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API Response:', data);
+
+                    if (data.success && data.imageUrl) {
+                        // Set background
+                        const bgElement = document.getElementById('login-background');
+                        bgElement.style.backgroundImage = `url(${data.imageUrl})`;
+
+                        // Update status
+                        statusContent.innerHTML = `
+                            <div class="status-item">
+                                <strong>🌐 API URL:</strong><br>
+                                <a href="${apiUrl}" class="link" target="_blank">${apiUrl}</a>
+                                <span class="badge success">✓ Connected</span>
+                            </div>
+                            <div class="status-item">
+                                <strong>🖼️ Image Title:</strong> ${data.title}
+                            </div>
+                            <div class="status-item">
+                                <strong>📸 Image URL:</strong><br>
+                                <a href="${data.imageUrl}" class="link" target="_blank">View Image</a>
+                            </div>
+                            <div class="status-item">
+                                <strong>✅ Status:</strong> <span class="status success">Background loaded successfully!</span>
+                            </div>
+                        `;
+
+                        console.log('✅ Background loaded successfully');
+                    } else {
+                        throw new Error('No active background found');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error:', error);
+                    statusContent.innerHTML = `
+                        <div class="status-item">
+                            <strong>🌐 API URL:</strong><br>
+                            <a href="${apiUrl}" class="link" target="_blank">${apiUrl}</a>
+                            <span class="badge error">✗ Error</span>
+                        </div>
+                        <div class="status-item">
+                            <strong>❌ Error:</strong> <span class="status error">${error.message}</span>
+                        </div>
+                        <div class="status-item">
+                            <strong>💡 Possible Issues:</strong><br>
+                            - Server ยังไม่เปิด (ตรวจสอบ NSSM service)<br>
+                            - Firewall block port 8291 (ตรวจสอบ Windows Firewall)<br>
+                            - IP/Port ไม่ถูกต้อง<br>
+                            - ยังไม่มีรูปพื้นหลัง active ในระบบ
+                        </div>
+                        <div class="status-item">
+                            <strong>🔧 Troubleshooting:</strong><br>
+                            1. ตรวจสอบ Service: <code>nssm status LibLogin</code><br>
+                            2. ตรวจสอบ Firewall: <code>Get-NetFirewallRule -DisplayName "LibLogin"</code><br>
+                            3. ทดสอบ localhost ก่อน: <code>http://localhost:8291/api/login-background/</code><br>
+                            4. ดู logs: <code>C:\\inetpub\\wwwroot\\Liblogin\\logs\\error.log</code>
+                        </div>
+                    `;
+                });
+        }
+
+        function toggleDebug() {
+            const content = document.getElementById('debugContent');
+            const toggle = document.getElementById('debugToggle');
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                toggle.textContent = '▼';
+            } else {
+                content.classList.add('collapsed');
+                toggle.textContent = '▶';
+            }
+        }
+
+        function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            alert(`✅ ระบบทำงานปกติ!\n\nนี่คือหน้าทดสอบ\n\nUsername: ${username}\nPassword: ${password}\n\nถ้าเห็นรูปพื้นหลัง = API ทำงาน ✓\n\nการ์ด Login นี้จะเหมือนกับที่แสดงบน MikroTik จริง`);
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('='.repeat(60));
+            console.log('LibLogin Production Server Test');
+            console.log('='.repeat(60));
+            console.log('Server:', API_BASE_URL);
+            console.log('API Endpoint:', `${API_BASE_URL}/api/login-background/`);
+            console.log('='.repeat(60));
+
+            loadBackgroundImage();
+
+            // เปิด Debug Panel เริ่มต้น
+            // ถ้าต้องการปิดเริ่มต้น ให้ uncomment บรรทัดด้านล่าง
+            // toggleDebug();
+        });
+    </script>
+</body>
+</html>

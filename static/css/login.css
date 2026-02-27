@@ -1,0 +1,767 @@
+/* ========================================
+   MikroTik Hotspot Login Page CSS
+   Combined: MikroTik Original + Custom Split Screen Layout
+   ======================================== */
+
+/* ========================================
+   PART 1: MikroTik Original CSS (Minified)
+   ======================================== */
+a,body,div,form,html,img,input,label,p,span{margin:0;padding:0;border:0;font-family:sans-serif,Arial}
+body,html{min-height:100%;overflow-x:hidden}
+body{background:#a2a09b;background:-webkit-linear-gradient(315deg,hsla(236.6,0%,53.52%,1) 0,hsla(236.6,0%,53.52%,0) 70%),-webkit-linear-gradient(65deg,hsla(220.75,34.93%,26.52%,1) 10%,hsla(220.75,34.93%,26.52%,0) 80%),-webkit-linear-gradient(135deg,hsla(46.42,36.62%,83.92%,1) 15%,hsla(46.42,36.62%,83.92%,0) 80%),-webkit-linear-gradient(205deg,hsla(191.32,50.68%,56.45%,1) 100%,hsla(191.32,50.68%,56.45%,0) 70%);background:linear-gradient(135deg,hsla(236.6,0%,53.52%,1) 0,hsla(236.6,0%,53.52%,0) 70%),linear-gradient(25deg,hsla(220.75,34.93%,26.52%,1) 10%,hsla(220.75,34.93%,26.52%,0) 80%),linear-gradient(315deg,hsla(46.42,36.62%,83.92%,1) 15%,hsla(46.42,36.62%,83.92%,0) 80%),linear-gradient(245deg,hsla(191.32,50.68%,56.45%,1) 100%,hsla(191.32,50.68%,56.45%,0) 70%)}
+a{color:#486173}
+input,label{vertical-align:middle;white-space:normal;background:0 0;line-height:1}
+label{position:relative;display:block}
+p::first-letter{text-transform:uppercase}
+.main{min-height:calc(100vh - 90px);width:100%;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column}
+.ie-fixMinHeight{display:-webkit-box;display:-ms-flexbox;display:flex}
+.ico{height:16px;position:absolute;top:0;left:0;margin-top:13px;margin-left:14px}
+.logo{max-width:200px;display:block;margin:0 auto 30px auto}
+.logo *{fill:#fff}
+.lite .logo *{fill:#444}
+h1{text-align:center;color:#fff;font-size:24px!important}
+*{-webkit-box-sizing:border-box;box-sizing:border-box;font-size:16px}
+.wrap{margin:auto;padding:40px;-webkit-transition:width .3s ease-in-out;transition:width .3s ease-in-out}
+@media only screen and (min-width:1px) and (max-width:575px){.wrap{width:100%}}
+form{width:100%;margin-bottom:20px}
+@-webkit-keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fadeIn{-webkit-animation-name:fadeIn;animation-name:fadeIn}
+.animated{-webkit-animation-duration:1s;animation-duration:1s;-webkit-animation-fill-mode:both;animation-fill-mode:both}
+.info{color:#fff;text-align:center;margin-bottom:30px}
+input{outline:0;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+input:focus{outline:0}
+input[type=password],input[type=text]{width:100%;border:1px solid background-color: rgba(255,255,255,.8);height:44px;padding:3px 20px 3px 40px;margin-bottom:20px;border-radius:6px;background-color:rgba(255,255,255,.8);-webkit-transition:-webkit-box-shadow .3s ease-in-out;transition:-webkit-box-shadow .3s ease-in-out;transition:box-shadow .3s ease-in-out;transition:box-shadow .3s ease-in-out,-webkit-box-shadow .3s ease-in-out}
+input[type=password]:focus,input[type=text]:focus{-webkit-box-shadow:0 0 5px 0 rgba(255,255,255,1);box-shadow:0 0 5px 0 rgba(255,255,255,1)}
+.bt{opacity:.4}
+input[type=submit]{background:#3e4d59;color:#fff;border:0;cursor:pointer;text-align:center;width:100%;height:44px;border-radius:6px;-webkit-transition:background .3s ease-in-out;transition:background .3s ease-in-out}
+input[type=submit]:focus,input[type=submit]:hover{background:#33404a}
+table{border-collapse:collapse;width:100%;margin-bottom:20px}
+table td{color:#fff;border-bottom:1px solid #e6e6e6;padding:10px 4px 10px 0}
+table td:first-child{font-weight:700}
+.lite{background:#fff}
+.lite input[type=password],.lite input[type=text]{border:1px solid #c3c3c3}
+.lite .info,.lite h1,.lite table td{color:#444}
+.lite input[type=password]:focus,.lite input[type=text]:focus{-webkit-box-shadow:0 0 5px 0 rgba(62,77,89,.2);box-shadow:0 0 5px 0 rgba(62,77,89,.2)}
+.dark{background:#343434}
+.dark input[type=submit]{background:#dc3a41}
+.dark input[type=submit]:focus,.dark input[type=submit]:hover{background:#b92f35}
+.dark input[type=password],.dark input[type=text]{background-color:#fff}
+.dark a{color:#dc3a41}
+.dark table td{border-bottom:1px solid #505050}
+.info.alert{color:#da3d41}
+@media (min-width:576px){.wrap{width:410px}*{font-size:14px!important}}
+
+
+/* ========================================
+   PART 2: Custom Split Screen Layout
+   ======================================== */
+
+/* Reset - Override if needed */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+}
+
+/* Dynamic background - Full Screen (Layer 1) */
+#dynamic-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -1;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Split Container (Layer 2) */
+.split-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+/* Left Panel - 50% */
+.left-panel {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    position: relative;
+    color: white;
+    text-align: center;
+}
+
+/* Slide Content */
+.slide-content {
+    max-width: 500px;
+    animation: slideF adeIn 0.8s ease-in;
+}
+
+@keyframes slideFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-icon {
+    font-size: 100px;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.slide-title {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Remove margin when title is hidden */
+.slide-title[style*="display: none"],
+.slide-title[style*="display:none"] {
+    margin: 0 !important;
+}
+
+.slide-description {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Remove margin when description is hidden */
+.slide-description[style*="display: none"],
+.slide-description[style*="display:none"] {
+    margin: 0 !important;
+}
+
+/* Dots Indicator */
+.dots {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.dot.active {
+    background: white;
+    transform: scale(1.3);
+}
+
+.dot:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* Right Panel - 50% */
+.right-panel {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+/* Login Card */
+.login-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 35px 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 100%;
+    max-width: 380px;
+}
+
+.login-card h2 {
+    color: #000;
+    font-size: 24px;
+    margin-bottom: 25px;
+    text-align: center;
+    text-shadow: none;
+    font-weight: bold;
+}
+
+/* Form Styling */
+.login-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.login-card label {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    padding: 0 12px;
+    transition: all 0.3s;
+    margin-bottom: 8px;
+}
+
+.login-card label:focus-within {
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+/* Prevent page zoom on mobile when focusing input */
+.login-card input[type="text"]:focus,
+.login-card input[type="password"]:focus {
+    font-size: max(14px, 16px) !important;
+}
+
+.login-card .ico {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.login-card input[type="text"],
+.login-card input[type="password"] {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+    width: 100% !important;
+    height: 32px !important;
+    margin-bottom: 0 !important;
+    outline: none;
+    color: #000;
+    font-weight: 400;
+    /* Prevent zoom on iOS when focus */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.login-card input[type="text"]::placeholder,
+.login-card input[type="password"]::placeholder {
+    color: #999;
+}
+
+.login-card input[type="submit"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 5px;
+    /* Ensure minimum touch target size (44x44px) */
+    min-height: 44px;
+    width: 100%;
+}
+
+.login-card input[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.login-card input[type="submit"]:active {
+    transform: translateY(0);
+}
+
+/* Info/Error Messages - Override */
+.login-card .info {
+    text-align: center;
+    color: #000;
+    font-size: 14px;
+    margin-top: 15px;
+    text-shadow: none;
+}
+
+.login-card .info.alert {
+    color: #d32f2f;
+    background: rgba(211, 47, 47, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.login-card .info.bt {
+    margin-top: 15px;
+    font-size: 12px;
+    color: #000;
+    line-height: 1.5;
+}
+
+/* ========================================
+   Card Gallery Component
+   ======================================== */
+.card-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.card-description {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+/* Tablet Landscape (992px and below) - Switch to vertical stack */
+@media (max-width: 992px) {
+    .split-container {
+        flex-direction: column;
+    }
+
+    .left-panel,
+    .right-panel {
+        width: 100%;
+        height: 50vh;
+        padding: 40px;
+    }
+
+    .slide-icon {
+        font-size: 90px;
+    }
+
+    .slide-title {
+        font-size: 32px;
+    }
+
+    .slide-description {
+        font-size: 16px;
+    }
+
+    .login-card {
+        max-width: 420px;
+        padding: 35px 30px;
+    }
+
+    .card-gallery {
+        max-width: 700px;
+        padding: 20px;
+        gap: 20px;
+    }
+}
+
+/* Tablet Portrait (768px and below) */
+@media (max-width: 768px) {
+    .left-panel,
+    .right-panel {
+        height: 50vh;
+        padding: 35px 30px;
+    }
+
+    .slide-icon {
+        font-size: 80px;
+    }
+
+    .slide-title {
+        font-size: 28px;
+    }
+
+    .slide-description {
+        font-size: 15px;
+        margin-bottom: 25px;
+    }
+
+    .login-card {
+        max-width: 400px;
+        padding: 32px 28px;
+    }
+
+    .login-card h2 {
+        font-size: 22px;
+        margin-bottom: 22px;
+    }
+
+    .login-card input[type="text"],
+    .login-card input[type="password"] {
+        height: 36px !important;
+        font-size: 14px !important;
+    }
+
+    .login-card input[type="submit"] {
+        padding: 11px;
+        font-size: 13px;
+    }
+
+    .card-gallery {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+    }
+
+    .card-icon {
+        font-size: 3rem;
+    }
+
+    .card-title {
+        font-size: 18px;
+    }
+}
+
+/* Mobile Large (576px and below) */
+@media (max-width: 576px) {
+    .left-panel,
+    .right-panel {
+        height: auto;
+        min-height: 50vh;
+        padding: 30px 25px;
+    }
+
+    .slide-content {
+        max-width: 100%;
+    }
+
+    .slide-icon {
+        font-size: 70px;
+        margin-bottom: 25px;
+    }
+
+    .slide-title {
+        font-size: 26px;
+        margin-bottom: 18px;
+    }
+
+    .slide-description {
+        font-size: 14px;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .dots {
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .login-card {
+        max-width: 100%;
+        padding: 30px 25px;
+        border-radius: 16px;
+    }
+
+    .login-card h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .login-card form {
+        gap: 18px;
+    }
+
+    .login-card label {
+        padding: 0 10px;
+        margin-bottom: 6px;
+    }
+
+    .login-card .ico {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+    }
+
+    .login-card input[type="text"],
+    .login-card input[type="password"] {
+        height: 34px !important;
+        font-size: 14px !important;
+    }
+
+    .login-card input[type="submit"] {
+        padding: 10px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+
+    .login-card .info {
+        font-size: 13px;
+        margin-top: 12px;
+    }
+
+    .login-card .info.bt {
+        font-size: 11px;
+    }
+
+    .card-gallery {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .info-card {
+        padding: 25px 18px;
+    }
+
+    .card-icon {
+        font-size: 2.8rem;
+    }
+
+    .card-title {
+        font-size: 17px;
+    }
+
+    .card-description {
+        font-size: 13px;
+    }
+}
+
+/* Mobile Standard (480px and below) */
+@media (max-width: 480px) {
+    .left-panel,
+    .right-panel {
+        padding: 25px 20px;
+        min-height: 45vh;
+    }
+
+    .slide-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+
+    .slide-title {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .slide-description {
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .dots {
+        gap: 8px;
+        margin-top: 20px;
+    }
+
+    .dot {
+        width: 9px;
+        height: 9px;
+    }
+
+    .login-card {
+        padding: 28px 22px;
+        border-radius: 14px;
+    }
+
+    .login-card h2 {
+        font-size: 19px;
+        margin-bottom: 18px;
+    }
+
+    .login-card form {
+        gap: 16px;
+    }
+
+    .login-card label {
+        padding: 0 10px;
+        border-radius: 5px;
+    }
+
+    .login-card input[type="text"],
+    .login-card input[type="password"] {
+        height: 32px !important;
+        font-size: 13px !important;
+    }
+
+    .login-card input[type="submit"] {
+        padding: 9px;
+        font-size: 12px;
+        border-radius: 7px;
+    }
+
+    .login-card .info {
+        font-size: 12px;
+    }
+
+    .login-card .info.bt {
+        font-size: 10px;
+    }
+
+    .info-card {
+        padding: 22px 16px;
+    }
+
+    .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+    }
+
+    .card-title {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .card-description {
+        font-size: 12px;
+    }
+}
+
+/* Mobile Small (380px and below) */
+@media (max-width: 380px) {
+    .left-panel,
+    .right-panel {
+        padding: 20px 15px;
+        min-height: 40vh;
+    }
+
+    .slide-icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+    .slide-title {
+        font-size: 22px;
+        margin-bottom: 12px;
+    }
+
+    .slide-description {
+        font-size: 12px;
+        margin-bottom: 15px;
+    }
+
+    .dots {
+        gap: 7px;
+        margin-top: 18px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    .login-card {
+        padding: 25px 20px;
+        border-radius: 12px;
+    }
+
+    .login-card h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .login-card form {
+        gap: 14px;
+    }
+
+    .login-card input[type="text"],
+    .login-card input[type="password"] {
+        height: 30px !important;
+        font-size: 12px !important;
+    }
+
+    .login-card input[type="submit"] {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .info-card {
+        padding: 20px 14px;
+    }
+
+    .card-icon {
+        font-size: 2.2rem;
+    }
+
+    .card-title {
+        font-size: 15px;
+    }
+
+    .card-description {
+        font-size: 11px;
+    }
+}
+
+/* ========================================
+   Loading & Error States
+   ======================================== */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.05);
+    }
+}
+
+.loading-state {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.error-state {
+    color: #ff6b6b;
+}
+
+/* Fade-in animation for content */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
