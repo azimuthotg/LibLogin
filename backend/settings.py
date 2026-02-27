@@ -10,22 +10,32 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file (production) — no effect if file doesn't exist
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-44bzy5(1iyjik@#5zc5+0_3&&-)4n6kw6y%282&#=45*eo6q&z'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-44bzy5(1iyjik@#5zc5+0_3&&-)4n6kw6y%282&#=45*eo6q&z')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts for development
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost').split(',')]
+
+# Reverse proxy / Path-based routing (IIS ARR)
+FORCE_SCRIPT_NAME       = os.getenv('FORCE_SCRIPT_NAME', '')
+USE_X_FORWARDED_HOST    = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE   = not DEBUG
+CSRF_COOKIE_SECURE      = not DEBUG
 
 
 # Application definition
@@ -135,7 +145,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = os.getenv('STATIC_URL', 'static/')
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
@@ -147,7 +157,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -169,7 +179,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # Media files (uploaded images)
-MEDIA_URL = '/media/'
+MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # REST Framework settings
@@ -187,9 +197,9 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-# CSRF settings for ngrok
-CSRF_TRUSTED_ORIGINS = [
-    'https://79613aa20270.ngrok-free.app',
-    'https://*.ngrok-free.app',
-    'https://*.ngrok.io',
-]
+# CSRF trusted origins — set CSRF_TRUSTED_ORIGINS in .env for production
+# Default includes ngrok wildcards for development convenience
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://*.ngrok-free.app,https://*.ngrok.io'
+).split(',') if o.strip()]
