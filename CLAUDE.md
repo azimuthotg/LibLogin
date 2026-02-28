@@ -131,3 +131,23 @@ MEDIA_URL=/liblogin/media/
 - `0001–0011`: BackgroundImage, TemplateConfig, Slides, Cards, Hotspot, Settings, etc.
 - `0012`: Added `Department` model
 - `0013`: Added `Department.users` ManyToManyField (department-based access control)
+
+## Notion Progress Logging
+เมื่อผู้ใช้บอกว่า **"สรุป progress ไป Notion"** ให้สร้าง record ใหม่ใน Notion database ด้วย Notion MCP
+
+**Database:** LibLogin - Development Log
+**Data Source ID:** `43e15d63-f7a1-40fb-bcba-2b68b10c83ae`
+
+**Fields ที่ต้องกรอก:**
+| Field | ค่า |
+|-------|-----|
+| Session | `[Session N] - [brief topic]` เช่น `[Session 3] - Hotspot Management Refactor` |
+| Date | วันที่วันนี้ (YYYY-MM-DD) |
+| Status | `In Progress` / `Done` / `Blocked` |
+| Progress | ตัวเลข % ความคืบหน้าโดยประมาณ (0–100) |
+| What Done | bullet สรุปงานที่ทำเสร็จในครั้งนี้ |
+| Issues Found | bug หรือ blocker ที่พบ (ถ้าไม่มีให้ระบุ "ไม่มี") |
+| Fix Applied | วิธีแก้ปัญหา (ถ้าไม่มีให้ระบุ "N/A") |
+| Next Steps | งานที่ควรทำในครั้งต่อไป |
+
+**ขั้นตอน:** ใช้ `notion-fetch` ดู schema ก่อน แล้วใช้ `notion-create-pages` สร้าง record
