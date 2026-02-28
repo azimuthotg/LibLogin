@@ -420,6 +420,9 @@
         <!-- Admin (staff only) -->
         {% if user.is_staff %}
         <div class="nav-section-label">Admin</div>
+        <a class="sidebar-link {% if request.resolver_match.url_name == 'hotspots' %}active{% endif %}" href="{% url 'hotspots' %}">
+            <i class="bi bi-wifi link-icon"></i> Hotspots
+        </a>
         <a class="sidebar-link {% if request.resolver_match.url_name == 'users' %}active{% endif %}" href="{% url 'users' %}">
             <i class="bi bi-people link-icon"></i> Users
         </a>

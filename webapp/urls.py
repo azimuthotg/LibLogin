@@ -14,6 +14,7 @@ urlpatterns = [
     path('cards/', views.cards_view, name='cards'),
     path('settings/', views.settings_view, name='settings'),
     path('users/', views.users_view, name='users'),
+    path('hotspots/', views.hotspots_view, name='hotspots'),
     path('departments/', views.departments_view, name='departments'),
     path('monitoring/', views.monitoring_view, name='monitoring'),
     path('landing-pages/', views.landing_pages_view, name='landing_pages'),
