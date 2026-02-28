@@ -1,0 +1,24 @@
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('api', '0012_add_department_model'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='department',
+            name='users',
+            field=models.ManyToManyField(
+                blank=True,
+                help_text='ผู้ใช้งานที่อยู่ในหน่วยงานนี้',
+                related_name='departments',
+                to=settings.AUTH_USER_MODEL,
+                verbose_name='ผู้ใช้งาน',
+            ),
+        ),
+    ]

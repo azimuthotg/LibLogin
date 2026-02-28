@@ -371,6 +371,13 @@ class Department(models.Model):
         related_name='departments',
         help_text="Hotspot ที่หน่วยงานนี้สามารถเข้าถึงได้"
     )
+    users = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name='departments',
+        verbose_name='ผู้ใช้งาน',
+        help_text='ผู้ใช้งานที่อยู่ในหน่วยงานนี้'
+    )
     is_active = models.BooleanField(default=True, help_text="หน่วยงานนี้ยังใช้งานอยู่")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

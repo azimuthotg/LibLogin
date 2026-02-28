@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
-from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, PageImpression, DailyReachStats, LandingPageURL
+from .models import BackgroundImage, SystemSettings, SlideContent, TemplateConfig, CardContent, Hotspot, PageImpression, DailyReachStats, LandingPageURL, Department
 from .serializers import (
     BackgroundImageSerializer,
     BackgroundImageUploadSerializer,
@@ -742,11 +742,19 @@ def get_landing_url(request):
 @permission_classes([IsAuthenticated])
 def get_hotspot_choices(request):
     """
-    Get hotspot choices for dropdown menus
-    Returns list of hotspot objects with full details
+    Get hotspot choices for dropdown menus.
+    Staff users see all hotspots; regular users see only hotspots in their active departments.
     """
     try:
-        hotspots = Hotspot.objects.filter(is_active=True).order_by('display_name')
+        if request.user.is_staff:
+            hotspots = Hotspot.objects.filter(is_active=True).order_by('display_name')
+        else:
+            hotspots = Hotspot.objects.filter(
+                departments__users=request.user,
+                departments__is_active=True,
+                is_active=True
+            ).distinct().order_by('display_name')
+
         serializer = HotspotSerializer(hotspots, many=True)
         return Response(serializer.data)
 

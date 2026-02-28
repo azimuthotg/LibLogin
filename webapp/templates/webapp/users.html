@@ -99,6 +99,13 @@
 .del-box p { font-size:.82rem; color:#922b21; margin:0; }
 
 .switch-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.dept-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; font-size:.68rem; font-family:'Kanit',sans-serif; background:#ebf5fb; color:#1a5276; border:1px solid #aed6f1; margin:1px; }
+.dept-picker { display:flex; flex-wrap:wrap; gap:8px; padding:12px; background:#f8fafc; border-radius:9px; border:1.5px solid #e2e8f0; max-height:160px; overflow-y:auto; }
+.dept-toggle-label { cursor:pointer; }
+.dept-toggle-label input[type="checkbox"] { position:absolute; opacity:0; width:0; height:0; }
+.dept-toggle-pill { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:20px; border:1.5px solid #cbd5e1; background:#fff; font-size:.78rem; font-family:'Kanit',sans-serif; color:#64748b; transition:all .18s; user-select:none; }
+.dept-toggle-label input:checked + .dept-toggle-pill { background:linear-gradient(135deg,#ebf5fb,#d6eaf8); border-color:#3498db; color:#1a5276; font-weight:500; }
+.dept-toggle-pill:hover { border-color:#3498db; background:#f0f8ff; }
 </style>
 {% endblock %}
 
@@ -138,6 +145,7 @@
                     <th>User</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>หน่วยงาน</th>
                     <th>Status</th>
                     <th>Last Login</th>
                     <th></th>
@@ -165,6 +173,13 @@
                         {% endif %}
                     </td>
                     <td>
+                        {% for dept in u.departments.all %}
+                        <span class="dept-badge"><i class="bi bi-building"></i>{{ dept.name }}</span>
+                        {% empty %}
+                        <span style="color:#b0bec5; font-size:.8rem;">—</span>
+                        {% endfor %}
+                    </td>
+                    <td>
                         {% if u.is_active %}
                         <span class="status-dot on">Active</span>
                         {% else %}
@@ -177,7 +192,7 @@
                     <td>
                         <div style="display:flex; gap:5px;">
                             <button class="act-btn edit" title="แก้ไข"
-                                    onclick="editUser({{ u.pk }},'{{ u.username|escapejs }}','{{ u.email|escapejs }}',{{ u.is_staff|yesno:'true,false' }},{{ u.is_active|yesno:'true,false' }})">
+                                    onclick="editUser({{ u.pk }},'{{ u.username|escapejs }}','{{ u.email|escapejs }}',{{ u.is_staff|yesno:'true,false' }},{{ u.is_active|yesno:'true,false' }},[{% for d in u.departments.all %}{{ d.pk }}{% if not forloop.last %},{% endif %}{% endfor %}])">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="act-btn key" title="เปลี่ยนรหัสผ่าน"
@@ -193,7 +208,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" style="text-align:center; padding:40px; color:#94a3b8;">ไม่มีผู้ใช้งาน</td></tr>
+                <tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">ไม่มีผู้ใช้งาน</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -212,6 +227,19 @@
                     <div class="mb-3"><label class="flbl">Email</label><input type="email" class="finput" name="email"></div>
                     <div class="mb-3"><label class="flbl">Password <span class="req">*</span></label><input type="password" class="finput" name="password" required minlength="8"><div class="fhint">ขั้นต่ำ 8 ตัวอักษร</div></div>
                     <div class="mb-3"><label class="flbl">Confirm Password <span class="req">*</span></label><input type="password" class="finput" name="password2" required minlength="8"></div>
+                    {% if departments %}
+                    <div class="mb-3">
+                        <label class="flbl"><i class="bi bi-building me-1"></i>หน่วยงาน <span style="font-weight:400; color:#94a3b8;">(เลือกได้หลายรายการ)</span></label>
+                        <div class="dept-picker">
+                            {% for dept in departments %}
+                            <label class="dept-toggle-label">
+                                <input type="checkbox" name="department_ids" value="{{ dept.pk }}">
+                                <span class="dept-toggle-pill"><i class="bi bi-building"></i>{{ dept.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="switch-grid">
                         <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_staff" id="addIsStaff" role="switch"><label class="switch-lbl" for="addIsStaff">Staff (Admin)</label></div>
                         <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_active" id="addIsActive" checked role="switch"><label class="switch-lbl" for="addIsActive">Active</label></div>
@@ -232,6 +260,19 @@
                 <div class="mbody">
                     <div class="mb-3"><label class="flbl">Username <span class="req">*</span></label><input type="text" class="finput" name="username" id="editUsername" required></div>
                     <div class="mb-3"><label class="flbl">Email</label><input type="email" class="finput" name="email" id="editEmail"></div>
+                    {% if departments %}
+                    <div class="mb-3">
+                        <label class="flbl"><i class="bi bi-building me-1"></i>หน่วยงาน <span style="font-weight:400; color:#94a3b8;">(เลือกได้หลายรายการ)</span></label>
+                        <div class="dept-picker">
+                            {% for dept in departments %}
+                            <label class="dept-toggle-label">
+                                <input class="edit-dept-cb" type="checkbox" name="department_ids" value="{{ dept.pk }}" id="edit_dept_{{ dept.pk }}">
+                                <span class="dept-toggle-pill"><i class="bi bi-building"></i>{{ dept.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="switch-grid">
                         <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_staff" id="editIsStaff" role="switch"><label class="switch-lbl" for="editIsStaff">Staff (Admin)</label></div>
                         <div class="switch-row"><input class="form-check-input" type="checkbox" name="is_active" id="editIsActive" role="switch"><label class="switch-lbl" for="editIsActive">Active</label></div>
@@ -281,12 +322,15 @@
 
 {% block extra_js %}
 <script>
-function editUser(id, username, email, isStaff, isActive) {
+function editUser(id, username, email, isStaff, isActive, departmentIds) {
     document.getElementById('editUserId').value = id;
     document.getElementById('editUsername').value = username;
     document.getElementById('editEmail').value = email;
     document.getElementById('editIsStaff').checked = isStaff;
     document.getElementById('editIsActive').checked = isActive;
+    document.querySelectorAll('.edit-dept-cb').forEach(cb => {
+        cb.checked = Array.isArray(departmentIds) && departmentIds.includes(parseInt(cb.value));
+    });
     new bootstrap.Modal(document.getElementById('editUserModal')).show();
 }
 function changePassword(id, username) {

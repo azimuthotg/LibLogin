@@ -338,11 +338,11 @@ class LandingPageURLAdmin(admin.ModelAdmin):
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'hotspot_list', 'is_active', 'created_by', 'created_at']
+    list_display = ['name', 'hotspot_list', 'user_count', 'is_active', 'created_by', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'description']
     list_editable = ['is_active']
-    filter_horizontal = ['hotspots']
+    filter_horizontal = ['hotspots', 'users']
     readonly_fields = ['created_at', 'updated_at']
 
     fieldsets = (
@@ -352,6 +352,10 @@ class DepartmentAdmin(admin.ModelAdmin):
         ('Hotspot Access', {
             'fields': ('hotspots',),
             'description': 'เลือก Hotspot ที่หน่วยงานนี้สามารถเข้าถึงได้'
+        }),
+        ('Users', {
+            'fields': ('users',),
+            'description': 'ผู้ใช้งานที่อยู่ในหน่วยงานนี้ (จะเห็นเฉพาะ content ของ hotspot ในหน่วยงาน)'
         }),
         ('Metadata', {
             'fields': ('created_by', 'created_at', 'updated_at'),
@@ -365,6 +369,11 @@ class DepartmentAdmin(admin.ModelAdmin):
             return '-'
         return ', '.join(h.display_name for h in hotspots)
     hotspot_list.short_description = 'Hotspots'
+
+    def user_count(self, obj):
+        count = obj.users.count()
+        return count if count else '-'
+    user_count.short_description = 'Users'
 
     def save_model(self, request, obj, form, change):
         if not change:
