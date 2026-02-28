@@ -193,9 +193,9 @@ REST_FRAMEWORK = {
 }
 
 # Login settings
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'
 
 # CSRF trusted origins — set CSRF_TRUSTED_ORIGINS in .env for production
 # Default includes ngrok wildcards for development convenience
