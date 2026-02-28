@@ -1,4 +1,5 @@
 {% extends 'webapp/base.html' %}
+{% load static %}
 
 {% block title %}Hotspots - LibLogin Management{% endblock %}
 {% block page_title %}Hotspot Management{% endblock %}
@@ -8,6 +9,9 @@
 /* ── Page Header ── */
 .page-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
 .page-hdr-sub { color:#64748b; font-family:'Sarabun',sans-serif; font-size:.875rem; margin:0; }
+
+/* ── Refresh badge ── */
+.refresh-badge { display:inline-flex; align-items:center; gap:5px; background:#f0f4f8; color:#64748b; border:1px solid #e2e8f0; border-radius:50px; padding:4px 12px; font-family:'Kanit',sans-serif; font-size:.75rem; font-weight:500; }
 
 /* ── Stats ── */
 .hs-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
@@ -29,100 +33,67 @@
 .tbl-card-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#2c3e50; display:flex; align-items:center; gap:8px; }
 
 /* ── Table ── */
-.hs-table { width:100%; border-collapse:separate; border-spacing:0; font-family:'Sarabun',sans-serif; font-size:.875rem; }
-.hs-table thead th { font-family:'Kanit',sans-serif; font-size:.7rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.07em; padding:0 16px 12px; border-bottom:1px solid #f1f5f9; white-space:nowrap; }
+.hs-table { width:100%; border-collapse:collapse; font-family:'Sarabun',sans-serif; font-size:.875rem; }
+.hs-table thead th { background:#f8fafc; font-family:'Kanit',sans-serif; font-weight:600; font-size:.76rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; padding:11px 14px; border-bottom:1.5px solid #e9eef4; white-space:nowrap; }
 .hs-table tbody tr { transition:background .15s; }
 .hs-table tbody tr:hover { background:#f8fafc; }
-.hs-table tbody td { padding:13px 16px; color:#374151; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+.hs-table tbody td { padding:11px 14px; border-bottom:1px solid #f1f5f9; color:#334155; vertical-align:middle; }
 .hs-table tbody tr:last-child td { border-bottom:none; }
-
-/* Status badge */
-.status-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:.72rem; font-family:'Kanit',sans-serif; }
-.status-badge.ready    { background:#eafaf1; color:#1e8449; border:1px solid #a9dfbf; }
-.status-badge.warning  { background:#fef9e7; color:#b7770d; border:1px solid #f9e79f; }
-.status-badge.error    { background:#fdf2f2; color:#c0392b; border:1px solid #fadbd8; }
-.status-badge.unchecked{ background:#f8f9fa; color:#6c757d; border:1px solid #dee2e6; }
-
-.active-dot { display:inline-flex; align-items:center; gap:5px; font-size:.8rem; }
-.active-dot::before { content:''; width:7px;height:7px; border-radius:50%; flex-shrink:0; }
-.active-dot.on::before  { background:#27ae60; }
-.active-dot.off::before { background:#95a5a6; }
-
-.check-row { display:flex; flex-wrap:wrap; gap:6px; }
-.check-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:10px; font-size:.7rem; font-family:'Kanit',sans-serif; }
-.check-pill.ok  { background:#eafaf1; color:#1e8449; }
-.check-pill.bad { background:#fdf2f2; color:#c0392b; }
-
-.name-cell { display:flex; flex-direction:column; gap:2px; }
-.name-main { font-weight:600; color:#1e293b; font-family:'Kanit',sans-serif; font-size:.875rem; }
-.name-sub  { font-size:.75rem; color:#94a3b8; font-family:monospace; }
-
-/* ── Action buttons ── */
-.act-btn { width:30px;height:30px; border-radius:7px; border:1px solid transparent; display:inline-flex; align-items:center; justify-content:center; font-size:.8rem; cursor:pointer; transition:all .18s; background:transparent; }
-.act-btn.edit { color:#3498db; border-color:#aed6f1; background:#ebf5fb; }
-.act-btn.edit:hover { background:#3498db; color:#fff; border-color:#3498db; }
-.act-btn.del { color:#e74c3c; border-color:#fadbd8; background:#fdf2f2; }
-.act-btn.del:hover { background:#e74c3c; color:#fff; border-color:#e74c3c; }
 
 /* ── Add button ── */
 .btn-add { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:10px; padding:9px 18px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.875rem; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:0 3px 10px rgba(52,152,219,.3); transition:all .2s; }
 .btn-add:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(52,152,219,.4); color:#fff; }
 
-/* ── Modal ── */
-.modal-content { border:none; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.2); }
-.mhdr-dark { background:linear-gradient(135deg,#2c3e50,#34495e); color:#fff; padding:16px 22px; border-bottom:none; }
-.mhdr-dark .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; display:flex; align-items:center; gap:8px; }
-.mhdr-dark .btn-close { filter:invert(1) brightness(2); opacity:.7; }
-.mhdr-danger { background:linear-gradient(135deg,#c0392b,#e74c3c); color:#fff; padding:16px 22px; border-bottom:none; }
-.mhdr-danger .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; display:flex; align-items:center; gap:8px; }
-.mhdr-danger .btn-close { filter:invert(1) brightness(2); opacity:.7; }
-.mbody { padding:22px; }
-.mftr { padding:14px 22px; background:#f8fafc; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; gap:10px; }
-
-.flbl { font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; color:#374151; display:block; margin-bottom:6px; }
-.flbl .req { color:#e74c3c; }
-.finput { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; transition:border-color .2s,box-shadow .2s; }
-.finput:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
-.fhint { font-size:.75rem; color:#94a3b8; margin-top:4px; }
-.switch-row { display:flex; align-items:center; gap:10px; padding:10px 13px; background:#f8fafc; border-radius:9px; border:1.5px solid #e2e8f0; }
-.switch-row .form-check-input { width:2.2em; height:1.2em; cursor:pointer; }
-.switch-row .form-check-input:checked { background-color:#27ae60; border-color:#27ae60; }
-.switch-lbl { font-family:'Sarabun',sans-serif; font-size:.875rem; color:#475569; margin:0; }
-
-.btn-mc { background:#fff; border:1.5px solid #e2e8f0; color:#64748b; border-radius:9px; padding:8px 18px; font-family:'Kanit',sans-serif; font-size:.82rem; cursor:pointer; transition:all .18s; }
-.btn-mc:hover { background:#f1f5f9; }
-.btn-ms { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:9px; padding:8px 20px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(52,152,219,.25); transition:all .18s; }
-.btn-ms:hover { transform:translateY(-1px); }
-.btn-md { background:linear-gradient(135deg,#c0392b,#e74c3c); color:#fff; border:none; border-radius:9px; padding:8px 20px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(231,76,60,.25); transition:all .18s; }
-.btn-md:hover { transform:translateY(-1px); }
-
-.del-box { background:#fdf2f2; border:1px solid #fadbd8; border-radius:11px; padding:14px 18px; display:flex; gap:14px; align-items:flex-start; }
-.del-box-ic { width:38px;height:38px; background:#fadbd8; border-radius:9px; display:flex;align-items:center;justify-content:center; font-size:1rem; color:#e74c3c; flex-shrink:0; }
-.del-box strong { font-family:'Kanit',sans-serif; color:#c0392b; display:block; margin-bottom:4px; }
-.del-box p { font-size:.82rem; color:#922b21; margin:0; }
-
 /* readonly banner */
 .readonly-banner { display:flex; align-items:center; gap:12px; background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:12px 18px; margin-bottom:20px; font-size:.85rem; color:#92400e; font-family:'Sarabun',sans-serif; }
 .readonly-banner i { font-size:1.1rem; color:#d97706; }
 
-/* empty state */
-.empty-state { text-align:center; padding:56px 20px; }
-.empty-state i { font-size:2.5rem; color:#cbd5e1; display:block; margin-bottom:12px; }
-.empty-state p { color:#94a3b8; font-size:.875rem; margin:0; }
+/* ── Modal ── */
+.modal-header-dark { background:linear-gradient(135deg,#1a2535,#2c3e50); padding:18px 20px; border-bottom:none; }
+.modal-header-dark .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#fff; display:flex; align-items:center; gap:8px; }
+.modal-header-dark .btn-close { filter:invert(1) brightness(2); }
+.modal-header-danger { background:linear-gradient(135deg,#991b1b,#dc2626); padding:18px 20px; border-bottom:none; }
+.modal-header-danger .modal-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#fff; display:flex; align-items:center; gap:8px; }
+.modal-header-danger .btn-close { filter:invert(1) brightness(2); }
+.modal-body  { padding:20px; }
+.modal-footer { padding:14px 20px; border-top:1px solid #f1f5f9; }
 
-/* last-checked */
-.last-check { font-size:.75rem; color:#94a3b8; white-space:nowrap; }
+.form-label-s { font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; color:#374151; display:block; margin-bottom:6px; }
+.form-ctrl-s { width:100%; padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-family:'Sarabun',sans-serif; font-size:.875rem; color:#1e293b; background:#fff; transition:border-color .2s,box-shadow .2s; }
+.form-ctrl-s:focus { outline:none; border-color:#3498db; box-shadow:0 0 0 3px rgba(52,152,219,.12); }
+.helper-text { font-family:'Sarabun',sans-serif; font-size:.77rem; color:#94a3b8; margin-top:5px; }
+.mb-f { margin-bottom:16px; }
+
+.check-item { display:flex; align-items:center; gap:8px; padding:10px 12px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:9px; cursor:pointer; }
+.check-item label { font-family:'Sarabun',sans-serif; font-size:.875rem; color:#374151; cursor:pointer; margin:0; }
+.check-item input[type="checkbox"] { accent-color:#3498db; width:15px; height:15px; }
+
+.btn-modal-primary { background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; padding:9px 20px; cursor:pointer; transition:all .2s; }
+.btn-modal-primary:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(52,152,219,.35); }
+.btn-modal-danger  { background:#dc2626; color:#fff; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; padding:9px 20px; cursor:pointer; }
+.btn-modal-danger:hover { background:#b91c1c; }
+.btn-modal-cancel  { background:#f1f5f9; color:#64748b; border:none; border-radius:8px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.85rem; padding:9px 16px; cursor:pointer; }
+.btn-modal-cancel:hover { background:#e2e8f0; }
+
+.delete-warn-box { background:#fef2f2; border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:14px 16px; font-family:'Sarabun',sans-serif; font-size:.85rem; color:#991b1b; }
+.delete-warn-box ul { padding-left:16px; margin:8px 0 0; }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Page Header -->
 <div class="page-hdr">
     <p class="page-hdr-sub">จัดการ Hotspot ที่เชื่อมต่อกับระบบ</p>
-    {% if request.user.is_staff %}
-    <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addHotspotModal">
-        <i class="bi bi-plus-lg"></i> เพิ่ม Hotspot
-    </button>
-    {% endif %}
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span class="refresh-badge" id="refreshCountdown">
+            <i class="bi bi-arrow-repeat"></i> Next refresh: --:--
+        </span>
+        {% if request.user.is_staff %}
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addHotspotModal">
+            <i class="bi bi-plus-lg"></i> เพิ่ม Hotspot
+        </button>
+        {% endif %}
+    </div>
 </div>
 
 {% if not request.user.is_staff %}
@@ -132,7 +103,7 @@
 </div>
 {% endif %}
 
-<!-- Stats -->
+<!-- Stats (server-side counts at page load) -->
 <div class="hs-stats">
     <div class="hs-stat total">
         <div class="hs-stat-ic"><i class="bi bi-wifi"></i></div>
@@ -148,214 +119,157 @@
     </div>
 </div>
 
-<!-- Table -->
+<!-- Table Card (loaded via hotspot-management.js API calls) -->
 <div class="tbl-card">
     <div class="tbl-card-hdr">
-        <div class="tbl-card-title"><i class="bi bi-wifi"></i> รายการ Hotspot ({{ total }})</div>
+        <div class="tbl-card-title"><i class="bi bi-wifi"></i> รายการ Hotspot</div>
     </div>
-    <div style="padding:0 8px 8px;">
-        <table class="hs-table">
+    <div style="overflow-x:auto;">
+        <table class="hs-table" id="hotspotsTable">
             <thead>
                 <tr>
-                    <th>ชื่อ Hotspot</th>
-                    <th>Hotspot Name (Technical)</th>
-                    <th>สถานะการเชื่อมต่อ</th>
-                    <th>ตรวจสอบล่าสุด</th>
-                    <th>Active</th>
-                    {% if request.user.is_staff %}<th></th>{% endif %}
+                    <th style="width:30px;"></th>
+                    <th>Hotspot Name</th>
+                    <th>Display Name</th>
+                    <th>Status</th>
+                    <th>Last Checked</th>
+                    <th style="width:130px;">Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for hs in hotspots %}
+            <tbody id="hotspotsTableBody">
                 <tr>
-                    <td>
-                        <div class="name-cell">
-                            <span class="name-main">{{ hs.display_name }}</span>
-                            {% if hs.description %}
-                            <span class="name-sub" style="font-family:'Sarabun',sans-serif; font-size:.78rem; color:#94a3b8;">{{ hs.description|truncatechars:50 }}</span>
-                            {% endif %}
+                    <td colspan="6" style="text-align:center; padding:32px;">
+                        <div class="spinner-border text-primary" role="status" style="width:1.5rem;height:1.5rem;">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                    </td>
-                    <td>
-                        <code style="background:#f1f5f9; padding:2px 8px; border-radius:6px; font-size:.8rem; color:#3498db;">{{ hs.hotspot_name }}</code>
-                    </td>
-                    <td>
-                        {% if hs.status == 'ready' %}
-                        <span class="status-badge ready"><i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Ready</span>
-                        {% elif hs.status == 'warning' %}
-                        <span class="status-badge warning"><i class="bi bi-exclamation-circle"></i> Warning</span>
-                        {% elif hs.status == 'error' %}
-                        <span class="status-badge error"><i class="bi bi-x-circle"></i> Error</span>
-                        {% else %}
-                        <span class="status-badge unchecked"><i class="bi bi-dash-circle"></i> ยังไม่ได้ตรวจสอบ</span>
-                        {% endif %}
-                        {% if hs.last_checked %}
-                        <div class="check-row mt-1">
-                            <span class="check-pill {% if hs.folder_exists %}ok{% else %}bad{% endif %}">
-                                <i class="bi bi-folder{% if not hs.folder_exists %}-x{% endif %}"></i> Folder
-                            </span>
-                            <span class="check-pill {% if hs.login_file_exists %}ok{% else %}bad{% endif %}">
-                                <i class="bi bi-file-code"></i> login.html
-                            </span>
-                            <span class="check-pill {% if hs.config_matched %}ok{% else %}bad{% endif %}">
-                                <i class="bi bi-gear"></i> Config
-                            </span>
-                        </div>
-                        {% endif %}
-                    </td>
-                    <td class="last-check">
-                        {% if hs.last_checked %}
-                        {{ hs.last_checked|date:"d/m/Y H:i" }}
-                        {% else %}
-                        <span style="color:#b0bec5;">—</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if hs.is_active %}
-                        <span class="active-dot on">Active</span>
-                        {% else %}
-                        <span class="active-dot off">Inactive</span>
-                        {% endif %}
-                    </td>
-                    {% if request.user.is_staff %}
-                    <td>
-                        <div style="display:flex; gap:5px;">
-                            <button class="act-btn edit" title="แก้ไข"
-                                    onclick="editHotspot({{ hs.pk }},'{{ hs.hotspot_name|escapejs }}','{{ hs.display_name|escapejs }}','{{ hs.description|escapejs }}',{{ hs.is_active|yesno:'true,false' }})">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="act-btn del" title="ลบ"
-                                    onclick="deleteHotspot({{ hs.pk }},'{{ hs.display_name|escapejs }}','{{ hs.hotspot_name|escapejs }}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="{% if request.user.is_staff %}6{% else %}5{% endif %}">
-                        <div class="empty-state">
-                            <i class="bi bi-wifi-off"></i>
-                            <p>ยังไม่มี Hotspot ในระบบ</p>
-                        </div>
+                        <p style="font-family:'Sarabun',sans-serif; font-size:.85rem; color:#94a3b8; margin:8px 0 0;">กำลังโหลด Hotspot...</p>
                     </td>
                 </tr>
-                {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Status Legend -->
+    <div style="margin:16px 20px; background:#f8fafc; border-radius:10px; padding:14px 16px; border:1px solid #e9eef4;">
+        <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; margin-bottom:10px;">Status Legend</div>
+        <div style="display:grid; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span> <strong>Ready</strong> — Folder พร้อม, login.html ครบ, config ตรง</div>
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#eab308;flex-shrink:0;"></span> <strong>Warning</strong> — Folder มีแต่ config ไม่ตรง</div>
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span> <strong>Error</strong> — ไม่พบ Folder หรือ login.html</div>
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;"></span> <strong>Unchecked</strong> — ยังไม่ได้ตรวจสอบ</div>
+        </div>
     </div>
 </div>
 
 {% if request.user.is_staff %}
-<!-- Add Modal -->
+<!-- ─── Add Hotspot Modal ─── -->
 <div class="modal fade" id="addHotspotModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add">
-                <div class="mhdr-dark modal-header">
-                    <div class="modal-title"><i class="bi bi-wifi"></i> เพิ่ม Hotspot ใหม่</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="mbody">
-                    <div class="mb-3">
-                        <label class="flbl">Hotspot Name (Technical) <span class="req">*</span></label>
-                        <input type="text" class="finput" name="hotspot_name" required
-                               placeholder="เช่น hotspot, hotspot_lib, hotspot_lab"
-                               pattern="[a-zA-Z0-9_]+" title="ใช้ได้เฉพาะตัวอักษร ตัวเลข และ _ เท่านั้น">
-                        <div class="fhint">ชื่อที่ใช้ใน MikroTik — ใช้ได้เฉพาะ a-z, 0-9, _ (ไม่มีช่องว่าง)</div>
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
+            <div class="modal-header-dark">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> เพิ่ม Hotspot ใหม่</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addHotspotForm">
+                    <div class="mb-f">
+                        <label class="form-label-s">Hotspot Name (Technical) <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" id="add_hotspot_name" required
+                               pattern="hotspot(_[a-z0-9]+)?" placeholder="e.g., hotspot_cafe">
+                        <p class="helper-text">ต้องขึ้นต้นด้วย 'hotspot' ใช้ตัวพิมพ์เล็ก, ตัวเลข, และ _ เท่านั้น</p>
                     </div>
-                    <div class="mb-3">
-                        <label class="flbl">Display Name <span class="req">*</span></label>
-                        <input type="text" class="finput" name="display_name" required
-                               placeholder="เช่น ห้องสมุด, ห้องแล็บ 1">
-                        <div class="fhint">ชื่อที่แสดงในระบบ (ภาษาไทยได้)</div>
+                    <div class="mb-f">
+                        <label class="form-label-s">Display Name <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" id="add_display_name" required placeholder="e.g., ห้องสมุดกลาง">
                     </div>
-                    <div class="mb-3">
-                        <label class="flbl">คำอธิบาย</label>
-                        <textarea class="finput" name="description" rows="2"
-                                  placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></textarea>
+                    <div class="mb-f">
+                        <label class="form-label-s">คำอธิบาย</label>
+                        <textarea class="form-ctrl-s" id="add_description" rows="3" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></textarea>
                     </div>
-                    <div class="switch-row">
-                        <input class="form-check-input" type="checkbox" name="is_active" id="addIsActive" checked role="switch">
-                        <label class="switch-lbl" for="addIsActive">เปิดใช้งาน (Active)</label>
+                    <div class="check-item">
+                        <input type="checkbox" id="add_is_active" checked>
+                        <label for="add_is_active">Active</label>
                     </div>
-                </div>
-                <div class="mftr">
-                    <button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="submit" class="btn-ms"><i class="bi bi-plus-lg"></i> เพิ่ม Hotspot</button>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn-modal-primary" onclick="addHotspot()">
+                    <i class="bi bi-save me-1"></i> เพิ่ม Hotspot
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Modal -->
+<!-- ─── Edit Hotspot Modal ─── -->
 <div class="modal fade" id="editHotspotModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="edit">
-                <input type="hidden" name="hotspot_id" id="editHotspotId">
-                <div class="mhdr-dark modal-header">
-                    <div class="modal-title"><i class="bi bi-pencil-square"></i> แก้ไข Hotspot</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="mbody">
-                    <div class="mb-3">
-                        <label class="flbl">Hotspot Name (Technical)</label>
-                        <div class="finput" style="background:#f8fafc; color:#64748b; cursor:not-allowed;" id="editHotspotNameDisplay"></div>
-                        <div class="fhint">ไม่สามารถเปลี่ยน Hotspot Name ได้ (ผูกกับข้อมูล content ทั้งหมด)</div>
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
+            <div class="modal-header-dark">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> แก้ไข Hotspot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editHotspotForm">
+                    <input type="hidden" id="edit_hotspot_id">
+                    <div class="mb-f">
+                        <label class="form-label-s">Hotspot Name (Technical)</label>
+                        <input type="text" class="form-ctrl-s" id="edit_hotspot_name" readonly style="background:#f8fafc; color:#94a3b8;">
+                        <p class="helper-text">ไม่สามารถเปลี่ยนได้หลังจากสร้างแล้ว</p>
                     </div>
-                    <div class="mb-3">
-                        <label class="flbl">Display Name <span class="req">*</span></label>
-                        <input type="text" class="finput" name="display_name" id="editDisplayName" required>
+                    <div class="mb-f">
+                        <label class="form-label-s">Display Name <span style="color:#e74c3c">*</span></label>
+                        <input type="text" class="form-ctrl-s" id="edit_display_name" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="flbl">คำอธิบาย</label>
-                        <textarea class="finput" name="description" id="editDescription" rows="2"></textarea>
+                    <div class="mb-f">
+                        <label class="form-label-s">คำอธิบาย</label>
+                        <textarea class="form-ctrl-s" id="edit_description" rows="3"></textarea>
                     </div>
-                    <div class="switch-row">
-                        <input class="form-check-input" type="checkbox" name="is_active" id="editIsActive" role="switch">
-                        <label class="switch-lbl" for="editIsActive">เปิดใช้งาน (Active)</label>
+                    <div class="check-item">
+                        <input type="checkbox" id="edit_is_active">
+                        <label for="edit_is_active">Active</label>
                     </div>
-                </div>
-                <div class="mftr">
-                    <button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="submit" class="btn-ms"><i class="bi bi-check-lg"></i> บันทึก</button>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn-modal-primary" onclick="saveHotspot()">
+                    <i class="bi bi-save me-1"></i> บันทึก
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Delete Modal -->
+<!-- ─── Delete Hotspot Modal ─── -->
 <div class="modal fade" id="deleteHotspotModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete">
-                <input type="hidden" name="hotspot_id" id="deleteHotspotId">
-                <div class="mhdr-danger modal-header">
-                    <div class="modal-title"><i class="bi bi-exclamation-triangle"></i> ยืนยันการลบ</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
+            <div class="modal-header-danger">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> ลบ Hotspot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-family:'Sarabun',sans-serif; font-size:.9rem; color:#334155; margin-bottom:14px;">
+                    คุณต้องการลบ Hotspot <strong id="delete_hotspot_name"></strong> ใช่หรือไม่?
+                </p>
+                <div class="delete-warn-box">
+                    <strong><i class="bi bi-exclamation-triangle-fill me-1"></i> คำเตือน:</strong> การลบจะทำให้ข้อมูลต่อไปนี้ถูกลบด้วย:
+                    <ul>
+                        <li>Templates ทั้งหมดของ Hotspot นี้</li>
+                        <li>Background Images ทั้งหมดของ Hotspot นี้</li>
+                        <li>Slides และ Cards ทั้งหมดของ Hotspot นี้</li>
+                    </ul>
                 </div>
-                <div class="mbody">
-                    <div class="del-box">
-                        <div class="del-box-ic"><i class="bi bi-trash3"></i></div>
-                        <div>
-                            <strong>ลบ Hotspot "<span id="deleteHotspotName"></span>"</strong>
-                            <p>
-                                จะลบ Background, Templates, Slides และ Cards ทั้งหมดที่ผูกกับ
-                                <code id="deleteHotspotTechName" style="background:#fadbd8; padding:1px 5px; border-radius:4px;"></code>
-                                ด้วย — ไม่สามารถย้อนกลับได้
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="mftr">
-                    <button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="submit" class="btn-md"><i class="bi bi-trash3"></i> ยืนยันลบ</button>
-                </div>
-            </form>
+                <input type="hidden" id="delete_hotspot_id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn-modal-danger" onclick="confirmDeleteHotspot()">
+                    <i class="bi bi-trash me-1"></i> ยืนยันลบ
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -364,19 +278,7 @@
 
 {% block extra_js %}
 <script>
-function editHotspot(id, hotspotName, displayName, description, isActive) {
-    document.getElementById('editHotspotId').value = id;
-    document.getElementById('editHotspotNameDisplay').textContent = hotspotName;
-    document.getElementById('editDisplayName').value = displayName;
-    document.getElementById('editDescription').value = description;
-    document.getElementById('editIsActive').checked = isActive;
-    new bootstrap.Modal(document.getElementById('editHotspotModal')).show();
-}
-function deleteHotspot(id, displayName, techName) {
-    document.getElementById('deleteHotspotId').value = id;
-    document.getElementById('deleteHotspotName').textContent = displayName;
-    document.getElementById('deleteHotspotTechName').textContent = techName;
-    new bootstrap.Modal(document.getElementById('deleteHotspotModal')).show();
-}
+    window.HOTSPOT_REFRESH_INTERVAL = {% if settings.hotspot_status_refresh_interval %}{{ settings.hotspot_status_refresh_interval }}{% else %}10{% endif %};
 </script>
+<script src="{% static 'webapp/js/hotspot-management.js' %}"></script>
 {% endblock %}

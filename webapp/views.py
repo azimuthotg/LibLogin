@@ -774,69 +774,14 @@ def users_view(request):
 
 @login_required
 def hotspots_view(request):
-    """Manage hotspot configurations (staff can add/edit/delete; all users can view)"""
-    if request.method == 'POST':
-        if not request.user.is_staff:
-            messages.error(request, 'เฉพาะ Staff เท่านั้นที่สามารถจัดการ Hotspot ได้')
-            return redirect('hotspots')
-
-        action = request.POST.get('action')
-
-        if action == 'add':
-            hotspot_name = request.POST.get('hotspot_name', '').strip()
-            display_name = request.POST.get('display_name', '').strip()
-            description = request.POST.get('description', '').strip()
-            is_active = request.POST.get('is_active') == 'on'
-
-            if not hotspot_name or not display_name:
-                messages.error(request, 'กรุณากรอก Hotspot Name และ Display Name')
-            elif Hotspot.objects.filter(hotspot_name=hotspot_name).exists():
-                messages.error(request, f'Hotspot Name "{hotspot_name}" มีอยู่แล้ว')
-            else:
-                Hotspot.objects.create(
-                    hotspot_name=hotspot_name,
-                    display_name=display_name,
-                    description=description,
-                    is_active=is_active,
-                    created_by=request.user
-                )
-                messages.success(request, f'เพิ่ม Hotspot "{display_name}" เรียบร้อยแล้ว')
-
-        elif action == 'edit':
-            hotspot_id = request.POST.get('hotspot_id')
-            hotspot = get_object_or_404(Hotspot, pk=hotspot_id)
-            display_name = request.POST.get('display_name', '').strip()
-            description = request.POST.get('description', '').strip()
-            is_active = request.POST.get('is_active') == 'on'
-
-            if not display_name:
-                messages.error(request, 'กรุณากรอก Display Name')
-            else:
-                hotspot.display_name = display_name
-                hotspot.description = description
-                hotspot.is_active = is_active
-                hotspot.save()
-                messages.success(request, f'แก้ไข Hotspot "{display_name}" เรียบร้อยแล้ว')
-
-        elif action == 'delete':
-            hotspot_id = request.POST.get('hotspot_id')
-            hotspot = get_object_or_404(Hotspot, pk=hotspot_id)
-            name = hotspot.display_name
-            hotspot.delete()
-            messages.success(request, f'ลบ Hotspot "{name}" เรียบร้อยแล้ว')
-
-        return redirect('hotspots')
-
+    """Hotspot management page — CRUD is handled via REST API (hotspot-management.js)"""
     hotspots = Hotspot.objects.all().order_by('hotspot_name')
-    total = hotspots.count()
-    active = hotspots.filter(is_active=True).count()
-    ready = sum(1 for h in hotspots if h.status == 'ready')
-
+    settings_obj = SystemSettings.objects.first()
     return render(request, 'webapp/hotspots.html', {
-        'hotspots': hotspots,
-        'total': total,
-        'active': active,
-        'ready': ready,
+        'total': hotspots.count(),
+        'active': hotspots.filter(is_active=True).count(),
+        'ready': sum(1 for h in hotspots if h.status == 'ready'),
+        'settings': settings_obj,
     })
 
 
