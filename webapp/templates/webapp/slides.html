@@ -563,7 +563,7 @@
 <script>
 async function editSlide(id) {
     try {
-        const response = await fetch(`/api/slides/${id}/`, { credentials: 'include' });
+        const response = await fetch((window.BASE_URL || "") + `/api/slides/${id}/`, { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to fetch slide data');
         const slide = await response.json();
 

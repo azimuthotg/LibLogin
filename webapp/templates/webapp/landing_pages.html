@@ -493,7 +493,7 @@ async function saveLandingURL() {
     const is_active    = document.getElementById('edit_is_active').checked;
 
     try {
-        const response = await fetch(`/api/landing-urls/${id}/`, {
+        const response = await fetch((window.BASE_URL || "") + `/api/landing-urls/${id}/`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
             credentials: 'include',
@@ -515,7 +515,7 @@ async function saveLandingURL() {
 async function setActiveLandingURL(id) {
     if (!confirm('Set this landing URL as active? (Other active URLs for this hotspot will be deactivated)')) return;
     try {
-        const response = await fetch(`/api/landing-urls/${id}/set_active/`, {
+        const response = await fetch((window.BASE_URL || "") + `/api/landing-urls/${id}/set_active/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
             credentials: 'include'
@@ -540,7 +540,7 @@ function deleteLandingURL(id) {
 async function confirmDeleteLandingURL() {
     const id = document.getElementById('delete_id').value;
     try {
-        const response = await fetch(`/api/landing-urls/${id}/`, {
+        const response = await fetch((window.BASE_URL || "") + `/api/landing-urls/${id}/`, {
             method: 'DELETE',
             headers: { 'X-CSRFToken': getCookie('csrftoken') },
             credentials: 'include'

@@ -461,11 +461,11 @@
                 return;
             }
 
-            url = `/api/impression-statistics/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&limit=50`;
+            url = (window.BASE_URL || '') + `/api/impression-statistics/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&limit=50`;
             console.log('[Monitoring] Using custom date range:', startDate, 'to', endDate);
         } else {
             const days = document.getElementById('daysFilter').value;
-            url = `/api/impression-statistics/?days=${days}&hotspot=${hotspot}&limit=50`;
+            url = (window.BASE_URL || '') + `/api/impression-statistics/?days=${days}&hotspot=${hotspot}&limit=50`;
             console.log('[Monitoring] Using preset range: last', days, 'days');
         }
 
@@ -734,10 +734,10 @@
                 return;
             }
 
-            url = `/api/media-reach-report/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+            url = (window.BASE_URL || '') + `/api/media-reach-report/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&target_audience=${targetAudience}`;
         } else {
             const days = document.getElementById('daysFilter').value;
-            url = `/api/media-reach-report/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+            url = (window.BASE_URL || '') + `/api/media-reach-report/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
         }
 
         try {
@@ -925,10 +925,10 @@
         if (rangeType === 'custom') {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            url = `/api/export-reach-report-pdf/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+            url = (window.BASE_URL || '') + `/api/export-reach-report-pdf/?start_date=${startDate}&end_date=${endDate}&hotspot=${hotspot}&target_audience=${targetAudience}`;
         } else {
             const days = document.getElementById('daysFilter').value;
-            url = `/api/export-reach-report-pdf/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
+            url = (window.BASE_URL || '') + `/api/export-reach-report-pdf/?days=${days}&hotspot=${hotspot}&target_audience=${targetAudience}`;
         }
 
         window.open(url, '_blank');
