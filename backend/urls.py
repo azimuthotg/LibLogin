@@ -25,9 +25,11 @@ urlpatterns = [
     path('', include('webapp.urls')),  # Frontend webapp
 ]
 
-# Serve media and static files in development
+# Serve media files in both development and production (Waitress handles this)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Serve static files in development only
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
 
     # Serve hotspot login pages from multiple hotspot folders
