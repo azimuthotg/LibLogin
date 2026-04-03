@@ -25,12 +25,9 @@ urlpatterns = [
     path('', include('webapp.urls')),  # Frontend webapp
 ]
 
-# Serve media files in both development and production (Waitress handles this)
+# Serve media and static files via Waitress (IIS reverse proxy passes all /liblogin/* to Waitress)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# Serve static files in development only
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
     # Serve hotspot login pages from multiple hotspot folders
     # Pattern matches: /hotspot/, /hotspot_lib/, /hotspot_building3/, etc.
