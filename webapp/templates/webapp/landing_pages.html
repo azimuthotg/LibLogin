@@ -358,7 +358,7 @@ function toggleDateRangeInputs() {
 
 async function loadLandingURLs() {
     try {
-        const response = await fetch('/api/landing-urls/', { credentials: 'include' });
+        const response = await fetch((window.BASE_URL || '') + '/api/landing-urls/', { credentials: 'include' });
         const data = await response.json();
         allLandingURLs = data;
         filterLandingURLs();
@@ -449,7 +449,7 @@ async function addLandingURL() {
     if (!title || !url || !hotspot_name) { showToast('กรุณากรอกข้อมูลให้ครบ', 'warning'); return; }
 
     try {
-        const response = await fetch('/api/landing-urls/', {
+        const response = await fetch((window.BASE_URL || '') + '/api/landing-urls/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
             credentials: 'include',

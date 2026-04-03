@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LibLogin Management{% endblock %}</title>
 
+    <!-- Base URL for JS API calls -->
+    <script>window.BASE_URL = "{{ request.META.SCRIPT_NAME|default:'' }}";</script>
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->

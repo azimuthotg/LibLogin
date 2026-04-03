@@ -34,7 +34,7 @@ function loadHotspotChoices(selectId, currentValue = '', includeBlank = true) {
 
     console.log(`[Hotspot Dropdown] Loading choices for #${selectId}`);
 
-    return fetch('/api/hotspot-choices/', {
+    return fetch((window.BASE_URL || '') + '/api/hotspot-choices/', {
         headers: {
             'X-CSRFToken': csrftoken
         },

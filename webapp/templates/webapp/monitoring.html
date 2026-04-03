@@ -420,7 +420,7 @@
     // Load hotspot choices for filter
     async function loadHotspotChoices() {
         try {
-            const response = await fetch('/api/hotspot-choices/');
+            const response = await fetch((window.BASE_URL || '') + '/api/hotspot-choices/');
             const data = await response.json();
 
             const select = document.getElementById('hotspotFilter');

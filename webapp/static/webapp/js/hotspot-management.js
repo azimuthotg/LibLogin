@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load hotspots from API
 function loadHotspots() {
     console.log('[Hotspot Management] Loading hotspots...');
-    fetch('/api/hotspots/', {
+    fetch((window.BASE_URL || '') + '/api/hotspots/', {
         headers: {
             'X-CSRFToken': csrftoken
         },
@@ -203,7 +203,7 @@ function addHotspot() {
         return;
     }
 
-    fetch('/api/hotspots/', {
+    fetch((window.BASE_URL || '') + '/api/hotspots/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrftoken,
