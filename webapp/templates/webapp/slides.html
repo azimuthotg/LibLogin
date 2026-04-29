@@ -5,6 +5,17 @@
 
 {% block extra_css %}
 <style>
+    /* ── Count Strip ── */
+    .count-strip { background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); padding:16px 20px; margin-bottom:20px; }
+    .count-strip-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
+    .count-chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .count-chip { display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:30px; font-family:'Kanit',sans-serif; font-size:.8rem; border:1.5px solid; }
+    .count-chip.has-slides  { background:#ebf5fb; color:#1a5276; border-color:#aed6f1; }
+    .count-chip.no-slides   { background:#fdf2f2; color:#c0392b; border-color:#f5b7b1; }
+    .count-chip .chip-num { font-weight:700; font-size:.95rem; }
+    .count-summary { font-family:'Sarabun',sans-serif; font-size:.78rem; color:#94a3b8; display:flex; align-items:center; gap:8px; }
+    .count-summary span { display:flex; align-items:center; gap:4px; }
+
     /* ── Stats Strip ── */
     .stats-strip { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
     .stat-pill {
@@ -92,6 +103,15 @@
     .btn-icon-edit:hover { background:rgba(44,62,80,.18); }
     .btn-icon-delete { background:rgba(239,68,68,.08); color:#dc2626; }
     .btn-icon-delete:hover { background:rgba(239,68,68,.18); }
+
+    /* Active/Inactive rows */
+    .row-inactive td { opacity:.55; }
+    .row-inactive:hover td { opacity:1; }
+    .row-separator td { padding:0 !important; height:1px; background:#f1f5f9; }
+    .row-separator-label { background:#f8fafc !important; }
+    .row-separator-label td { padding:6px 16px !important; }
+    .inactive-section-label { font-family:'Kanit',sans-serif; font-size:.72rem; font-weight:600; color:#94a3b8; letter-spacing:.05em; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
+    .inactive-section-label::after { content:''; flex:1; height:1px; background:#e2e8f0; }
 
     /* Empty Row */
     .empty-row td { text-align:center; padding:56px 24px !important; }
@@ -181,40 +201,42 @@
 
 {% block content %}
 
-<!-- Stats Strip -->
-<div class="stats-strip">
-    <div class="stat-pill total">
-        <i class="bi bi-collection pill-icon"></i>
-        <span class="pill-val">{{ slides|length }}</span>
-        <span>Slide ทั้งหมด</span>
+<!-- Count Strip -->
+<div class="count-strip">
+    <div class="count-strip-title">
+        <span><i class="bi bi-collection me-2"></i>จำนวน Slide ที่แสดงอยู่แต่ละ Hotspot</span>
+        <span class="count-summary">
+            <span><i class="bi bi-circle-fill" style="color:#22c55e;font-size:.45rem;"></i> แสดงอยู่ {{ active_count }}</span>
+            <span><i class="bi bi-circle-fill" style="color:#e2e8f0;font-size:.45rem;"></i> ปิดอยู่ {{ inactive_count }}</span>
+        </span>
     </div>
-    <div class="stat-pill active">
-        <i class="bi bi-check-circle-fill pill-icon"></i>
-        <span class="pill-val">{% for s in slides %}{% if s.is_active %}1{% endif %}{% endfor %}</span>
-        <span>Active</span>
-    </div>
-    <div class="stat-pill inactive">
-        <i class="bi bi-pause-circle pill-icon"></i>
-        <span class="pill-val">{% for s in slides %}{% if not s.is_active %}1{% endif %}{% endfor %}</span>
-        <span>Inactive</span>
+    <div class="count-chips">
+        {% for hs in hotspot_slide_counts %}
+        <div class="count-chip {% if hs.active_count > 0 %}has-slides{% else %}no-slides{% endif %}">
+            <i class="bi bi-wifi" style="font-size:.75rem;"></i>
+            <span>{{ hs.display_name }}</span>
+            <span class="chip-num">{{ hs.active_count }}</span>
+            <span style="font-size:.7rem; opacity:.7;">slides</span>
+        </div>
+        {% endfor %}
+        <div class="count-chip {% if default_active_count > 0 %}has-slides{% else %}no-slides{% endif %}">
+            <i class="bi bi-globe2" style="font-size:.75rem;"></i>
+            <span>Default</span>
+            <span class="chip-num">{{ default_active_count }}</span>
+            <span style="font-size:.7rem; opacity:.7;">slides</span>
+        </div>
     </div>
 </div>
 
 <!-- Page Header -->
 <div class="page-header">
     <div class="page-header-left">
-        <h4><i class="bi bi-collection me-2" style="color:#3498db;"></i>Slideshow Content</h4>
-        <p>Slide จะแสดงผลในส่วน Slideshow ของหน้า Login เรียงตาม Order จากน้อยไปมาก</p>
+        <h4><i class="bi bi-collection me-2" style="color:#3498db;"></i>เนื้อหา Slideshow</h4>
+        <p>Slide ที่ Active จะแสดงบนหน้า Login — เรียงตาม Order จากน้อยไปมาก</p>
     </div>
     <button class="btn-modal-primary" data-bs-toggle="modal" data-bs-target="#createSlideModal">
         <i class="bi bi-plus-lg me-1"></i> เพิ่ม Slide ใหม่
     </button>
-</div>
-
-<!-- Info Banner -->
-<div class="info-banner">
-    <i class="bi bi-info-circle-fill"></i>
-    <div>Slide ที่มี <strong>Order น้อยกว่า</strong> จะแสดงก่อน — ใช้ Icon Emoji หรืออัปโหลดรูปภาพก็ได้ สามารถเพิ่ม CTA Button เพื่อ Link ไปยังหน้าอื่น</div>
 </div>
 
 <!-- Slides Table -->
@@ -223,17 +245,17 @@
         <table>
             <thead>
                 <tr>
-                    <th>Icon</th>
-                    <th>Title / Description</th>
+                    <th>ไอคอน</th>
+                    <th>ชื่อ / คำอธิบาย</th>
                     <th>Hotspot</th>
-                    <th>Order</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>ลำดับ</th>
+                    <th>สถานะ</th>
+                    <th>จัดการ</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="slidesTableBody">
                 {% for slide in slides %}
-                <tr>
+                <tr class="{% if not slide.is_active %}row-inactive{% endif %}" data-active="{{ slide.is_active|lower }}">
                     <td>
                         <div class="slide-icon-cell">
                             {% if slide.icon_image %}
@@ -257,7 +279,7 @@
                     <td>
                         <span class="status-badge {% if slide.is_active %}active{% else %}inactive{% endif %}">
                             <span class="status-dot"></span>
-                            {% if slide.is_active %}Active{% else %}Inactive{% endif %}
+                            {% if slide.is_active %}แสดง{% else %}ปิด{% endif %}
                         </span>
                     </td>
                     <td>
@@ -600,7 +622,22 @@ function deleteSlide(id, title) {
     }
 }
 
+function insertSlideSectionDivider() {
+    const tbody = document.getElementById('slidesTableBody');
+    if (!tbody) return;
+    document.querySelectorAll('.row-separator-label').forEach(r => r.remove());
+    const rows = [...tbody.querySelectorAll('tr[data-active]')];
+    const firstInactive = rows.find(r => r.dataset.active === 'false');
+    if (firstInactive && rows.find(r => r.dataset.active === 'true')) {
+        const sep = document.createElement('tr');
+        sep.className = 'row-separator-label';
+        sep.innerHTML = `<td colspan="6"><span class="inactive-section-label"><i class="bi bi-archive me-1"></i>ปิดการแสดงผล &nbsp;</span></td>`;
+        tbody.insertBefore(sep, firstInactive);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    insertSlideSectionDivider();
     // Handle create/update form submissions via fetch
     document.querySelectorAll('form').forEach(function(form) {
         const action = form.querySelector('input[name="action"]');

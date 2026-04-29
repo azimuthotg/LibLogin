@@ -631,12 +631,29 @@ def slides_view(request):
 
     # GET request - display slides
     if allowed is None:
-        slides = SlideContent.objects.all().order_by('order', 'created_at')
+        slides = SlideContent.objects.all().order_by('-is_active', 'order', 'created_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True).order_by('hotspot_name')
     else:
-        slides = SlideContent.objects.filter(hotspot_filter_q(allowed)).order_by('order', 'created_at')
+        slides = SlideContent.objects.filter(hotspot_filter_q(allowed)).order_by('-is_active', 'order', 'created_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True, hotspot_name__in=allowed).order_by('hotspot_name')
+
+    # Per-hotspot active slide counts
+    hotspot_slide_counts = []
+    for hs in hotspots_qs:
+        cnt = slides.filter(hotspot_name=hs.hotspot_name, is_active=True).count()
+        hotspot_slide_counts.append({
+            'hotspot_name': hs.hotspot_name,
+            'display_name': hs.display_name,
+            'active_count': cnt,
+        })
+    default_active_count = slides.filter(hotspot_name__isnull=True, is_active=True).count()
 
     context = {
         'slides': slides,
+        'active_count': slides.filter(is_active=True).count(),
+        'inactive_count': slides.filter(is_active=False).count(),
+        'hotspot_slide_counts': hotspot_slide_counts,
+        'default_active_count': default_active_count,
     }
 
     return render(request, 'webapp/slides.html', context)
