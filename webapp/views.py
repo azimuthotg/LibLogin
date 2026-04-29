@@ -142,6 +142,23 @@ def backgrounds_view(request):
 
             background.save()
             messages.success(request, f'Background "{background.title}" updated successfully!')
+        elif action == 'use_existing':
+            source_id = request.POST.get('source_image_id')
+            source = get_object_or_404(BackgroundImage, pk=source_id)
+            if allowed is not None and source.hotspot_name and source.hotspot_name not in allowed:
+                messages.error(request, 'ไม่มีสิทธิ์เข้าถึงภาพต้นฉบับ')
+                return redirect('backgrounds')
+            title = request.POST.get('title', '').strip() or source.title
+            is_active = request.POST.get('is_active') == 'on'
+            new_bg = BackgroundImage(
+                title=title,
+                hotspot_name=hotspot_name,
+                is_active=is_active,
+                uploaded_by=request.user,
+            )
+            new_bg.image = source.image.name
+            new_bg.save()
+            messages.success(request, f'เพิ่ม Background "{new_bg.title}" สำเร็จ')
         else:
             title = request.POST.get('title')
             is_active = request.POST.get('is_active') == 'on'

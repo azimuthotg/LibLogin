@@ -75,6 +75,8 @@
 .ic-btn.activate:hover { background:#27ae60; color:#fff; border-color:#27ae60; }
 .ic-btn.del { color:#e74c3c; border-color:#fadbd8; background:#fdf2f2; }
 .ic-btn.del:hover { background:#e74c3c; color:#fff; border-color:#e74c3c; }
+.ic-btn.lib { color:#8e44ad; border-color:#d7bde2; background:#fdf9ff; }
+.ic-btn.lib:hover { background:#8e44ad; color:#fff; border-color:#8e44ad; }
 
 /* Coverage strip */
 .coverage-strip { background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); padding:16px 20px; margin-bottom:20px; }
@@ -254,6 +256,9 @@
                 <button class="ic-btn" onclick="editBackground({{ bg.id }},'{{ bg.title|escapejs }}','{{ bg.hotspot_name|default:''|escapejs }}',{{ bg.is_active|lower }},'{{ bg.image.url|escapejs }}')">
                     <i class="bi bi-pencil"></i> แก้ไข
                 </button>
+                <button class="ic-btn lib" onclick="useFromLibrary({{ bg.id }},'{{ bg.title|escapejs }}','{{ bg.image.url|escapejs }}')" title="ใช้ภาพนี้กับ Hotspot อื่น">
+                    <i class="bi bi-copy"></i>
+                </button>
                 <form method="post" action="{% url 'delete_background' bg.id %}" onsubmit="return confirm('ลบภาพ {{ bg.title|escapejs }} ใช่หรือไม่?');">
                     {% csrf_token %}
                     <button type="submit" class="ic-btn del"><i class="bi bi-trash"></i></button>
@@ -278,6 +283,53 @@
         <div class="modal-content">
             <div class="mhdr-dark modal-header"><div class="modal-title" id="imageViewerTitle"><i class="bi bi-image"></i> ดูภาพ</div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body text-center p-3"><img src="" id="imageViewerImg" class="img-fluid rounded" alt="Preview"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Use from Library Modal -->
+<div class="modal fade" id="useFromLibraryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="use_existing">
+                <input type="hidden" name="source_image_id" id="libSourceId">
+                <div class="mhdr-dark modal-header">
+                    <div class="modal-title"><i class="bi bi-copy"></i> ใช้ภาพนี้กับ Hotspot อื่น</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="mbody">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                        <div>
+                            <label class="flbl">ภาพที่เลือก</label>
+                            <img id="libPreviewImg" src="" class="img-fluid rounded" style="max-height:160px; width:100%; object-fit:cover;" alt="">
+                            <p class="fhint mt-1" id="libSourceTitle"></p>
+                        </div>
+                        <div>
+                            <div class="mb-3">
+                                <label class="flbl">ชื่อภาพ (สำหรับ record ใหม่)</label>
+                                <input type="text" class="finput" name="title" id="libTitle" required placeholder="เช่น Library Background - Lab">
+                            </div>
+                            <div class="mb-3">
+                                <label class="flbl">Hotspot เป้าหมาย</label>
+                                <select class="fselect" id="libHotspotName" name="hotspot_name" data-include-blank="true">
+                                    <option value="">Loading...</option>
+                                </select>
+                                <div class="fhint"><i class="bi bi-info-circle me-1"></i>เว้นว่างเพื่อใช้กับทุก Hotspot</div>
+                            </div>
+                            <div class="switch-row">
+                                <input class="form-check-input" type="checkbox" id="libIsActive" name="is_active" role="switch">
+                                <label class="switch-lbl" for="libIsActive">ตั้งเป็น Active ทันที</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mftr">
+                    <button type="button" class="btn-mc" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn-ms"><i class="bi bi-copy"></i> ใช้ภาพนี้</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -420,6 +472,17 @@ function editBackground(id, title, hotspotName, isActive, imageUrl) {
     document.getElementById('editCurrentImage').src = imageUrl;
     loadHotspotChoices('editHotspotName', hotspotName, true);
     new bootstrap.Modal(document.getElementById('editBackgroundModal')).show();
+}
+
+// Use from library
+function useFromLibrary(id, title, imageUrl) {
+    document.getElementById('libSourceId').value = id;
+    document.getElementById('libTitle').value = title;
+    document.getElementById('libPreviewImg').src = imageUrl;
+    document.getElementById('libSourceTitle').textContent = 'ต้นฉบับ: ' + title;
+    document.getElementById('libIsActive').checked = false;
+    loadHotspotChoices('libHotspotName', '', true);
+    new bootstrap.Modal(document.getElementById('useFromLibraryModal')).show();
 }
 </script>
 {% endblock %}
