@@ -79,6 +79,23 @@ def dashboard_view(request):
     # User's departments
     user_departments = request.user.departments.filter(is_active=True) if not request.user.is_staff else None
 
+    # Hotspot coverage status for API guide
+    if allowed is None:
+        hotspots_qs = Hotspot.objects.filter(is_active=True).order_by('hotspot_name')
+    else:
+        hotspots_qs = Hotspot.objects.filter(is_active=True, hotspot_name__in=allowed).order_by('hotspot_name')
+
+    hotspot_coverage = []
+    for hs in hotspots_qs:
+        has_bg = BackgroundImage.objects.filter(hotspot_name=hs.hotspot_name, is_active=True).exists()
+        hotspot_coverage.append({
+            'hotspot_name': hs.hotspot_name,
+            'display_name': hs.display_name,
+            'has_active_bg': has_bg,
+        })
+
+    has_default_bg = BackgroundImage.objects.filter(hotspot_name__isnull=True, is_active=True).exists()
+
     context = {
         'recent_images': recent_images,
         'total_images': total_images,
@@ -86,6 +103,8 @@ def dashboard_view(request):
         'total_routers': total_routers,
         'total_users': total_users,
         'user_departments': user_departments,
+        'hotspot_coverage': hotspot_coverage,
+        'has_default_bg': has_default_bg,
     }
     return render(request, 'webapp/dashboard.html', context)
 
