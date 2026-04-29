@@ -428,8 +428,8 @@
 
             data.forEach(hotspot => {
                 const option = document.createElement('option');
-                option.value = hotspot.value;
-                option.textContent = hotspot.label;
+                option.value = hotspot.hotspot_name;
+                option.textContent = `${hotspot.display_name} (${hotspot.hotspot_name})`;
                 select.appendChild(option);
             });
 

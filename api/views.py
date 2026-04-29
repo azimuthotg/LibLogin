@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes, action, authentication_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
@@ -43,6 +44,24 @@ from django.conf import settings as django_settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+
+def _get_allowed_hotspot_names(user):
+    """
+    Return list of hotspot_names the user is allowed to manage.
+    Returns None for unrestricted access (staff users).
+    Returns list (possibly empty) for regular users based on department membership.
+    Mirrors get_user_allowed_hotspots() in webapp/views.py.
+    """
+    if user.is_staff:
+        return None
+    return list(
+        Hotspot.objects.filter(
+            departments__users=user,
+            departments__is_active=True,
+            is_active=True,
+        ).distinct().values_list('hotspot_name', flat=True)
+    )
 
 
 # Register Thai fonts for PDF generation
@@ -139,11 +158,19 @@ def get_background_image(request):
 class BackgroundImageViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing background images
-    Requires authentication
+    Requires authentication. Non-staff users see only their department's hotspot images.
     """
-    queryset = BackgroundImage.objects.all()
     serializer_class = BackgroundImageSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        allowed = _get_allowed_hotspot_names(self.request.user)
+        if allowed is None:
+            return BackgroundImage.objects.all()
+        # Include images for allowed hotspots + default images (hotspot_name null/blank)
+        return BackgroundImage.objects.filter(
+            Q(hotspot_name__in=allowed) | Q(hotspot_name__isnull=True) | Q(hotspot_name='')
+        )
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -151,12 +178,19 @@ class BackgroundImageViewSet(viewsets.ModelViewSet):
         return BackgroundImageSerializer
 
     def perform_create(self, serializer):
+        hotspot_name = serializer.validated_data.get('hotspot_name')
+        allowed = _get_allowed_hotspot_names(self.request.user)
+        if allowed is not None and hotspot_name and hotspot_name not in allowed:
+            raise PermissionDenied("คุณไม่มีสิทธิ์จัดการ Hotspot นี้")
         serializer.save(uploaded_by=self.request.user)
 
     @action(detail=True, methods=['post'])
     def set_active(self, request, pk=None):
         """Set this image as active"""
         image = self.get_object()
+        allowed = _get_allowed_hotspot_names(request.user)
+        if allowed is not None and image.hotspot_name and image.hotspot_name not in allowed:
+            raise PermissionDenied("คุณไม่มีสิทธิ์จัดการ Hotspot นี้")
         image.is_active = True
         image.save()
         return Response({
@@ -168,10 +202,11 @@ class BackgroundImageViewSet(viewsets.ModelViewSet):
     def by_router(self, request):
         """Get images filtered by hotspot_name"""
         hotspot_name = request.query_params.get('hotspot_name', None)
+        qs = self.get_queryset()
         if hotspot_name:
-            images = self.queryset.filter(hotspot_name=hotspot_name)
+            images = qs.filter(hotspot_name=hotspot_name)
         else:
-            images = self.queryset.filter(hotspot_name__isnull=True)
+            images = qs.filter(hotspot_name__isnull=True)
 
         serializer = self.get_serializer(images, many=True)
         return Response(serializer.data)
@@ -202,20 +237,28 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SlideContentViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for managing slide content
-    Read operations are public, write operations require authentication
+    ViewSet for managing slide content (admin CRUD).
+    All operations require authentication.
+    Non-staff users see only their department's hotspot slides + default slides.
+    Note: Public slide data for MikroTik is served by get_slide_content() endpoint.
     """
-    queryset = SlideContent.objects.all()
     serializer_class = SlideContentSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get_permissions(self):
-        """Allow anyone to read, but require authentication for write operations"""
-        if self.action in ['list', 'retrieve']:
-            return [AllowAny()]
-        return [IsAuthenticated()]
+    def get_queryset(self):
+        allowed = _get_allowed_hotspot_names(self.request.user)
+        if allowed is None:
+            return SlideContent.objects.all()
+        return SlideContent.objects.filter(
+            Q(hotspot_name__in=allowed) | Q(hotspot_name__isnull=True) | Q(hotspot_name='')
+        )
 
     def perform_create(self, serializer):
         """Set created_by when creating a slide"""
+        hotspot_name = serializer.validated_data.get('hotspot_name')
+        allowed = _get_allowed_hotspot_names(self.request.user)
+        if allowed is not None and hotspot_name and hotspot_name not in allowed:
+            raise PermissionDenied("คุณไม่มีสิทธิ์จัดการ Hotspot นี้")
         serializer.save(created_by=self.request.user)
 
 
@@ -547,40 +590,44 @@ class HotspotViewSet(viewsets.ModelViewSet):
 
 class LandingPageURLViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for managing landing page URLs
-
-    Features:
-    - CRUD operations for landing page URLs
-    - Automatic cache invalidation on create/update/delete
-    - Only one active URL per hotspot at a time
+    ViewSet for managing landing page URLs.
+    Non-staff users see and manage only their department's hotspot URLs.
     """
-    queryset = LandingPageURL.objects.all()
     serializer_class = LandingPageURLSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Filter by hotspot_name if provided"""
-        queryset = LandingPageURL.objects.all()
+        """Filter by department access + optional hotspot_name query param."""
+        allowed = _get_allowed_hotspot_names(self.request.user)
+        if allowed is None:
+            queryset = LandingPageURL.objects.all()
+        else:
+            queryset = LandingPageURL.objects.filter(hotspot_name__in=allowed)
+
         hotspot_name = self.request.query_params.get('hotspot_name', None)
         if hotspot_name:
             queryset = queryset.filter(hotspot_name=hotspot_name)
         return queryset
 
+    def _check_hotspot_permission(self, hotspot_name):
+        """Raise PermissionDenied if the current user cannot manage hotspot_name."""
+        allowed = _get_allowed_hotspot_names(self.request.user)
+        if allowed is not None and hotspot_name not in allowed:
+            raise PermissionDenied("คุณไม่มีสิทธิ์จัดการ Hotspot นี้")
+
     def perform_destroy(self, instance):
-        """Invalidate cache when deleting a landing URL"""
+        """Invalidate cache when deleting a landing URL."""
+        self._check_hotspot_permission(instance.hotspot_name)
         hotspot_name = instance.hotspot_name
         instance.delete()
-
-        # Invalidate cache for this hotspot
-        cache_key = f'landing_url_{hotspot_name}'
-        cache.delete(cache_key)
+        cache.delete(f'landing_url_{hotspot_name}')
         logger.info(f"[Landing URL] Deleted and cache invalidated for {hotspot_name}")
 
     def perform_create(self, serializer):
-        """Set created_by when creating a landing URL"""
+        """Set created_by and enforce department permission when creating."""
         hotspot_name = serializer.validated_data.get('hotspot_name')
+        self._check_hotspot_permission(hotspot_name)
 
-        # If setting as active, deactivate others for this hotspot
         if serializer.validated_data.get('is_active', False):
             LandingPageURL.objects.filter(
                 hotspot_name=hotspot_name,
@@ -589,18 +636,15 @@ class LandingPageURLViewSet(viewsets.ModelViewSet):
             logger.info(f"[Landing URL] Deactivated existing active URLs for {hotspot_name}")
 
         serializer.save(created_by=self.request.user)
-
-        # Invalidate cache for this hotspot
-        cache_key = f'landing_url_{hotspot_name}'
-        cache.delete(cache_key)
+        cache.delete(f'landing_url_{hotspot_name}')
         logger.info(f"[Landing URL] Cache invalidated for {hotspot_name}")
 
     def perform_update(self, serializer):
-        """Handle activation logic when updating"""
+        """Handle activation logic + enforce department permission when updating."""
         hotspot_name = serializer.instance.hotspot_name
+        self._check_hotspot_permission(hotspot_name)
 
         if serializer.validated_data.get('is_active', False):
-            # Deactivate other active URLs for this hotspot
             LandingPageURL.objects.filter(
                 hotspot_name=hotspot_name,
                 is_active=True
@@ -608,34 +652,26 @@ class LandingPageURLViewSet(viewsets.ModelViewSet):
             logger.info(f"[Landing URL] Deactivated other active URLs for {hotspot_name}")
 
         serializer.save()
-
-        # Invalidate cache for this hotspot
-        cache_key = f'landing_url_{hotspot_name}'
-        cache.delete(cache_key)
+        cache.delete(f'landing_url_{hotspot_name}')
         logger.info(f"[Landing URL] Cache invalidated for {hotspot_name}")
 
     @action(detail=True, methods=['post'])
     def set_active(self, request, pk=None):
-        """Set this landing URL as active (deactivate others)"""
+        """Set this landing URL as active (deactivate others)."""
         landing_url = self.get_object()
         hotspot_name = landing_url.hotspot_name
+        self._check_hotspot_permission(hotspot_name)
 
-        # Deactivate other active URLs for this hotspot
         LandingPageURL.objects.filter(
             hotspot_name=hotspot_name,
             is_active=True
         ).exclude(id=landing_url.id).update(is_active=False)
 
-        # Activate this one
         landing_url.is_active = True
         landing_url.save()
-
-        # Invalidate cache for this hotspot
-        cache_key = f'landing_url_{hotspot_name}'
-        cache.delete(cache_key)
+        cache.delete(f'landing_url_{hotspot_name}')
 
         logger.info(f"[Landing URL] Activated: {landing_url.title} for {hotspot_name}")
-
         return Response({
             'success': True,
             'message': f'Landing URL "{landing_url.title}" is now active',
@@ -894,6 +930,11 @@ def impression_statistics(request):
         # Base queryset
         queryset = PageImpression.objects.filter(viewed_at__gte=start_date, viewed_at__lte=end_date)
 
+        # Restrict to allowed hotspots for non-staff users
+        allowed = _get_allowed_hotspot_names(request.user)
+        if allowed is not None:
+            queryset = queryset.filter(hotspot_name__in=allowed)
+
         # Apply hotspot filter if provided
         if hotspot_filter and hotspot_filter != 'all':
             queryset = queryset.filter(hotspot_name=hotspot_filter)
@@ -931,9 +972,10 @@ def impression_statistics(request):
 
         # === HOURLY BREAKDOWN (for heatmap - last 24 hours) ===
         last_24h = timezone.now() - timedelta(hours=24)
-        hourly_data = PageImpression.objects.filter(
-            viewed_at__gte=last_24h
-        ).annotate(
+        hourly_base = PageImpression.objects.filter(viewed_at__gte=last_24h)
+        if allowed is not None:
+            hourly_base = hourly_base.filter(hotspot_name__in=allowed)
+        hourly_data = hourly_base.annotate(
             hour=TruncHour('viewed_at')
         ).values('hour').annotate(
             count=Count('id')
@@ -1030,6 +1072,11 @@ def media_reach_report(request):
 
         # Base queryset
         queryset = PageImpression.objects.filter(viewed_at__gte=start_date, viewed_at__lte=end_date)
+
+        # Restrict to allowed hotspots for non-staff users
+        allowed = _get_allowed_hotspot_names(request.user)
+        if allowed is not None:
+            queryset = queryset.filter(hotspot_name__in=allowed)
 
         # Apply hotspot filter if provided
         if hotspot_filter and hotspot_filter != 'all':
@@ -1129,6 +1176,8 @@ def media_reach_report(request):
             viewed_at__gte=prev_start,
             viewed_at__lt=prev_end
         )
+        if allowed is not None:
+            prev_queryset = prev_queryset.filter(hotspot_name__in=allowed)
         if hotspot_filter and hotspot_filter != 'all':
             prev_queryset = prev_queryset.filter(hotspot_name=hotspot_filter)
 
@@ -1326,6 +1375,9 @@ def export_reach_report_pdf(request):
 
         # Get data (reuse logic from media_reach_report)
         queryset = PageImpression.objects.filter(viewed_at__gte=start_date, viewed_at__lte=end_date)
+        allowed = _get_allowed_hotspot_names(request.user)
+        if allowed is not None:
+            queryset = queryset.filter(hotspot_name__in=allowed)
         if hotspot_filter and hotspot_filter != 'all':
             queryset = queryset.filter(hotspot_name=hotspot_filter)
 
