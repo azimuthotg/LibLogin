@@ -522,7 +522,7 @@
             trendChart.destroy();
         }
 
-        const labels = dailyTrend.map(d => new Date(d.date).toLocaleDateString());
+        const labels = dailyTrend.map(d => formatThaiDate(d.date));
         const totals = dailyTrend.map(d => d.total);
         const uniques = dailyTrend.map(d => d.unique);
 
@@ -646,7 +646,7 @@
 
             const row = `
                 <tr>
-                    <td>${timestamp.toLocaleString()}</td>
+                    <td>${formatThaiDateTime(imp.viewed_at)}</td>
                     <td><span class="badge bg-primary" style="font-size:.75rem;">${imp.hotspot_name}</span></td>
                     <td><i class="bi bi-${deviceIcon} ${getDeviceClass(imp.device_type)}"></i> ${imp.device_type || 'unknown'}</td>
                     <td><code style="font-size:.78rem;">${imp.ip_address || 'N/A'}</code></td>
@@ -685,7 +685,7 @@
         const impressions = currentData.recent_impressions;
         const headers = ['Timestamp', 'Hotspot', 'Device', 'IP', 'Time on Page', 'Unique', 'MAC Hash'];
         const rows = impressions.map(imp => [
-            new Date(imp.viewed_at).toLocaleString(),
+            formatThaiDateTime(imp.viewed_at),
             imp.hotspot_name,
             imp.device_type || 'unknown',
             imp.ip_address || 'N/A',
@@ -881,7 +881,7 @@
         tbody.innerHTML = '';
 
         const metrics = [
-            { label: 'Report Period', value: `${new Date(data.report_period.start).toLocaleDateString()} - ${new Date(data.report_period.end).toLocaleDateString()}` },
+            { label: 'ช่วงรายงาน', value: `${formatThaiDate(data.report_period.start)} — ${formatThaiDate(data.report_period.end)}` },
             { label: 'Target Audience', value: data.reach_metrics.target_audience.toLocaleString() + ' users' },
             { label: 'Total Reach', value: data.reach_metrics.total_reach.toLocaleString() + ' unique users' },
             { label: 'Reach Rate', value: data.reach_metrics.reach_rate + '%' },

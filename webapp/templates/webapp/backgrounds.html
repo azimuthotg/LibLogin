@@ -1,4 +1,5 @@
 {% extends 'webapp/base.html' %}
+{% load thai_date %}
 {% block title %}Background Images - LibLogin{% endblock %}
 {% block page_title %}Background Images{% endblock %}
 
@@ -244,7 +245,7 @@
                 {% else %}
                 <span class="hs-badge global"><i class="bi bi-globe2"></i>All Hotspots</span>
                 {% endif %}
-                <span class="date-text">{{ bg.uploaded_at|date:"d/m/Y" }}</span>
+                <span class="date-text">{{ bg.uploaded_at|thai_date }}</span>
             </div>
             <div class="img-card-actions">
                 {% if not bg.is_active %}

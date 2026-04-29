@@ -475,7 +475,7 @@ function displayLandingURLs(landingURLs) {
         const statusClass = url.is_active ? 'active' : 'inactive';
         const rowClass    = url.is_active ? '' : 'row-inactive';
         const shortUrl = url.url.length > 42 ? url.url.substring(0, 42) + '…' : url.url;
-        const createdDate = new Date(url.created_at).toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
+        const createdDate = formatThaiDate(url.created_at);
         const activateBtn = !url.is_active
             ? `<button class="btn-icon btn-icon-activate" onclick="setActiveLandingURL(${url.id})" title="ตั้งเป็น Active"><i class="bi bi-check-circle"></i></button>`
             : '';
@@ -543,7 +543,7 @@ async function editLandingURL(id) {
     document.getElementById('edit_is_active').checked = url.is_active;
     document.getElementById('edit_redirect_count').textContent = url.redirect_count || 0;
     document.getElementById('edit_last_redirected').textContent = url.last_redirected_at
-        ? new Date(url.last_redirected_at).toLocaleString('th-TH') : 'Never';
+        ? formatThaiDateTime(url.last_redirected_at) : 'ยังไม่มี';
     new bootstrap.Modal(document.getElementById('editLandingURLModal')).show();
 }
 

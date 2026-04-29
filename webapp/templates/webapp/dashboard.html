@@ -1,5 +1,5 @@
 {% extends 'webapp/base.html' %}
-
+{% load thai_date %}
 {% block title %}Dashboard - LibLogin Management{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
@@ -396,7 +396,7 @@
                             <span class="badge-status inactive">Inactive</span>
                             {% endif %}
                         </td>
-                        <td style="color:#94a3b8; white-space:nowrap;">{{ image.uploaded_at|date:"d/m/Y" }}</td>
+                        <td style="color:#94a3b8; white-space:nowrap;">{{ image.uploaded_at|thai_date }}</td>
                         <td>
                             <a href="{% url 'backgrounds' %}" class="btn-tbl-edit">
                                 <i class="bi bi-pencil"></i>
