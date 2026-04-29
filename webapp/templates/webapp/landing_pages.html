@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Landing Pages - LibLogin{% endblock %}
-{% block page_title %}Landing Page URLs{% endblock %}
+{% block page_title %}จัดการ Landing Page URLs{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -109,6 +109,39 @@
 
     /* Custom date range - hidden initially */
     #presetRangeContainer, #customRangeContainer { display:none; }
+
+    /* Stats Strip */
+    .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    .stat-pill {
+        display: flex; align-items: center; gap: 14px;
+        background: #fff; border-radius: 12px;
+        padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        border-left: 4px solid transparent;
+    }
+    .stat-pill.total  { border-color: #3498db; }
+    .stat-pill.sp-active { border-color: #27ae60; }
+    .stat-pill.sp-inactive { border-color: #94a3b8; }
+    .stat-pill .stat-icon {
+        width: 36px; height: 36px; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; flex-shrink: 0;
+    }
+    .stat-pill.total .stat-icon       { background: #ebf5fb; color: #3498db; }
+    .stat-pill.sp-active .stat-icon   { background: #eafaf1; color: #27ae60; }
+    .stat-pill.sp-inactive .stat-icon { background: #f8f9fa; color: #94a3b8; }
+    .stat-pill .stat-num {
+        font-family: 'Kanit', sans-serif; font-weight: 700;
+        font-size: 1.4rem; line-height: 1; color: #1e293b;
+    }
+    .stat-pill .stat-label { font-size: .72rem; color: #94a3b8; margin-top: 2px; }
+
+    /* Inactive row */
+    tr.row-inactive td { opacity: 0.6; }
 </style>
 {% endblock %}
 
@@ -116,12 +149,28 @@
 
 <div class="page-header">
     <div class="page-header-left">
-        <h4><i class="bi bi-link-45deg me-2" style="color:#3498db;"></i>Landing Page URLs</h4>
-        <p>จัดการ URL ปลายทางหลัง Login สำเร็จ — กำหนด Landing Page แยกตาม Hotspot</p>
+        <h4><i class="bi bi-link-45deg me-2" style="color:#3498db;"></i>จัดการ Landing Page URLs</h4>
+        <p>กำหนด URL ปลายทางหลัง Login สำเร็จ — แยกตาม Hotspot</p>
     </div>
     <button class="btn-modal-primary" data-bs-toggle="modal" data-bs-target="#addLandingURLModal">
-        <i class="bi bi-plus-lg me-1"></i> Add Landing URL
+        <i class="bi bi-plus-lg me-1"></i> เพิ่ม Landing URL
     </button>
+</div>
+
+<!-- Stats Strip -->
+<div class="stats-strip" id="landingStatsStrip" style="display:none;">
+    <div class="stat-pill total">
+        <div class="stat-icon"><i class="bi bi-link-45deg"></i></div>
+        <div><div class="stat-num" id="statTotal">0</div><div class="stat-label">ทั้งหมด</div></div>
+    </div>
+    <div class="stat-pill sp-active">
+        <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+        <div><div class="stat-num" id="statActive">0</div><div class="stat-label">ใช้งานอยู่</div></div>
+    </div>
+    <div class="stat-pill sp-inactive">
+        <div class="stat-icon"><i class="bi bi-pause-circle"></i></div>
+        <div><div class="stat-num" id="statInactive">0</div><div class="stat-label">ปิดใช้งาน</div></div>
+    </div>
 </div>
 
 <!-- Filter Bar -->
@@ -129,46 +178,46 @@
     <div class="filter-bar-title"><i class="bi bi-funnel"></i> ตัวกรอง</div>
     <div class="filter-grid">
         <div class="filter-item">
-            <label>Date Range Type</label>
+            <label>ช่วงวันที่</label>
             <select class="form-select-s" id="dateRangeType" onchange="toggleDateRangeInputs()">
-                <option value="all" selected>All Time</option>
-                <option value="preset">Quick Select</option>
-                <option value="custom">Custom Range</option>
+                <option value="all" selected>ทั้งหมด</option>
+                <option value="preset">เลือกด่วน</option>
+                <option value="custom">กำหนดเอง</option>
             </select>
         </div>
         <div class="filter-item" id="presetRangeContainer">
-            <label>Time Range</label>
+            <label>ระยะเวลา</label>
             <select class="form-select-s" id="daysFilter" onchange="filterLandingURLs()">
-                <option value="7">Last 7 Days</option>
-                <option value="30" selected>Last 30 Days</option>
-                <option value="90">Last 90 Days</option>
+                <option value="7">7 วันล่าสุด</option>
+                <option value="30" selected>30 วันล่าสุด</option>
+                <option value="90">90 วันล่าสุด</option>
             </select>
         </div>
         <div class="filter-item" id="customStartContainer" style="display:none;">
-            <label>Start Date</label>
+            <label>วันที่เริ่ม</label>
             <input type="date" class="form-ctrl-s" id="startDate" onchange="filterLandingURLs()">
         </div>
         <div class="filter-item" id="customEndContainer" style="display:none;">
-            <label>End Date</label>
+            <label>วันที่สิ้นสุด</label>
             <input type="date" class="form-ctrl-s" id="endDate" onchange="filterLandingURLs()">
         </div>
         <div class="filter-item">
             <label>Hotspot</label>
             <select id="hotspotFilter" class="form-select-s hotspot-dropdown" onchange="filterLandingURLs()" data-include-blank="true">
-                <option value="">Loading hotspots...</option>
+                <option value="">กำลังโหลด...</option>
             </select>
         </div>
         <div class="filter-item">
-            <label>Status</label>
+            <label>สถานะ</label>
             <select id="statusFilter" class="form-select-s" onchange="filterLandingURLs()">
-                <option value="all">All Status</option>
-                <option value="active">Active Only</option>
-                <option value="inactive">Inactive Only</option>
+                <option value="all">ทั้งหมด</option>
+                <option value="active">ใช้งานอยู่</option>
+                <option value="inactive">ปิดใช้งาน</option>
             </select>
         </div>
         <div class="filter-item" style="display:flex; align-items:flex-end;">
             <button class="btn-refresh" onclick="loadLandingURLs()">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
+                <i class="bi bi-arrow-clockwise"></i> รีเฟรช
             </button>
         </div>
     </div>
@@ -180,13 +229,13 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width:40px;">Status</th>
-                    <th>Title / URL</th>
+                    <th style="width:40px;">สถานะ</th>
+                    <th>ชื่อ / URL</th>
                     <th>Hotspot</th>
-                    <th style="width:80px; text-align:center;">Priority</th>
-                    <th style="width:100px; text-align:center;">Redirects</th>
+                    <th style="width:80px; text-align:center;">ลำดับ</th>
+                    <th style="width:100px; text-align:center;">เปิดใช้</th>
                     <th style="width:140px;">สร้างเมื่อ</th>
-                    <th style="width:130px;">Actions</th>
+                    <th style="width:130px;">จัดการ</th>
                 </tr>
             </thead>
             <tbody id="landingURLsTableBody">
@@ -210,7 +259,7 @@
     <div class="modal-dialog">
         <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none;">
             <div class="modal-header-dark">
-                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Landing URL</h5>
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> เพิ่ม Landing URL</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -398,27 +447,41 @@ function filterLandingURLs() {
 
 function displayLandingURLs(landingURLs) {
     const tbody = document.getElementById('landingURLsTableBody');
+
+    // Update stats strip
+    const total    = landingURLs ? landingURLs.length : 0;
+    const active   = landingURLs ? landingURLs.filter(u => u.is_active).length : 0;
+    const inactive = total - active;
+    document.getElementById('statTotal').textContent   = total;
+    document.getElementById('statActive').textContent  = active;
+    document.getElementById('statInactive').textContent = inactive;
+    document.getElementById('landingStatsStrip').style.display = total > 0 ? '' : 'none';
+
     if (!landingURLs || landingURLs.length === 0) {
         tbody.innerHTML = `
             <tr><td colspan="7">
                 <div class="table-empty">
                     <div class="empty-icon-lg"><i class="bi bi-inbox"></i></div>
-                    <p>ยังไม่มี Landing URL — คลิก "Add Landing URL" เพื่อเพิ่ม</p>
+                    <p>ยังไม่มี Landing URL — คลิก "เพิ่ม Landing URL" เพื่อเพิ่ม</p>
                 </div>
             </td></tr>`;
         return;
     }
 
-    tbody.innerHTML = landingURLs.map(url => {
+    // Sort active first
+    const sorted = [...landingURLs].sort((a, b) => (b.is_active ? 1 : 0) - (a.is_active ? 1 : 0));
+
+    tbody.innerHTML = sorted.map(url => {
         const statusClass = url.is_active ? 'active' : 'inactive';
+        const rowClass    = url.is_active ? '' : 'row-inactive';
         const shortUrl = url.url.length > 42 ? url.url.substring(0, 42) + '…' : url.url;
         const createdDate = new Date(url.created_at).toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
         const activateBtn = !url.is_active
-            ? `<button class="btn-icon btn-icon-activate" onclick="setActiveLandingURL(${url.id})" title="Set Active"><i class="bi bi-check-circle"></i></button>`
+            ? `<button class="btn-icon btn-icon-activate" onclick="setActiveLandingURL(${url.id})" title="ตั้งเป็น Active"><i class="bi bi-check-circle"></i></button>`
             : '';
 
         return `
-            <tr>
+            <tr class="${rowClass}">
                 <td><span class="status-dot-cell ${statusClass}"></span></td>
                 <td>
                     <div class="url-title">${url.title}</div>
@@ -513,7 +576,7 @@ async function saveLandingURL() {
 }
 
 async function setActiveLandingURL(id) {
-    if (!confirm('Set this landing URL as active? (Other active URLs for this hotspot will be deactivated)')) return;
+    if (!confirm('ตั้ง Landing URL นี้เป็น Active?\n(URL อื่นๆ ของ Hotspot นี้จะถูกปิดอัตโนมัติ)')) return;
     try {
         const response = await fetch((window.BASE_URL || "") + `/api/landing-urls/${id}/set_active/`, {
             method: 'POST',
