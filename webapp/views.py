@@ -260,10 +260,28 @@ def settings_view(request):
     total_images = BackgroundImage.objects.count()
     total_users = User.objects.count()
 
+    allowed = get_user_allowed_hotspots(request.user)
+    if allowed is None:
+        hotspots_qs = Hotspot.objects.filter(is_active=True).order_by('hotspot_name')
+    else:
+        hotspots_qs = Hotspot.objects.filter(is_active=True, hotspot_name__in=allowed).order_by('hotspot_name')
+
+    hotspot_coverage = []
+    for hs in hotspots_qs:
+        has_bg = BackgroundImage.objects.filter(hotspot_name=hs.hotspot_name, is_active=True).exists()
+        hotspot_coverage.append({
+            'hotspot_name': hs.hotspot_name,
+            'display_name': hs.display_name,
+            'has_active_bg': has_bg,
+        })
+    has_default_bg = BackgroundImage.objects.filter(hotspot_name__isnull=True, is_active=True).exists()
+
     context = {
         'settings': settings,
         'total_images': total_images,
         'total_users': total_users,
+        'hotspot_coverage': hotspot_coverage,
+        'has_default_bg': has_default_bg,
     }
     return render(request, 'webapp/settings.html', context)
 

@@ -28,6 +28,7 @@
         color:#fff; font-size:.9rem; flex-shrink:0;
     }
 .section-header-icon.warn   { background:linear-gradient(135deg,#f39c12,#e67e22); }
+.section-header-icon.green  { background:linear-gradient(135deg,#27ae60,#2ecc71); }
     .section-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#1e293b; }
     .section-body  { padding:20px; }
 
@@ -59,11 +60,6 @@
     .tip-list li:last-child { border-bottom:none; }
     .tip-list li i { color:#3498db; margin-top:2px; font-size:.8rem; flex-shrink:0; }
 
-    /* Code block */
-    .code-block { background:#1a2535; color:#e2e8f0; border-radius:10px; padding:14px 16px; font-family:monospace; font-size:.78rem; line-height:1.6; overflow-x:auto; margin-bottom:12px; }
-    .btn-copy { display:flex; align-items:center; gap:6px; justify-content:center; width:100%; background:#f1f5f9; color:#475569; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px; font-family:'Kanit',sans-serif; font-weight:500; font-size:.8rem; cursor:pointer; transition:all .15s; }
-    .btn-copy:hover { background:#e2e8f0; }
-
     /* Adv card */
     .adv-section { background:#fffbf0; border:1.5px solid rgba(234,179,8,.3); border-radius:12px; padding:16px; }
     .adv-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.9rem; color:#92400e; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
@@ -72,6 +68,97 @@
     .db-info-row strong { color:#451a03; }
     .code-field { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #e2e8f0; border-radius:8px; padding:8px 12px; font-family:monospace; font-size:.78rem; color:#475569; word-break:break-all; }
 
+    /* ── API Guide ── */
+    .api-guide-card {
+        background:#fff; border-radius:14px; border:1.5px solid #e9eef4;
+        overflow:hidden; margin-top:4px;
+        box-shadow:0 1px 6px rgba(0,0,0,.05);
+    }
+    .api-guide-header {
+        padding:16px 22px; border-bottom:1px solid #f1f5f9;
+        display:flex; align-items:center; gap:10px;
+    }
+    .api-guide-header-icon {
+        width:36px; height:36px; border-radius:10px;
+        background:linear-gradient(135deg,#27ae60,#2ecc71);
+        display:flex; align-items:center; justify-content:center;
+        color:#fff; font-size:.9rem; flex-shrink:0;
+    }
+    .api-guide-header-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.95rem; color:#1e293b; }
+    .api-guide-header-sub { font-family:'Sarabun',sans-serif; font-size:.78rem; color:#94a3b8; margin-top:1px; }
+
+    /* Tabs */
+    .api-guide-tabs { display:flex; gap:0; border-bottom:1px solid #e9eef4; padding:0 22px; background:#f8fafc; }
+    .api-tab-btn {
+        font-family:'Kanit',sans-serif; font-weight:500; font-size:.82rem; color:#64748b;
+        background:none; border:none; padding:12px 18px; cursor:pointer;
+        border-bottom:2.5px solid transparent; transition:all .15s;
+        display:flex; align-items:center; gap:7px;
+    }
+    .api-tab-btn:hover { color:#3498db; }
+    .api-tab-btn.active { color:#3498db; border-bottom-color:#3498db; background:#fff; }
+    .api-tab-panel { display:none; padding:22px; }
+    .api-tab-panel.active { display:block; }
+
+    /* Steps */
+    .api-step { display:flex; gap:14px; margin-bottom:18px; align-items:flex-start; }
+    .api-step:last-child { margin-bottom:0; }
+    .api-step-num {
+        width:28px; height:28px; border-radius:50%; flex-shrink:0;
+        background:linear-gradient(135deg,#3498db,#2c3e50);
+        color:#fff; font-family:'Kanit',sans-serif; font-weight:700; font-size:.78rem;
+        display:flex; align-items:center; justify-content:center;
+    }
+    .api-step-body { flex:1; }
+    .api-step-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#1e293b; margin-bottom:6px; }
+    .api-step-desc { font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; margin-bottom:8px; }
+
+    /* Code blocks */
+    .code-block-dark {
+        background:#1a2535; color:#e2e8f0; border-radius:10px;
+        padding:14px 16px; font-family:monospace; font-size:.78rem;
+        line-height:1.65; overflow-x:auto; position:relative;
+    }
+    .code-block-dark .c-green { color:#7ec8a0; }
+    .code-block-dark .c-blue  { color:#79b8ff; }
+    .code-block-dark .c-orange{ color:#ffab70; }
+    .code-block-dark .c-gray  { color:#8b949e; }
+
+    .btn-copy-code {
+        display:inline-flex; align-items:center; gap:5px;
+        background:#f1f5f9; color:#475569; border:1.5px solid #e2e8f0;
+        border-radius:7px; padding:6px 14px; font-family:'Kanit',sans-serif;
+        font-weight:500; font-size:.78rem; cursor:pointer; transition:all .15s;
+        margin-top:10px;
+    }
+    .btn-copy-code:hover { background:#e2e8f0; }
+
+    /* Coverage table */
+    .coverage-table { width:100%; border-collapse:collapse; font-family:'Sarabun',sans-serif; font-size:.83rem; }
+    .coverage-table th { padding:8px 12px; background:#f8fafc; font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; text-transform:uppercase; letter-spacing:.5px; border-bottom:1.5px solid #e9eef4; }
+    .coverage-table td { padding:10px 12px; border-bottom:1px solid #f1f5f9; color:#374151; vertical-align:middle; }
+    .coverage-table tr:last-child td { border-bottom:none; }
+    .cov-ok  { color:#16a34a; font-size:.88rem; }
+    .cov-err { color:#dc2626; font-size:.88rem; }
+    .hs-url-code { background:#f1f5f9; border-radius:6px; padding:5px 10px; font-family:monospace; font-size:.77rem; color:#475569; display:inline-block; word-break:break-all; }
+    .btn-copy-url {
+        background:none; border:1px solid #e2e8f0; border-radius:6px;
+        color:#94a3b8; padding:4px 8px; font-size:.75rem; cursor:pointer;
+        transition:all .15s; white-space:nowrap;
+    }
+    .btn-copy-url:hover { background:#f1f5f9; color:#3498db; border-color:#93c5fd; }
+    .alert-no-default {
+        background:#fffbeb; border:1.5px solid #fcd34d; border-radius:10px;
+        padding:12px 14px; font-family:'Sarabun',sans-serif; font-size:.82rem;
+        color:#92400e; display:flex; align-items:flex-start; gap:8px;
+    }
+    .param-table { width:100%; border-collapse:collapse; font-family:'Sarabun',sans-serif; font-size:.82rem; }
+    .param-table th { padding:7px 10px; background:#f8fafc; font-family:'Kanit',sans-serif; font-weight:600; font-size:.77rem; color:#64748b; border-bottom:1.5px solid #e9eef4; }
+    .param-table td { padding:8px 10px; border-bottom:1px solid #f1f5f9; color:#374151; vertical-align:top; }
+    .param-table tr:last-child td { border-bottom:none; }
+    .param-badge { display:inline-block; background:#dbeafe; color:#1d4ed8; border-radius:5px; padding:1px 7px; font-size:.72rem; font-family:'Kanit',sans-serif; font-weight:600; }
+    .param-badge.opt { background:#f0fdf4; color:#16a34a; }
+    .param-badge.ret { background:#fdf4ff; color:#9333ea; }
 </style>
 {% endblock %}
 
@@ -194,27 +281,6 @@
 
     <!-- ── Right Sidebar ── -->
     <div>
-        <!-- MikroTik Integration -->
-        <div class="info-tip-card">
-            <div class="tip-header"><i class="bi bi-code-slash"></i> MikroTik Integration</div>
-            <div class="tip-body">
-                <p style="font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; margin-bottom:10px;">เพิ่ม JavaScript นี้ใน login.html ของ MikroTik:</p>
-                <div class="code-block">&lt;script&gt;
-fetch('{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}?hotspot_name=YOUR_ID')
-  .then(r =&gt; r.json())
-  .then(data =&gt; {
-    if (data.success) {
-      document.body.style.backgroundImage =
-        `url(${data.imageUrl})`;
-    }
-  });
-&lt;/script&gt;</div>
-                <button class="btn-copy" onclick="copyCode()">
-                    <i class="bi bi-clipboard"></i> คัดลอก Code
-                </button>
-            </div>
-        </div>
-
         <!-- Quick Tips -->
         <div class="info-tip-card">
             <div class="tip-header"><i class="bi bi-lightbulb"></i> เคล็ดลับ</div>
@@ -244,17 +310,321 @@ fetch('{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}
     </div>
 </div>
 
+<!-- ── API Guide (full width) ── -->
+<div class="api-guide-card">
+    <div class="api-guide-header">
+        <div class="api-guide-header-icon"><i class="bi bi-code-slash"></i></div>
+        <div>
+            <div class="api-guide-header-title">คู่มือ MikroTik API Integration</div>
+            <div class="api-guide-header-sub">วิธีเชื่อมต่อ MikroTik Hotspot กับระบบ LibLogin</div>
+        </div>
+    </div>
+
+    <!-- Tab buttons -->
+    <div class="api-guide-tabs">
+        <button class="api-tab-btn active" onclick="switchTab('how-to')">
+            <i class="bi bi-list-ol"></i> วิธีใช้งาน
+        </button>
+        <button class="api-tab-btn" onclick="switchTab('urls')">
+            <i class="bi bi-link-45deg"></i> URL แยกตาม Hotspot
+        </button>
+        <button class="api-tab-btn" onclick="switchTab('response')">
+            <i class="bi bi-braces"></i> ตัวอย่าง Response
+        </button>
+    </div>
+
+    <!-- Tab: วิธีใช้งาน -->
+    <div class="api-tab-panel active" id="tab-how-to">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+            <div>
+                <div class="api-step">
+                    <div class="api-step-num">1</div>
+                    <div class="api-step-body">
+                        <div class="api-step-title">เพิ่ม Hotspot ในระบบ</div>
+                        <div class="api-step-desc">ไปที่หน้า <a href="{% url 'hotspots' %}" style="color:#3498db;">จัดการ Hotspot</a> แล้วเพิ่ม Hotspot พร้อมตั้งชื่อ hotspot_name ให้ตรงกับ Router ของคุณ</div>
+                    </div>
+                </div>
+                <div class="api-step">
+                    <div class="api-step-num">2</div>
+                    <div class="api-step-body">
+                        <div class="api-step-title">อัปโหลด Background Image</div>
+                        <div class="api-step-desc">ไปที่หน้า <a href="{% url 'backgrounds' %}" style="color:#3498db;">จัดการรูปภาพ</a> แล้วอัปโหลดภาพและตั้ง Status เป็น Active สำหรับ Hotspot ที่ต้องการ</div>
+                    </div>
+                </div>
+                <div class="api-step">
+                    <div class="api-step-num">3</div>
+                    <div class="api-step-body">
+                        <div class="api-step-title">แก้ไข login.html ใน MikroTik</div>
+                        <div class="api-step-desc">เพิ่ม JavaScript ด้านล่างนี้ใน <code style="font-size:.78rem;">/flash/hotspot/login.html</code> ก่อนแท็ก <code style="font-size:.78rem;">&lt;/body&gt;</code></div>
+                        <div class="code-block-dark" id="codeSnippet">
+<span class="c-gray">&lt;!-- LibLogin Background Loader --&gt;</span>
+<span class="c-green">&lt;script&gt;</span>
+<span class="c-blue">fetch</span>('<span class="c-orange">{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}?hotspot_name=YOUR_HOTSPOT_ID</span>')
+  .<span class="c-blue">then</span>(r =&gt; r.<span class="c-blue">json</span>())
+  .<span class="c-blue">then</span>(data =&gt; {
+    <span class="c-blue">if</span> (data.success) {
+      document.body.style.backgroundImage = <span class="c-orange">`url(${data.imageUrl})`</span>;
+      document.body.style.backgroundSize = <span class="c-orange">'cover'</span>;
+      document.body.style.backgroundPosition = <span class="c-orange">'center'</span>;
+    }
+  });
+<span class="c-green">&lt;/script&gt;</span></div>
+                        <button class="btn-copy-code" onclick="copyCode('codeSnippet', this)">
+                            <i class="bi bi-clipboard"></i> คัดลอก Code
+                        </button>
+                    </div>
+                </div>
+                <div class="api-step">
+                    <div class="api-step-num">4</div>
+                    <div class="api-step-body">
+                        <div class="api-step-title">แทนที่ YOUR_HOTSPOT_ID</div>
+                        <div class="api-step-desc">เปลี่ยน <code style="font-size:.78rem; background:#f1f5f9; padding:1px 5px; border-radius:4px;">YOUR_HOTSPOT_ID</code> เป็น hotspot_name ที่ตั้งไว้ในระบบ เช่น <code style="font-size:.78rem; background:#f1f5f9; padding:1px 5px; border-radius:4px;">hotspot_lib</code></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:16px; margin-bottom:16px;">
+                    <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#166534; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-lightbulb-fill"></i> API Parameters
+                    </div>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>ประเภท</th>
+                                <th>คำอธิบาย</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>hotspot_name</code></td>
+                                <td><span class="param-badge opt">Optional</span></td>
+                                <td>ชื่อ Hotspot ที่ต้องการดึง Background ถ้าไม่ระบุจะใช้ค่า Default</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="background:#eff6ff; border:1.5px solid #93c5fd; border-radius:12px; padding:16px;">
+                    <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#1d4ed8; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-arrow-return-right"></i> Response Fields
+                    </div>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>ประเภท</th>
+                                <th>คำอธิบาย</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>success</code></td>
+                                <td><span class="param-badge ret">boolean</span></td>
+                                <td>true = มีภาพ Active อยู่</td>
+                            </tr>
+                            <tr>
+                                <td><code>imageUrl</code></td>
+                                <td><span class="param-badge ret">string</span></td>
+                                <td>URL ของรูปภาพ (full URL)</td>
+                            </tr>
+                            <tr>
+                                <td><code>hotspot_name</code></td>
+                                <td><span class="param-badge ret">string</span></td>
+                                <td>Hotspot ที่ใช้งาน (อาจเป็น default)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: URL แยกตาม Hotspot -->
+    <div class="api-tab-panel" id="tab-urls">
+        {% if not has_default_bg %}
+        <div class="alert-no-default" style="margin-bottom:16px;">
+            <i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b; flex-shrink:0; margin-top:1px;"></i>
+            <div>
+                <strong>ยังไม่มี Default Background</strong> — ถ้า MikroTik ไม่ส่ง hotspot_name API จะ return <code>success: false</code>
+                <a href="{% url 'backgrounds' %}" style="color:#92400e; font-weight:600; margin-left:6px;">เพิ่ม Background เลย →</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom:12px; font-family:'Sarabun',sans-serif; font-size:.83rem; color:#64748b;">
+            แทนที่ <code style="background:#f1f5f9; padding:1px 6px; border-radius:4px;">hotspot_name=...</code> ในโค้ด JavaScript ด้วย URL ด้านล่าง
+        </div>
+
+        {% if hotspot_coverage %}
+        <table class="coverage-table">
+            <thead>
+                <tr>
+                    <th>Hotspot</th>
+                    <th>Background</th>
+                    <th>API URL</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hs in hotspot_coverage %}
+                <tr>
+                    <td>
+                        <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#1e293b;">{{ hs.display_name }}</div>
+                        <code style="font-size:.75rem; color:#94a3b8;">{{ hs.hotspot_name }}</code>
+                    </td>
+                    <td>
+                        {% if hs.has_active_bg %}
+                        <span class="cov-ok"><i class="bi bi-check-circle-fill"></i> มีภาพ Active</span>
+                        {% else %}
+                        <span class="cov-err"><i class="bi bi-x-circle-fill"></i> ยังไม่มีภาพ</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="hs-url-code" id="url-{{ hs.hotspot_name }}">{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}?hotspot_name={{ hs.hotspot_name }}</span>
+                    </td>
+                    <td>
+                        <button class="btn-copy-url" onclick="copyUrl('url-{{ hs.hotspot_name }}', this)">
+                            <i class="bi bi-clipboard"></i> คัดลอก
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                <!-- Default row -->
+                <tr style="background:#fafafa;">
+                    <td>
+                        <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#64748b;">Default (ไม่ระบุ Hotspot)</div>
+                        <code style="font-size:.75rem; color:#94a3b8;">hotspot_name ไม่ระบุ</code>
+                    </td>
+                    <td>
+                        {% if has_default_bg %}
+                        <span class="cov-ok"><i class="bi bi-check-circle-fill"></i> มีภาพ Active</span>
+                        {% else %}
+                        <span class="cov-err"><i class="bi bi-x-circle-fill"></i> ยังไม่มีภาพ</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="hs-url-code" id="url-default">{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}</span>
+                    </td>
+                    <td>
+                        <button class="btn-copy-url" onclick="copyUrl('url-default', this)">
+                            <i class="bi bi-clipboard"></i> คัดลอก
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align:center; padding:32px 0; font-family:'Sarabun',sans-serif; color:#94a3b8;">
+            <i class="bi bi-router" style="font-size:2rem; display:block; margin-bottom:10px;"></i>
+            ยังไม่มี Hotspot ที่ใช้งานอยู่ —
+            <a href="{% url 'hotspots' %}" style="color:#3498db;">เพิ่ม Hotspot</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab: ตัวอย่าง Response -->
+    <div class="api-tab-panel" id="tab-response">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+            <div>
+                <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#166534; margin-bottom:10px;">
+                    <i class="bi bi-check-circle-fill" style="color:#16a34a; margin-right:4px;"></i> Success Response
+                </div>
+                <div class="code-block-dark">
+{
+  <span class="c-green">"success"</span>: <span class="c-blue">true</span>,
+  <span class="c-green">"imageUrl"</span>: <span class="c-orange">"https://lib.npu.ac.th/liblogin/media/bg/photo.jpg"</span>,
+  <span class="c-green">"hotspot_name"</span>: <span class="c-orange">"hotspot_lib"</span>,
+  <span class="c-green">"display_name"</span>: <span class="c-orange">"ห้องสมุดกลาง"</span>,
+  <span class="c-green">"description"</span>: <span class="c-orange">"Background ห้องสมุดหลัก"</span>
+}</div>
+                <button class="btn-copy-code" onclick="copyCode('successJson', this)" id="successJson" style="display:none;"></button>
+            </div>
+            <div>
+                <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#dc2626; margin-bottom:10px;">
+                    <i class="bi bi-x-circle-fill" style="color:#dc2626; margin-right:4px;"></i> Not Found Response
+                </div>
+                <div class="code-block-dark">
+{
+  <span class="c-green">"success"</span>: <span class="c-blue">false</span>,
+  <span class="c-green">"message"</span>: <span class="c-orange">"No active background image found"</span>
+}</div>
+                <div style="margin-top:16px; background:#fef2f2; border:1.5px solid #fecaca; border-radius:10px; padding:13px 15px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#991b1b;">
+                    <strong><i class="bi bi-info-circle-fill me-1"></i>เกิดขึ้นเมื่อ:</strong>
+                    <ul style="margin:6px 0 0 16px; padding:0;">
+                        <li>ไม่มีรูปภาพ Active สำหรับ Hotspot ที่ระบุ</li>
+                        <li>hotspot_name ไม่ตรงกับที่มีในระบบ</li>
+                        <li>ไม่มี Default background (hotspot_name ไม่ระบุ)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px; border-top:1px solid #f1f5f9; padding-top:18px;">
+            <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#374151; margin-bottom:12px;">
+                <i class="bi bi-arrow-left-right me-1"></i> ตัวอย่าง Fetch Request
+            </div>
+            <div class="code-block-dark" id="fetchExample">
+<span class="c-gray">// ตัวอย่างการเรียกใช้ API จาก MikroTik login.html</span>
+<span class="c-blue">fetch</span>('<span class="c-orange">{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}?hotspot_name=hotspot_lib</span>')
+  .<span class="c-blue">then</span>(response =&gt; response.<span class="c-blue">json</span>())
+  .<span class="c-blue">then</span>(data =&gt; {
+    <span class="c-blue">if</span> (data.success) {
+      <span class="c-gray">// ตั้ง background</span>
+      document.body.style.backgroundImage = <span class="c-orange">`url(${data.imageUrl})`</span>;
+      document.body.style.backgroundSize = <span class="c-orange">'cover'</span>;
+      document.body.style.backgroundPosition = <span class="c-orange">'center'</span>;
+      document.body.style.backgroundRepeat = <span class="c-orange">'no-repeat'</span>;
+    } <span class="c-blue">else</span> {
+      <span class="c-gray">// ใช้ background สำรอง</span>
+      document.body.style.background = <span class="c-orange">'#1a2535'</span>;
+    }
+  })
+  .<span class="c-blue">catch</span>(err =&gt; console.<span class="c-blue">error</span>(<span class="c-orange">'LibLogin API error:'</span>, err));</div>
+            <button class="btn-copy-code" onclick="copyCode('fetchExample', this)">
+                <i class="bi bi-clipboard"></i> คัดลอก Code
+            </button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function copyCode() {
-        const code = document.querySelector('.code-block').textContent;
-        navigator.clipboard.writeText(code).then(() => {
-            const btn = document.querySelector('.btn-copy');
+    function switchTab(tabId) {
+        // Deactivate all panels and buttons
+        document.querySelectorAll('.api-tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.api-tab-btn').forEach(b => b.classList.remove('active'));
+
+        // Activate target
+        const panel = document.getElementById('tab-' + tabId);
+        if (panel) panel.classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function copyCode(elementId, btn) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const text = el.innerText || el.textContent;
+        navigator.clipboard.writeText(text.trim()).then(() => {
             const orig = btn.innerHTML;
-            btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
-            btn.style.background = '#d1fae5'; btn.style.color = '#065f46';
+            btn.innerHTML = '<i class="bi bi-check"></i> คัดลอกแล้ว!';
+            btn.style.background = '#d1fae5';
+            btn.style.color = '#065f46';
+            btn.style.borderColor = '#86efac';
+            setTimeout(() => { btn.innerHTML = orig; btn.style = ''; }, 2000);
+        });
+    }
+
+    function copyUrl(elementId, btn) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check"></i> คัดลอกแล้ว';
+            btn.style.background = '#d1fae5';
+            btn.style.color = '#065f46';
+            btn.style.borderColor = '#86efac';
             setTimeout(() => { btn.innerHTML = orig; btn.style = ''; }, 2000);
         });
     }
