@@ -157,7 +157,9 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+# Allow all origins — API endpoints are public and must be accessible
+# from MikroTik hotspot login pages (various IPs)
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -169,13 +171,6 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'ngrok-skip-browser-warning',  # Allow ngrok header
-]
-# MikroTik IPs that will access the API
-CORS_ALLOWED_ORIGINS = [
-    "http://202.29.55.180",      # MikroTik #1
-    "http://202.29.55.30",       # MikroTik #2
-    "http://202.29.55.222:8291", # Django Server (self)
-    "http://localhost:8291",     # Local testing
 ]
 
 # Media files (uploaded images)
