@@ -1,7 +1,7 @@
 {% extends 'webapp/base.html' %}
 
 {% block title %}Monitoring - LibLogin{% endblock %}
-{% block page_title %}Page Impression Monitoring{% endblock %}
+{% block page_title %}ตรวจสอบสถิติ{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -132,23 +132,23 @@
     <div class="filter-bar-title"><i class="bi bi-funnel"></i> ตัวกรอง & ช่วงเวลา</div>
     <div class="filter-grid">
         <div class="filter-item">
-            <label>Date Range Type</label>
+            <label>ช่วงวันที่</label>
             <select class="form-select-s" id="dateRangeType" onchange="toggleDateRangeInputs()">
-                <option value="preset" selected>Quick Select</option>
-                <option value="custom">Custom Range</option>
+                <option value="preset" selected>เลือกด่วน</option>
+                <option value="custom">กำหนดเอง</option>
             </select>
         </div>
         <div class="filter-item" id="presetRangeContainer">
-            <label>Time Range</label>
+            <label>ระยะเวลา</label>
             <select class="form-select-s" id="daysFilter">
-                <option value="1">Last 24 Hours</option>
-                <option value="7" selected>Last 7 Days</option>
-                <option value="30">Last 30 Days</option>
-                <option value="90">Last 90 Days</option>
+                <option value="1">24 ชั่วโมงล่าสุด</option>
+                <option value="7" selected>7 วันล่าสุด</option>
+                <option value="30">30 วันล่าสุด</option>
+                <option value="90">90 วันล่าสุด</option>
             </select>
         </div>
         <div class="filter-item" id="customRangeContainer" style="display:none; grid-column:span 2;">
-            <label>Date Range</label>
+            <label>ช่วงวันที่</label>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                 <input type="date" class="form-ctrl-s" id="startDate">
                 <input type="date" class="form-ctrl-s" id="endDate">
@@ -157,23 +157,23 @@
         <div class="filter-item">
             <label>Hotspot</label>
             <select class="form-select-s" id="hotspotFilter">
-                <option value="all" selected>All Hotspots</option>
+                <option value="all" selected>ทุก Hotspot</option>
             </select>
         </div>
         <div class="filter-item">
             <label>&nbsp;</label>
             <button class="btn-refresh-sm" onclick="loadData()">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
+                <i class="bi bi-arrow-clockwise"></i> รีเฟรช
             </button>
         </div>
         <div class="filter-item">
             <label>&nbsp;</label>
             <button class="btn-export-sm" onclick="exportData()">
-                <i class="bi bi-download"></i> Export CSV
+                <i class="bi bi-download"></i> ส่งออก CSV
             </button>
         </div>
         <div class="filter-item" style="display:flex; align-items:flex-end;">
-            <span class="last-updated"><i class="bi bi-clock"></i> <span id="lastUpdated">Last updated: Loading...</span></span>
+            <span class="last-updated"><i class="bi bi-clock"></i> <span id="lastUpdated">อัปเดตล่าสุด: กำลังโหลด...</span></span>
         </div>
     </div>
 </div>
@@ -182,25 +182,25 @@
 <div class="stat-grid">
     <div class="stat-card">
         <div class="stat-card-icon blue"><i class="bi bi-eye"></i></div>
-        <div class="stat-label">Total Impressions</div>
+        <div class="stat-label">Impressions ทั้งหมด</div>
         <div class="stat-value" id="totalImpressions">-</div>
-        <div class="stat-sub">Page views</div>
+        <div class="stat-sub">ครั้ง</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-icon green"><i class="bi bi-person-check"></i></div>
-        <div class="stat-label">Unique Devices</div>
+        <div class="stat-label">อุปกรณ์ไม่ซ้ำ</div>
         <div class="stat-value" id="uniqueDevices">-</div>
-        <div class="stat-sub">Distinct visitors</div>
+        <div class="stat-sub">อุปกรณ์</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-icon purple"><i class="bi bi-clock"></i></div>
-        <div class="stat-label">Avg Time on Page</div>
+        <div class="stat-label">เวลาเฉลี่ยบนหน้า</div>
         <div class="stat-value" id="avgTime">-</div>
-        <div class="stat-sub">Seconds</div>
+        <div class="stat-sub">วินาที</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-icon orange"><i class="bi bi-trophy"></i></div>
-        <div class="stat-label">Top Hotspot</div>
+        <div class="stat-label">Hotspot ยอดนิยม</div>
         <div class="stat-value" style="font-size:1.1rem; padding-top:4px;" id="topHotspot">-</div>
         <div class="stat-sub" id="topHotspotCount">-</div>
     </div>
@@ -210,13 +210,13 @@
 <div class="charts-row">
     <div class="chart-card">
         <div class="chart-card-header">
-            <span class="chart-card-title"><i class="bi bi-graph-up"></i> Impression Trend</span>
+            <span class="chart-card-title"><i class="bi bi-graph-up"></i> แนวโน้ม Impression</span>
         </div>
         <canvas id="trendChart" height="80"></canvas>
     </div>
     <div class="chart-card">
         <div class="chart-card-header">
-            <span class="chart-card-title"><i class="bi bi-pie-chart"></i> Device Breakdown</span>
+            <span class="chart-card-title"><i class="bi bi-pie-chart"></i> ประเภทอุปกรณ์</span>
         </div>
         <canvas id="deviceChart" height="80"></canvas>
     </div>
@@ -225,7 +225,7 @@
 <!-- Hotspot Chart -->
 <div class="chart-card">
     <div class="chart-card-header">
-        <span class="chart-card-title"><i class="bi bi-bar-chart"></i> Impressions by Hotspot</span>
+        <span class="chart-card-title"><i class="bi bi-bar-chart"></i> Impression ต่อ Hotspot</span>
     </div>
     <canvas id="hotspotChart" height="60"></canvas>
 </div>
@@ -233,13 +233,13 @@
 <!-- Media Reach Report -->
 <div class="chart-card">
     <div class="chart-card-header">
-        <span class="chart-card-title"><i class="bi bi-megaphone"></i> Media Reach Assessment Report</span>
+        <span class="chart-card-title"><i class="bi bi-megaphone"></i> รายงาน Media Reach</span>
         <div style="display:flex; gap:8px;">
             <button class="btn-generate" onclick="loadMediaReachReport()">
-                <i class="bi bi-graph-up-arrow"></i> Generate Report
+                <i class="bi bi-graph-up-arrow"></i> สร้างรายงาน
             </button>
             <button class="btn-export-pdf" onclick="exportReachReport()">
-                <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                <i class="bi bi-file-earmark-pdf"></i> ส่งออก PDF
             </button>
         </div>
     </div>
@@ -248,15 +248,15 @@
     <div id="mediaReachContent" style="display:none;">
         <div class="reach-metrics-grid">
             <div class="reach-metric-box">
-                <div class="reach-metric-label">Total Reach</div>
+                <div class="reach-metric-label">ผู้เข้าถึงทั้งหมด</div>
                 <div class="reach-metric-value" id="reachTotal">-</div>
-                <div class="reach-metric-sub">Unique Users</div>
+                <div class="reach-metric-sub">อุปกรณ์ไม่ซ้ำ</div>
                 <div><span class="reach-metric-badge" id="reachRate">-</span></div>
             </div>
             <div class="reach-metric-box">
-                <div class="reach-metric-label">Frequency</div>
+                <div class="reach-metric-label">ความถี่</div>
                 <div class="reach-metric-value" id="reachFrequency">-</div>
-                <div class="reach-metric-sub">Avg Exposures</div>
+                <div class="reach-metric-sub">ครั้งเฉลี่ย</div>
             </div>
             <div class="reach-metric-box">
                 <div class="reach-metric-label">GRP</div>
@@ -266,7 +266,7 @@
             <div class="reach-metric-box">
                 <div class="reach-metric-label">Effective Reach</div>
                 <div class="reach-metric-value" style="font-size:1rem;" id="reachEffective">-</div>
-                <div class="reach-metric-sub">3+ Exposures</div>
+                <div class="reach-metric-sub">3+ ครั้ง</div>
             </div>
         </div>
 
@@ -276,13 +276,13 @@
             </div>
             <div>
                 <div class="growth-box">
-                    <div class="growth-box-title"><i class="bi bi-bar-chart-line me-1" style="color:#3498db;"></i> Period-over-Period Growth</div>
+                    <div class="growth-box-title"><i class="bi bi-bar-chart-line me-1" style="color:#3498db;"></i> เติบโตเทียบรอบก่อน</div>
                     <div class="growth-row">
-                        <span>Reach Growth</span>
+                        <span>การเข้าถึง</span>
                         <strong id="reachGrowth" class="text-success">-</strong>
                     </div>
                     <div class="growth-row">
-                        <span>Impression Growth</span>
+                        <span>Impression</span>
                         <strong id="impressionGrowth" class="text-info">-</strong>
                     </div>
                     <div style="margin-top:12px; font-family:'Sarabun',sans-serif; font-size:.77rem; color:#94a3b8;">เปรียบเทียบกับช่วงก่อนหน้า</div>
@@ -291,10 +291,10 @@
         </div>
 
         <div class="recommendations-box">
-            <div class="recommendations-title"><i class="bi bi-lightbulb-fill"></i> Recommendations</div>
+            <div class="recommendations-title"><i class="bi bi-lightbulb-fill"></i> คำแนะนำ</div>
             <div id="recommendationsContainer">
                 <div style="text-align:center; color:#94a3b8; font-family:'Sarabun',sans-serif; font-size:.85rem;">
-                    <i class="bi bi-hourglass-split"></i> Loading recommendations...
+                    <i class="bi bi-hourglass-split"></i> กำลังโหลดคำแนะนำ...
                 </div>
             </div>
         </div>
@@ -304,7 +304,7 @@
                 <thead>
                     <tr>
                         <th colspan="4" style="text-align:center; background:linear-gradient(135deg,#2c3e50,#3498db); color:#fff; font-family:'Kanit',sans-serif;">
-                            <i class="bi bi-clipboard-data me-1"></i> Detailed Metrics
+                            <i class="bi bi-clipboard-data me-1"></i> ข้อมูลรายละเอียด
                         </th>
                     </tr>
                 </thead>
@@ -324,26 +324,26 @@
     <!-- Initial State -->
     <div id="mediaReachInitial" class="reach-initial">
         <i class="bi bi-megaphone"></i>
-        <p>คลิก "Generate Report" เพื่อวิเคราะห์ประสิทธิภาพ Media</p>
+        <p>คลิก "สร้างรายงาน" เพื่อวิเคราะห์ประสิทธิภาพ Media</p>
     </div>
 </div>
 
 <!-- Recent Impressions Table -->
 <div class="table-card">
     <div class="table-card-header">
-        <span class="table-card-title"><i class="bi bi-list-ul"></i> Recent Impressions</span>
-        <input type="text" class="search-input" id="searchTable" placeholder="Search IP or MAC...">
+        <span class="table-card-title"><i class="bi bi-list-ul"></i> รายการล่าสุด</span>
+        <input type="text" class="search-input" id="searchTable" placeholder="ค้นหา IP หรือ MAC...">
     </div>
     <div style="overflow-x:auto;">
         <table class="imp-table">
             <thead>
                 <tr>
-                    <th>Timestamp</th>
+                    <th>เวลา</th>
                     <th>Hotspot</th>
-                    <th>Device</th>
-                    <th>IP Address</th>
-                    <th>Time on Page</th>
-                    <th>Status</th>
+                    <th>อุปกรณ์</th>
+                    <th>IP</th>
+                    <th>เวลาบนหน้า</th>
+                    <th>สถานะ</th>
                     <th>MAC (Hash)</th>
                 </tr>
             </thead>
@@ -362,9 +362,9 @@
         </table>
     </div>
     <div class="table-footer">
-        <span class="row-count">Showing <span id="rowCount">0</span> impressions</span>
+        <span class="row-count">แสดง <span id="rowCount">0</span> รายการ</span>
         <button class="btn-load-more" onclick="loadMoreData()">
-            <i class="bi bi-plus-circle"></i> Load More
+            <i class="bi bi-plus-circle"></i> โหลดเพิ่ม
         </button>
     </div>
 </div>
@@ -424,7 +424,7 @@
             const data = await response.json();
 
             const select = document.getElementById('hotspotFilter');
-            select.innerHTML = '<option value="all" selected>All Hotspots</option>';
+            select.innerHTML = '<option value="all" selected>ทุก Hotspot</option>';
 
             data.forEach(hotspot => {
                 const option = document.createElement('option');
@@ -452,12 +452,12 @@
             const endDate = document.getElementById('endDate').value;
 
             if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
+                alert('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด');
                 return;
             }
 
             if (new Date(startDate) > new Date(endDate)) {
-                alert('Start date must be before end date');
+                alert('วันที่เริ่มต้นต้องก่อนวันที่สิ้นสุด');
                 return;
             }
 
@@ -486,7 +486,7 @@
                 updateTable(currentData.recent_impressions);
 
                 document.getElementById('lastUpdated').textContent =
-                    'Last updated: ' + new Date().toLocaleTimeString();
+                    'อัปเดตล่าสุด: ' + new Date().toLocaleTimeString('th-TH');
 
                 console.log('[Monitoring] ✓ Data loaded successfully');
             } else {
@@ -532,14 +532,14 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Total Impressions',
+                        label: 'Impressions ทั้งหมด',
                         data: totals,
                         borderColor: 'rgb(52, 152, 219)',
                         backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         tension: 0.4
                     },
                     {
-                        label: 'Unique Devices',
+                        label: 'อุปกรณ์ไม่ซ้ำ',
                         data: uniques,
                         borderColor: 'rgb(34, 197, 94)',
                         backgroundColor: 'rgba(34, 197, 94, 0.1)',
@@ -613,8 +613,8 @@
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Total Impressions', data: impressions, backgroundColor: 'rgba(52, 152, 219, 0.8)' },
-                    { label: 'Unique Devices', data: uniques, backgroundColor: 'rgba(34, 197, 94, 0.8)' }
+                    { label: 'Impressions ทั้งหมด', data: impressions, backgroundColor: 'rgba(52, 152, 219, 0.8)' },
+                    { label: 'อุปกรณ์ไม่ซ้ำ', data: uniques, backgroundColor: 'rgba(34, 197, 94, 0.8)' }
                 ]
             },
             options: {
@@ -632,7 +632,7 @@
         tbody.innerHTML = '';
 
         if (impressions.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; font-family:'Sarabun',sans-serif; color:#94a3b8;">No impressions found</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; font-family:'Sarabun',sans-serif; color:#94a3b8;">ไม่พบข้อมูล Impression</td></tr>`;
             document.getElementById('rowCount').textContent = '0';
             return;
         }
@@ -641,8 +641,8 @@
             const timestamp = new Date(imp.viewed_at);
             const deviceIcon = getDeviceIcon(imp.device_type);
             const uniqueBadge = imp.is_unique_today
-                ? '<span class="badge bg-success" style="font-size:.7rem;">Unique</span>'
-                : '<span class="badge bg-secondary" style="font-size:.7rem;">Returning</span>';
+                ? '<span class="badge bg-success" style="font-size:.7rem;">ใหม่</span>'
+                : '<span class="badge bg-secondary" style="font-size:.7rem;">กลับมา</span>';
 
             const row = `
                 <tr>
@@ -676,11 +676,11 @@
     }
 
     function loadMoreData() {
-        alert('Load more functionality - to be implemented with pagination');
+        alert('ฟังก์ชัน "โหลดเพิ่ม" ยังไม่ได้เปิดใช้งาน');
     }
 
     function exportData() {
-        if (!currentData) { alert('No data to export'); return; }
+        if (!currentData) { alert('ไม่มีข้อมูลสำหรับส่งออก'); return; }
 
         const impressions = currentData.recent_impressions;
         const headers = ['Timestamp', 'Hotspot', 'Device', 'IP', 'Time on Page', 'Unique', 'MAC Hash'];
@@ -728,7 +728,7 @@
             const endDate = document.getElementById('endDate').value;
 
             if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
+                alert('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด');
                 document.getElementById('mediaReachLoading').style.display = 'none';
                 document.getElementById('mediaReachInitial').style.display = 'block';
                 return;
@@ -915,7 +915,7 @@
     }
 
     function exportReachReport() {
-        if (!mediaReachData) { alert('Please generate a report first'); return; }
+        if (!mediaReachData) { alert('กรุณาสร้างรายงานก่อน'); return; }
 
         const rangeType = document.getElementById('dateRangeType').value;
         const hotspot = document.getElementById('hotspotFilter').value;

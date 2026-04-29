@@ -1,6 +1,6 @@
 {% extends 'webapp/base.html' %}
 {% block title %}Users - LibLogin Management{% endblock %}
-{% block page_title %}User Management{% endblock %}
+{% block page_title %}จัดการผู้ใช้งาน{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -129,7 +129,7 @@
     </div>
     <div class="u-stat active">
         <div class="u-stat-ic"><i class="bi bi-person-check"></i></div>
-        <div><div class="u-stat-num">{{ active_count }}</div><div class="u-stat-lbl">Active</div></div>
+        <div><div class="u-stat-num">{{ active_count }}</div><div class="u-stat-lbl">ใช้งาน</div></div>
     </div>
 </div>
 
@@ -142,12 +142,12 @@
         <table class="u-table">
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Email</th>
-                    <th>Role</th>
+                    <th>ผู้ใช้</th>
+                    <th>อีเมล</th>
+                    <th>สิทธิ์</th>
                     <th>หน่วยงาน</th>
-                    <th>Status</th>
-                    <th>Last Login</th>
+                    <th>สถานะ</th>
+                    <th>เข้าใช้ล่าสุด</th>
                     <th></th>
                 </tr>
             </thead>
@@ -159,7 +159,7 @@
                             <div class="user-avatar">{{ u.username|first|upper }}</div>
                             <div>
                                 <div style="font-weight:600; color:#1e293b;">{{ u.username }}
-                                    {% if u == request.user %}<span class="you-tag ms-1">You</span>{% endif %}
+                                    {% if u == request.user %}<span class="you-tag ms-1">คุณ</span>{% endif %}
                                 </div>
                             </div>
                         </div>
@@ -169,7 +169,7 @@
                         {% if u.is_staff %}
                         <span class="role-pill staff"><i class="bi bi-shield-fill me-1"></i>Staff</span>
                         {% else %}
-                        <span class="role-pill user">User</span>
+                        <span class="role-pill user">ผู้ใช้</span>
                         {% endif %}
                     </td>
                     <td>
@@ -181,9 +181,9 @@
                     </td>
                     <td>
                         {% if u.is_active %}
-                        <span class="status-dot on">Active</span>
+                        <span class="status-dot on">ใช้งาน</span>
                         {% else %}
-                        <span class="status-dot off">Inactive</span>
+                        <span class="status-dot off">ปิดใช้</span>
                         {% endif %}
                     </td>
                     <td class="last-login-cell">

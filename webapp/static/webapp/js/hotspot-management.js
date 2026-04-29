@@ -84,7 +84,7 @@ function renderHotspots(hotspots) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center text-muted py-4">
-                    <i class="bi bi-inbox"></i> No hotspots found. Click "Add New Hotspot" to create one.
+                    <i class="bi bi-inbox"></i> ยังไม่มี Hotspot — คลิก "เพิ่ม Hotspot" เพื่อเพิ่ม
                 </td>
             </tr>
         `;
@@ -119,12 +119,12 @@ function renderHotspots(hotspots) {
 // Get status badge HTML
 function getStatusBadge(status) {
     const badges = {
-        'ready': '<span class="badge bg-success">READY</span>',
-        'warning': '<span class="badge bg-warning">WARNING</span>',
-        'error': '<span class="badge bg-danger">ERROR</span>',
-        'unchecked': '<span class="badge bg-secondary">UNCHECKED</span>'
+        'ready': '<span class="badge bg-success">พร้อม</span>',
+        'warning': '<span class="badge bg-warning text-dark">คำเตือน</span>',
+        'error': '<span class="badge bg-danger">ข้อผิดพลาด</span>',
+        'unchecked': '<span class="badge bg-secondary">ยังไม่ตรวจ</span>'
     };
-    return badges[status] || '<span class="badge bg-secondary">UNKNOWN</span>';
+    return badges[status] || '<span class="badge bg-secondary">ไม่ทราบ</span>';
 }
 
 // Get status details HTML
@@ -146,7 +146,7 @@ function getStatusDetails(hotspot) {
 
 // Format datetime
 function formatDateTime(dateStr) {
-    if (!dateStr) return '<span class="text-muted">Never</span>';
+    if (!dateStr) return '<span class="text-muted">ยังไม่ตรวจ</span>';
     const date = new Date(dateStr);
     return date.toLocaleString();
 }
@@ -155,7 +155,7 @@ function formatDateTime(dateStr) {
 function testConnection(hotspotId) {
     const btn = event.target.closest('button');
     const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Testing...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังทดสอบ...';
     btn.disabled = true;
 
     fetch(`/api/hotspots/${hotspotId}/test_connection/`, {
@@ -192,14 +192,14 @@ function addHotspot() {
     const is_active = document.getElementById('add_is_active').checked;
 
     if (!hotspot_name || !display_name) {
-        showAlert('warning', 'Please fill in all required fields');
+        showAlert('warning', 'กรุณากรอกข้อมูลที่จำเป็นให้ครบ');
         return;
     }
 
     // Validate hotspot_name pattern
     const pattern = /^hotspot(_[a-z0-9]+)?$/;
     if (!pattern.test(hotspot_name)) {
-        showAlert('warning', 'Hotspot name must start with "hotspot" and use lowercase letters, numbers, and underscores only');
+        showAlert('warning', 'ชื่อ Hotspot ต้องขึ้นต้นด้วย "hotspot" และใช้ตัวพิมพ์เล็ก, ตัวเลข, และ _ เท่านั้น');
         return;
     }
 
@@ -264,7 +264,7 @@ function saveHotspot() {
     const is_active = document.getElementById('edit_is_active').checked;
 
     if (!display_name) {
-        showAlert('warning', 'Please fill in all required fields');
+        showAlert('warning', 'กรุณากรอก Display Name');
         return;
     }
 
@@ -360,7 +360,7 @@ function updateCountdown() {
     const minutes = Math.floor(remaining / 60000);
     const seconds = Math.floor((remaining % 60000) / 1000);
 
-    countdown.textContent = `Next refresh: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+    countdown.textContent = `รีเฟรชถัดไป: ${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 // Show alert

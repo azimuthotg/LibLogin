@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Hotspots - LibLogin Management{% endblock %}
-{% block page_title %}Hotspot Management{% endblock %}
+{% block page_title %}จัดการ Hotspot{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -111,7 +111,7 @@
     </div>
     <div class="hs-stat active">
         <div class="hs-stat-ic"><i class="bi bi-check-circle"></i></div>
-        <div><div class="hs-stat-num">{{ active }}</div><div class="hs-stat-lbl">Active</div></div>
+        <div><div class="hs-stat-num">{{ active }}</div><div class="hs-stat-lbl">ใช้งานอยู่</div></div>
     </div>
     <div class="hs-stat ready">
         <div class="hs-stat-ic"><i class="bi bi-hdd-network"></i></div>
@@ -129,11 +129,11 @@
             <thead>
                 <tr>
                     <th style="width:30px;"></th>
-                    <th>Hotspot Name</th>
-                    <th>Display Name</th>
-                    <th>Status</th>
-                    <th>Last Checked</th>
-                    <th style="width:130px;">Actions</th>
+                    <th>ชื่อ Hotspot</th>
+                    <th>ชื่อแสดง</th>
+                    <th>สถานะ</th>
+                    <th>ตรวจล่าสุด</th>
+                    <th style="width:130px;">จัดการ</th>
                 </tr>
             </thead>
             <tbody id="hotspotsTableBody">
@@ -151,12 +151,12 @@
 
     <!-- Status Legend -->
     <div style="margin:16px 20px; background:#f8fafc; border-radius:10px; padding:14px 16px; border:1px solid #e9eef4;">
-        <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; margin-bottom:10px;">Status Legend</div>
+        <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; letter-spacing:.04em; text-transform:uppercase; margin-bottom:10px;">คำอธิบายสถานะ</div>
         <div style="display:grid; gap:6px;">
-            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span> <strong>Ready</strong> — Folder พร้อม, login.html ครบ, config ตรง</div>
-            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#eab308;flex-shrink:0;"></span> <strong>Warning</strong> — Folder มีแต่ config ไม่ตรง</div>
-            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span> <strong>Error</strong> — ไม่พบ Folder หรือ login.html</div>
-            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;"></span> <strong>Unchecked</strong> — ยังไม่ได้ตรวจสอบ</div>
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span> <strong>พร้อม</strong> — Folder พร้อม, login.html ครบ, config ตรง</div>
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#eab308;flex-shrink:0;"></span> <strong>คำเตือน</strong> — Folder มีแต่ config ไม่ตรง</div>
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span> <strong>ข้อผิดพลาด</strong> — ไม่พบ Folder หรือ login.html</div>
+            <div style="display:flex; align-items:center; gap:8px; font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b;"><span style="width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;"></span> <strong>ยังไม่ตรวจ</strong> — ยังไม่ได้ตรวจสอบ</div>
         </div>
     </div>
 </div>
@@ -188,7 +188,7 @@
                     </div>
                     <div class="check-item">
                         <input type="checkbox" id="add_is_active" checked>
-                        <label for="add_is_active">Active</label>
+                        <label for="add_is_active">เปิดใช้งาน</label>
                     </div>
                 </form>
             </div>
@@ -228,7 +228,7 @@
                     </div>
                     <div class="check-item">
                         <input type="checkbox" id="edit_is_active">
-                        <label for="edit_is_active">Active</label>
+                        <label for="edit_is_active">เปิดใช้งาน</label>
                     </div>
                 </form>
             </div>

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Settings - LibLogin{% endblock %}
-{% block page_title %}System Settings{% endblock %}
+{% block page_title %}ตั้งค่าระบบ{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -84,7 +84,7 @@
             <div class="section-header">
                 <div class="section-header-left">
                     <div class="section-header-icon"><i class="bi bi-building"></i></div>
-                    <span class="section-title">Library Information</span>
+                    <span class="section-title">ข้อมูลห้องสมุด</span>
                 </div>
             </div>
             <div class="section-body">
@@ -92,7 +92,7 @@
                     {% csrf_token %}
 
                     <div class="mb-f">
-                        <label class="form-label-s" for="organization_name">Organization Name</label>
+                        <label class="form-label-s" for="organization_name">ชื่อองค์กร</label>
                         <input type="text" class="form-ctrl-s" id="organization_name" name="organization_name"
                                value="{{ settings.organization_name|default:'' }}"
                                placeholder="เช่น มหาวิทยาลัยXXX">
@@ -100,20 +100,20 @@
                     </div>
 
                     <div class="mb-f">
-                        <label class="form-label-s" for="library_name">Library Name <span style="color:#e74c3c">*</span></label>
+                        <label class="form-label-s" for="library_name">ชื่อห้องสมุด <span style="color:#e74c3c">*</span></label>
                         <input type="text" class="form-ctrl-s" id="library_name" name="library_name"
                                value="{{ settings.library_name|default:'Library Login System' }}" required>
                         <p class="helper-text"><i class="bi bi-info-circle me-1"></i>ชื่อระบบ/ห้องสมุด (แตกต่างจาก Organization)</p>
                     </div>
 
                     <div class="mb-f">
-                        <label class="form-label-s" for="contact_info">Contact Information</label>
+                        <label class="form-label-s" for="contact_info">ข้อมูลติดต่อ</label>
                         <textarea class="form-ctrl-s" id="contact_info" name="contact_info" rows="3"
                                   placeholder="ข้อมูลติดต่อ, ชั่วโมงทำการ, ฯลฯ">{{ settings.contact_info|default:'' }}</textarea>
                     </div>
 
                     <div class="mb-f">
-                        <label class="form-label-s" for="default_hotspot_name">Default Hotspot Name</label>
+                        <label class="form-label-s" for="default_hotspot_name">Hotspot เริ่มต้น</label>
                         <input type="text" class="form-ctrl-s" id="default_hotspot_name" name="default_hotspot_name"
                                value="{{ settings.default_hotspot_name|default:'' }}"
                                placeholder="Default router identifier">
@@ -121,19 +121,19 @@
                     </div>
 
                     <div class="mb-f">
-                        <label class="form-label-s" for="hotspot_status_refresh_interval">Auto-Refresh Interval</label>
+                        <label class="form-label-s" for="hotspot_status_refresh_interval">ระยะเวลาการรีเฟรชอัตโนมัติ</label>
                         <select class="form-select-s" id="hotspot_status_refresh_interval" name="hotspot_status_refresh_interval">
-                            <option value="5"  {% if settings.hotspot_status_refresh_interval == 5  %}selected{% endif %}>5 minutes</option>
-                            <option value="10" {% if settings.hotspot_status_refresh_interval == 10 or not settings.hotspot_status_refresh_interval %}selected{% endif %}>10 minutes</option>
-                            <option value="15" {% if settings.hotspot_status_refresh_interval == 15 %}selected{% endif %}>15 minutes</option>
-                            <option value="30" {% if settings.hotspot_status_refresh_interval == 30 %}selected{% endif %}>30 minutes</option>
-                            <option value="60" {% if settings.hotspot_status_refresh_interval == 60 %}selected{% endif %}>60 minutes</option>
+                            <option value="5"  {% if settings.hotspot_status_refresh_interval == 5  %}selected{% endif %}>5 นาที</option>
+                            <option value="10" {% if settings.hotspot_status_refresh_interval == 10 or not settings.hotspot_status_refresh_interval %}selected{% endif %}>10 นาที</option>
+                            <option value="15" {% if settings.hotspot_status_refresh_interval == 15 %}selected{% endif %}>15 นาที</option>
+                            <option value="30" {% if settings.hotspot_status_refresh_interval == 30 %}selected{% endif %}>30 นาที</option>
+                            <option value="60" {% if settings.hotspot_status_refresh_interval == 60 %}selected{% endif %}>60 นาที</option>
                         </select>
                         <p class="helper-text"><i class="bi bi-arrow-repeat me-1"></i>ความถี่ในการตรวจสถานะ Hotspot อัตโนมัติ</p>
                     </div>
 
                     <div class="mb-f">
-                        <label class="form-label-s" for="logo">Library Logo</label>
+                        <label class="form-label-s" for="logo">โลโก้ห้องสมุด</label>
                         <input type="file" class="form-ctrl-s" id="logo" name="logo" accept="image/*" style="padding:7px 10px;">
                         <p class="helper-text"><i class="bi bi-image me-1"></i>PNG, JPG, SVG แนะนำ — ใช้ในหน้า Login และรายงาน</p>
                         {% if settings.logo %}
@@ -159,31 +159,31 @@
             <div class="section-header">
                 <div class="section-header-left">
                     <div class="section-header-icon warn"><i class="bi bi-exclamation-triangle"></i></div>
-                    <span class="section-title">Advanced Settings</span>
+                    <span class="section-title">ตั้งค่าขั้นสูง</span>
                 </div>
             </div>
             <div class="section-body">
                 <div class="adv-section">
-                    <div class="adv-title"><i class="bi bi-database"></i> Database Information</div>
-                    <div class="db-info-row"><span>Total Images</span><strong>{{ total_images }}</strong></div>
-                    <div class="db-info-row"><span>Total Users</span><strong>{{ total_users }}</strong></div>
-                    <div class="db-info-row"><span>Storage Used</span><strong><span id="storageSize">N/A</span></strong></div>
+                    <div class="adv-title"><i class="bi bi-database"></i> ข้อมูลฐานข้อมูล</div>
+                    <div class="db-info-row"><span>รูปภาพทั้งหมด</span><strong>{{ total_images }}</strong></div>
+                    <div class="db-info-row"><span>ผู้ใช้ทั้งหมด</span><strong>{{ total_users }}</strong></div>
+                    <div class="db-info-row"><span>พื้นที่ที่ใช้</span><strong><span id="storageSize">N/A</span></strong></div>
                 </div>
 
                 <div style="margin-top:16px;">
-                    <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#374151; margin-bottom:10px;">API Configuration</div>
+                    <div style="font-family:'Kanit',sans-serif; font-weight:600; font-size:.85rem; color:#374151; margin-bottom:10px;">การตั้งค่า API</div>
                     <div class="mb-f">
-                        <label class="form-label-s">Public API Endpoint</label>
+                        <label class="form-label-s">API สาธารณะ (MikroTik)</label>
                         <div class="code-field">
                             <i class="bi bi-globe" style="color:#3498db;"></i>
-                            {{ request.scheme }}://{{ request.get_host }}/api/login-background/
+                            {{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}
                         </div>
                     </div>
                     <div>
-                        <label class="form-label-s">Admin API Endpoint</label>
+                        <label class="form-label-s">API จัดการ (Admin)</label>
                         <div class="code-field">
                             <i class="bi bi-lock" style="color:#e67e22;"></i>
-                            {{ request.scheme }}://{{ request.get_host }}/api/backgrounds/
+                            {{ request.scheme }}://{{ request.get_host }}{% url 'background-list' %}
                         </div>
                     </div>
                 </div>
@@ -200,7 +200,7 @@
             <div class="tip-body">
                 <p style="font-family:'Sarabun',sans-serif; font-size:.82rem; color:#64748b; margin-bottom:10px;">เพิ่ม JavaScript นี้ใน login.html ของ MikroTik:</p>
                 <div class="code-block">&lt;script&gt;
-fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?hotspot_name=YOUR_ID')
+fetch('{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}?hotspot_name=YOUR_ID')
   .then(r =&gt; r.json())
   .then(data =&gt; {
     if (data.success) {
@@ -210,14 +210,14 @@ fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?hotsp
   });
 &lt;/script&gt;</div>
                 <button class="btn-copy" onclick="copyCode()">
-                    <i class="bi bi-clipboard"></i> Copy Code
+                    <i class="bi bi-clipboard"></i> คัดลอก Code
                 </button>
             </div>
         </div>
 
         <!-- Quick Tips -->
         <div class="info-tip-card">
-            <div class="tip-header"><i class="bi bi-lightbulb"></i> Quick Tips</div>
+            <div class="tip-header"><i class="bi bi-lightbulb"></i> เคล็ดลับ</div>
             <div class="tip-body">
                 <ul class="tip-list">
                     <li><i class="bi bi-check-circle-fill"></i> ใช้ Background เฉพาะสำหรับแต่ละสถานที่</li>
@@ -231,7 +231,7 @@ fetch('{{ request.scheme }}://{{ request.get_host }}/api/login-background/?hotsp
 
         <!-- Security -->
         <div class="info-tip-card">
-            <div class="tip-header"><i class="bi bi-shield-check"></i> Security</div>
+            <div class="tip-header"><i class="bi bi-shield-check"></i> ความปลอดภัย</div>
             <div class="tip-body">
                 <ul class="tip-list">
                     <li><i class="bi bi-key-fill"></i> เปลี่ยน Password Admin เป็นประจำ</li>
