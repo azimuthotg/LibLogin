@@ -934,12 +934,17 @@ def departments_view(request):
 
         return redirect('departments')
 
-    departments = Department.objects.prefetch_related('hotspots').all()
+    departments = list(Department.objects.prefetch_related('hotspots', 'users').order_by('-is_active', 'name'))
     hotspots = Hotspot.objects.filter(is_active=True).order_by('display_name')
+
+    active_count = sum(1 for d in departments if d.is_active)
+    inactive_count = len(departments) - active_count
 
     context = {
         'departments': departments,
         'hotspots': hotspots,
+        'active_count': active_count,
+        'inactive_count': inactive_count,
     }
     return render(request, 'webapp/departments.html', context)
 

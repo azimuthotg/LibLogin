@@ -252,6 +252,40 @@
     }
     .btn-icon.del:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
 
+    /* ── Inactive Card ────────────────────────────────── */
+    .dept-card.is-inactive {
+        opacity: 0.65;
+    }
+
+    .dept-card.is-inactive .dept-card-accent {
+        background: linear-gradient(90deg, #95a5a6, #bdc3c7);
+    }
+
+    /* ── Section Divider ──────────────────────────────── */
+    .section-divider {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 0;
+    }
+
+    .section-divider-label {
+        font-family: 'Kanit', sans-serif;
+        font-size: .72rem;
+        font-weight: 500;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        white-space: nowrap;
+    }
+
+    .section-divider-line {
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+
     /* ── Empty State ──────────────────────────────────── */
     .empty-state {
         text-align: center;
@@ -655,15 +689,15 @@
         <div class="stat-pill active">
             <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
             <div class="stat-body">
-                <div class="stat-num">{% with departments|length as total %}{{ departments|length }}{% endwith %}</div>
+                <div class="stat-num">{{ active_count }}</div>
                 <div class="stat-label">กำลังใช้งาน</div>
             </div>
         </div>
         <div class="stat-pill wifi">
-            <div class="stat-icon"><i class="bi bi-wifi"></i></div>
+            <div class="stat-icon"><i class="bi bi-pause-circle"></i></div>
             <div class="stat-body">
-                <div class="stat-num">{{ hotspots|length }}</div>
-                <div class="stat-label">Hotspot ที่มี</div>
+                <div class="stat-num">{{ inactive_count }}</div>
+                <div class="stat-label">ปิดใช้งาน</div>
             </div>
         </div>
     </div>
@@ -672,7 +706,7 @@
     {% if departments %}
     <div class="dept-grid">
         {% for dept in departments %}
-        <div class="dept-card">
+        <div class="dept-card {% if not dept.is_active %}is-inactive{% endif %}" data-active="{{ dept.is_active|yesno:'true,false' }}">
             <div class="dept-card-accent"></div>
             <div class="dept-card-body">
                 <div class="dept-card-top">
@@ -708,9 +742,9 @@
             <div class="dept-card-footer">
                 <span class="dept-meta">
                     {% if dept.is_active %}
-                    <i class="bi bi-circle-fill text-success me-1" style="font-size:.5rem;"></i>Active
+                    <i class="bi bi-circle-fill text-success me-1" style="font-size:.5rem;"></i>ใช้งานอยู่
                     {% else %}
-                    <i class="bi bi-circle-fill text-secondary me-1" style="font-size:.5rem;"></i>Inactive
+                    <i class="bi bi-circle-fill text-secondary me-1" style="font-size:.5rem;"></i>ปิดใช้งาน
                     {% endif %}
                 </span>
                 {% if request.user.is_staff %}
@@ -756,7 +790,7 @@
     <div class="no-hotspot-alert mt-4">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <div>ยังไม่มี Hotspot ที่ active ในระบบ —
-            <a href="/admin/api/hotspot/" target="_blank">เพิ่ม Hotspot ผ่าน Admin Panel</a>
+            <a href="{% url 'hotspots' %}">จัดการ Hotspot</a>
         </div>
     </div>
     {% endif %}
@@ -945,6 +979,26 @@
 
 {% block extra_js %}
 <script>
+    function insertDeptSectionDivider() {
+        const grid = document.querySelector('.dept-grid');
+        if (!grid) return;
+        const cards = Array.from(grid.querySelectorAll('.dept-card'));
+        if (!cards.length) return;
+
+        // Remove any existing dividers
+        grid.querySelectorAll('.section-divider').forEach(d => d.remove());
+
+        const firstInactive = cards.findIndex(c => c.dataset.active === 'false');
+        if (firstInactive > 0) {
+            const divider = document.createElement('div');
+            divider.className = 'section-divider';
+            divider.innerHTML = '<span class="section-divider-label">ปิดใช้งาน ({{ inactive_count }})</span><div class="section-divider-line"></div>';
+            cards[firstInactive].before(divider);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', insertDeptSectionDivider);
+
     function editDept(id, name, description, isActive, hotspotIds) {
         document.getElementById('editDeptId').value = id;
         document.getElementById('editDeptName').value = name;
