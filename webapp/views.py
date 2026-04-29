@@ -506,13 +506,32 @@ def templates_view(request):
 
     # GET request - display templates
     if allowed is None:
-        templates = TemplateConfig.objects.all().order_by('-updated_at')
+        templates = TemplateConfig.objects.all().order_by('-is_active', '-updated_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True).order_by('hotspot_name')
     else:
-        templates = TemplateConfig.objects.filter(hotspot_filter_q(allowed)).order_by('-updated_at')
+        templates = TemplateConfig.objects.filter(hotspot_filter_q(allowed)).order_by('-is_active', '-updated_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True, hotspot_name__in=allowed).order_by('hotspot_name')
+
+    hotspot_coverage = []
+    for hs in hotspots_qs:
+        has_tpl = templates.filter(hotspot_name=hs.hotspot_name, is_active=True).exists()
+        hotspot_coverage.append({
+            'hotspot_name': hs.hotspot_name,
+            'display_name': hs.display_name,
+            'has_active_tpl': has_tpl,
+        })
+    has_default_tpl = templates.filter(hotspot_name__isnull=True, is_active=True).exists()
+
+    active_count = templates.filter(is_active=True).count()
+    inactive_count = templates.filter(is_active=False).count()
 
     context = {
         'templates': templates,
         'component_choices': TemplateConfig.COMPONENT_CHOICES,
+        'hotspot_coverage': hotspot_coverage,
+        'has_default_tpl': has_default_tpl,
+        'active_count': active_count,
+        'inactive_count': inactive_count,
     }
 
     return render(request, 'webapp/templates.html', context)
