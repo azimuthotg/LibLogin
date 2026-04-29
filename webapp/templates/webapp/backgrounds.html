@@ -76,6 +76,35 @@
 .ic-btn.del { color:#e74c3c; border-color:#fadbd8; background:#fdf2f2; }
 .ic-btn.del:hover { background:#e74c3c; color:#fff; border-color:#e74c3c; }
 
+/* Coverage strip */
+.coverage-strip { background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); padding:16px 20px; margin-bottom:20px; }
+.coverage-strip-title { font-family:'Kanit',sans-serif; font-weight:600; font-size:.78rem; color:#64748b; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
+.coverage-chips { display:flex; flex-wrap:wrap; gap:8px; }
+.cov-chip { display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:30px; font-family:'Kanit',sans-serif; font-size:.8rem; cursor:pointer; transition:all .18s; border:1.5px solid; }
+.cov-chip.ok  { background:#eafaf1; color:#1e8449; border-color:#a9dfbf; }
+.cov-chip.ok:hover  { background:#d5f5e3; }
+.cov-chip.err { background:#fdf2f2; color:#c0392b; border-color:#f5b7b1; }
+.cov-chip.err:hover { background:#fbe0df; }
+.cov-chip.active-filter { box-shadow:0 0 0 2px currentColor; font-weight:600; }
+.cov-chip .cov-dot { width:8px;height:8px;border-radius:50%; flex-shrink:0; }
+.cov-chip.ok  .cov-dot { background:#27ae60; }
+.cov-chip.err .cov-dot { background:#e74c3c; }
+.coverage-summary { font-family:'Sarabun',sans-serif; font-size:.78rem; color:#94a3b8; display:flex; align-items:center; gap:4px; }
+
+/* Section divider */
+.section-divider { grid-column:1/-1; display:flex; align-items:center; gap:12px; margin:4px 0; }
+.section-divider-line { flex:1; height:1px; background:#f1f5f9; }
+.section-divider-label { font-family:'Kanit',sans-serif; font-size:.75rem; font-weight:600; padding:4px 12px; border-radius:20px; white-space:nowrap; }
+.section-divider-label.inactive-lbl { background:#f8fafc; color:#94a3b8; border:1px solid #e2e8f0; }
+
+/* Active card — prominent */
+.img-card.is-active { border:2px solid #a9dfbf; box-shadow:0 2px 12px rgba(39,174,96,.12); }
+.img-card.is-active .img-card-body { border-top:3px solid #27ae60; }
+
+/* Inactive card — subdued */
+.img-card.is-inactive { opacity:.75; }
+.img-card.is-inactive:hover { opacity:1; }
+
 /* Empty state */
 .bg-empty { text-align:center; padding:64px 24px; background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
 .bg-empty-icon { width:72px;height:72px; background:#ebf5fb; border-radius:18px; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; color:#3498db; margin-bottom:16px; }
@@ -95,6 +124,38 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Coverage Strip -->
+{% if hotspot_coverage or has_default_bg is not None %}
+<div class="coverage-strip">
+    <div class="coverage-strip-title">
+        <span><i class="bi bi-shield-check me-2"></i>สถานะ Background แต่ละ Hotspot</span>
+        <span class="coverage-summary">
+            <i class="bi bi-circle-fill" style="color:#27ae60;font-size:.5rem;"></i> Active {{ active_count }}
+            &nbsp;|&nbsp;
+            <i class="bi bi-circle-fill" style="color:#e2e8f0;font-size:.5rem;"></i> Inactive {{ inactive_count }}
+        </span>
+    </div>
+    <div class="coverage-chips" id="coverageChips">
+        {% for hs in hotspot_coverage %}
+        <div class="cov-chip {% if hs.has_active_bg %}ok{% else %}err{% endif %}"
+             onclick="filterByHotspot('{{ hs.hotspot_name }}', this)"
+             title="คลิกเพื่อกรองเฉพาะ {{ hs.hotspot_name }}">
+            <span class="cov-dot"></span>
+            {% if hs.has_active_bg %}<i class="bi bi-check-circle-fill" style="font-size:.75rem;"></i>{% else %}<i class="bi bi-exclamation-circle-fill" style="font-size:.75rem;"></i>{% endif %}
+            <span>{{ hs.display_name }}</span>
+        </div>
+        {% endfor %}
+        <div class="cov-chip {% if has_default_bg %}ok{% else %}err{% endif %}"
+             onclick="filterByHotspot('__default__', this)"
+             title="Background แบบ Default (ไม่ระบุ Hotspot)">
+            <span class="cov-dot"></span>
+            {% if has_default_bg %}<i class="bi bi-check-circle-fill" style="font-size:.75rem;"></i>{% else %}<i class="bi bi-exclamation-circle-fill" style="font-size:.75rem;"></i>{% endif %}
+            <span>Default (ทุก Hotspot)</span>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Upload Section -->
 <div class="upload-section">
@@ -158,9 +219,9 @@
 {% if backgrounds %}
 <div class="img-grid" id="imagesGrid">
     {% for bg in backgrounds %}
-    <div class="img-card image-item"
+    <div class="img-card image-item {% if bg.is_active %}is-active{% else %}is-inactive{% endif %}"
          data-title="{{ bg.title|lower }}"
-         data-router="{{ bg.hotspot_name|default:'default'|lower }}"
+         data-router="{{ bg.hotspot_name|default:'__default__'|lower }}"
          data-status="{% if bg.is_active %}active{% else %}inactive{% endif %}">
 
         <div class="img-card-thumb" onclick="viewImage('{{ bg.image.url }}','{{ bg.title|escapejs }}')">
@@ -294,6 +355,7 @@ function previewImage() {
 // Search & filter
 const searchInput = document.getElementById('searchInput');
 const filterStatus = document.getElementById('filterStatus');
+let activeHotspotFilter = '';
 
 function filterImages() {
     const term = searchInput.value.toLowerCase();
@@ -301,11 +363,47 @@ function filterImages() {
     document.querySelectorAll('.image-item').forEach(item => {
         const matchSearch = item.dataset.title.includes(term) || item.dataset.router.includes(term);
         const matchStatus = !status || item.dataset.status === status;
-        item.style.display = (matchSearch && matchStatus) ? '' : 'none';
+        const matchHotspot = !activeHotspotFilter ||
+            (activeHotspotFilter === '__default__' ? item.dataset.router === '__default__' : item.dataset.router === activeHotspotFilter);
+        item.style.display = (matchSearch && matchStatus && matchHotspot) ? '' : 'none';
     });
+    updateSectionDivider();
 }
 searchInput.addEventListener('input', filterImages);
 filterStatus.addEventListener('change', filterImages);
+
+function filterByHotspot(name, chip) {
+    const chips = document.querySelectorAll('.cov-chip');
+    if (activeHotspotFilter === name) {
+        activeHotspotFilter = '';
+        chips.forEach(c => c.classList.remove('active-filter'));
+    } else {
+        activeHotspotFilter = name;
+        chips.forEach(c => c.classList.remove('active-filter'));
+        chip.classList.add('active-filter');
+    }
+    filterImages();
+}
+
+function updateSectionDivider() {
+    // Remove old divider
+    document.querySelectorAll('.section-divider').forEach(d => d.remove());
+    const grid = document.getElementById('imagesGrid');
+    if (!grid) return;
+    const visible = [...grid.querySelectorAll('.image-item')].filter(el => el.style.display !== 'none');
+    const firstInactive = visible.find(el => el.dataset.status === 'inactive');
+    if (firstInactive && visible.find(el => el.dataset.status === 'active')) {
+        const divider = document.createElement('div');
+        divider.className = 'section-divider';
+        divider.innerHTML = `<div class="section-divider-line"></div>
+            <span class="section-divider-label inactive-lbl"><i class="bi bi-archive me-1"></i>Inactive</span>
+            <div class="section-divider-line"></div>`;
+        grid.insertBefore(divider, firstInactive);
+    }
+}
+
+// Insert section divider on page load
+document.addEventListener('DOMContentLoaded', updateSectionDivider);
 
 // Image viewer
 function viewImage(url, title) {

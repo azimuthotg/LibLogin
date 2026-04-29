@@ -162,11 +162,29 @@ def backgrounds_view(request):
         return redirect('backgrounds')
 
     if allowed is None:
-        backgrounds = BackgroundImage.objects.all().order_by('-uploaded_at')
+        backgrounds = BackgroundImage.objects.all().order_by('-is_active', '-uploaded_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True).order_by('hotspot_name')
     else:
-        backgrounds = BackgroundImage.objects.filter(hotspot_filter_q(allowed)).order_by('-uploaded_at')
+        backgrounds = BackgroundImage.objects.filter(hotspot_filter_q(allowed)).order_by('-is_active', '-uploaded_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True, hotspot_name__in=allowed).order_by('hotspot_name')
 
-    return render(request, 'webapp/backgrounds.html', {'backgrounds': backgrounds})
+    hotspot_coverage = []
+    for hs in hotspots_qs:
+        has_bg = backgrounds.filter(hotspot_name=hs.hotspot_name, is_active=True).exists()
+        hotspot_coverage.append({
+            'hotspot_name': hs.hotspot_name,
+            'display_name': hs.display_name,
+            'has_active_bg': has_bg,
+        })
+    has_default_bg = backgrounds.filter(hotspot_name__isnull=True, is_active=True).exists()
+
+    return render(request, 'webapp/backgrounds.html', {
+        'backgrounds': backgrounds,
+        'hotspot_coverage': hotspot_coverage,
+        'has_default_bg': has_default_bg,
+        'active_count': backgrounds.filter(is_active=True).count(),
+        'inactive_count': backgrounds.filter(is_active=False).count(),
+    })
 
 
 @login_required
