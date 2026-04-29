@@ -545,9 +545,9 @@
     <div class="d-card-body">
         <div class="api-endpoint-wrap">
             <div class="api-url-field" id="apiEndpointDisplay">
-                {{ request.scheme }}://{{ request.get_host }}/api/login-background/
+                {{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}
             </div>
-            <input type="text" id="apiEndpoint" value="{{ request.scheme }}://{{ request.get_host }}/api/login-background/" style="position:absolute;opacity:0;pointer-events:none;" readonly>
+            <input type="text" id="apiEndpoint" value="{{ request.scheme }}://{{ request.get_host }}{% url 'login-background' %}" style="position:absolute;opacity:0;pointer-events:none;" readonly>
             <button class="btn-copy" id="btnCopy" onclick="copyEndpoint()">
                 <i class="bi bi-clipboard"></i> Copy
             </button>
