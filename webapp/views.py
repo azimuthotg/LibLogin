@@ -735,12 +735,28 @@ def cards_view(request):
 
     # GET request - display cards
     if allowed is None:
-        cards = CardContent.objects.all().order_by('order', 'created_at')
+        cards = CardContent.objects.all().order_by('-is_active', 'order', 'created_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True).order_by('hotspot_name')
     else:
-        cards = CardContent.objects.filter(hotspot_filter_q(allowed)).order_by('order', 'created_at')
+        cards = CardContent.objects.filter(hotspot_filter_q(allowed)).order_by('-is_active', 'order', 'created_at')
+        hotspots_qs = Hotspot.objects.filter(is_active=True, hotspot_name__in=allowed).order_by('hotspot_name')
+
+    hotspot_card_counts = []
+    for hs in hotspots_qs:
+        cnt = cards.filter(hotspot_name=hs.hotspot_name, is_active=True).count()
+        hotspot_card_counts.append({
+            'hotspot_name': hs.hotspot_name,
+            'display_name': hs.display_name,
+            'active_count': cnt,
+        })
+    default_active_count = cards.filter(hotspot_name__isnull=True, is_active=True).count()
 
     context = {
         'cards': cards,
+        'active_count': cards.filter(is_active=True).count(),
+        'inactive_count': cards.filter(is_active=False).count(),
+        'hotspot_card_counts': hotspot_card_counts,
+        'default_active_count': default_active_count,
     }
 
     return render(request, 'webapp/cards.html', context)
