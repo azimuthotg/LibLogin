@@ -133,7 +133,7 @@
                     <th>ชื่อแสดง</th>
                     <th>สถานะ</th>
                     <th>ตรวจล่าสุด</th>
-                    <th style="width:130px;">จัดการ</th>
+                    <th style="width:220px;">จัดการ</th>
                 </tr>
             </thead>
             <tbody id="hotspotsTableBody">
@@ -279,6 +279,7 @@
 {% block extra_js %}
 <script>
     window.HOTSPOT_REFRESH_INTERVAL = {% if settings.hotspot_status_refresh_interval %}{{ settings.hotspot_status_refresh_interval }}{% else %}10{% endif %};
+    window.IS_STAFF = {{ request.user.is_staff|yesno:"true,false" }};
 </script>
 <script src="{% static 'webapp/js/hotspot-management.js' %}"></script>
 {% endblock %}

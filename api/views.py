@@ -587,6 +587,127 @@ class HotspotViewSet(viewsets.ModelViewSet):
                 'message': f'Error testing connection: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=True, methods=['post'])
+    def generate_login_page(self, request, pk=None):
+        """
+        Phase 3A: Generate login.html for a hotspot from the master template.
+        Reads hotspot/login_master.html, substitutes __HOTSPOT_NAME__ with the
+        actual hotspot name, and writes the result to {hotspot_name}/login.html.
+        """
+        import os
+        from django.conf import settings
+
+        hotspot = self.get_object()
+        base_dir = settings.BASE_DIR
+        master_path = os.path.join(base_dir, 'hotspot', 'login_master.html')
+
+        if not os.path.isfile(master_path):
+            return Response({
+                'success': False,
+                'message': 'ไม่พบ login_master.html — กรุณาสร้างไฟล์ hotspot/login_master.html ก่อน'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            with open(master_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            generated = content.replace("'__HOTSPOT_NAME__'", f"'{hotspot.hotspot_name}'")
+
+            # Ensure hotspot folder exists
+            folder_path = os.path.join(base_dir, hotspot.hotspot_name)
+            os.makedirs(folder_path, exist_ok=True)
+
+            output_path = os.path.join(folder_path, 'login.html')
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(generated)
+
+            logger.info(f"[Generate] login.html generated for {hotspot.hotspot_name} at {output_path}")
+
+            # Auto-run test_connection logic to update status
+            import re
+            from django.utils import timezone
+            hotspot.folder_exists = True
+            hotspot.login_file_exists = True
+            pattern = r"window\.HOTSPOT_NAME\s*=\s*['\"]([^'\"]+)['\"]"
+            match = re.search(pattern, generated)
+            found_name = match.group(1) if match else None
+            hotspot.config_matched = (found_name == hotspot.hotspot_name)
+            hotspot.last_checked = timezone.now()
+            hotspot.save()
+
+            return Response({
+                'success': True,
+                'message': f'สร้าง login.html สำเร็จสำหรับ {hotspot.hotspot_name}',
+                'hotspot': HotspotSerializer(hotspot).data,
+            })
+
+        except Exception as e:
+            logger.error(f"[Generate] Error generating login.html: {str(e)}", exc_info=True)
+            return Response({
+                'success': False,
+                'message': f'เกิดข้อผิดพลาด: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'])
+    def download_login_zip(self, request, pk=None):
+        """
+        Phase 3A: Download a ZIP file containing all hotspot files for manual
+        upload to MikroTik. Includes generated login.html + supporting files
+        (md5.js, css/, img/) from the master hotspot folder.
+        """
+        import os
+        import zipfile
+        import io
+        from django.conf import settings
+        from django.http import HttpResponse
+
+        hotspot = self.get_object()
+        base_dir = settings.BASE_DIR
+        master_path = os.path.join(base_dir, 'hotspot', 'login_master.html')
+
+        if not os.path.isfile(master_path):
+            return Response({
+                'success': False,
+                'message': 'ไม่พบ login_master.html'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            with open(master_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            generated = content.replace("'__HOTSPOT_NAME__'", f"'{hotspot.hotspot_name}'")
+
+            # Build ZIP in memory
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+                # Add generated login.html
+                zf.writestr('login.html', generated.encode('utf-8'))
+
+                # Add supporting files from hotspot/ master folder (skip source templates)
+                master_dir = os.path.join(base_dir, 'hotspot')
+                skip_files = {'login.html', 'login_master.html', 'login.html.working-backup', 'README.md'}
+                for root, dirs, files in os.walk(master_dir):
+                    for filename in files:
+                        if root == master_dir and filename in skip_files:
+                            continue
+                        abs_path = os.path.join(root, filename)
+                        rel_path = os.path.relpath(abs_path, master_dir)
+                        zf.write(abs_path, rel_path)
+
+            buffer.seek(0)
+            zip_filename = f'hotspot_{hotspot.hotspot_name}.zip'
+            response = HttpResponse(buffer.read(), content_type='application/zip')
+            response['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
+            logger.info(f"[Download ZIP] {zip_filename} downloaded by {request.user.username}")
+            return response
+
+        except Exception as e:
+            logger.error(f"[Download ZIP] Error: {str(e)}", exc_info=True)
+            return Response({
+                'success': False,
+                'message': f'เกิดข้อผิดพลาด: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class LandingPageURLViewSet(viewsets.ModelViewSet):
     """

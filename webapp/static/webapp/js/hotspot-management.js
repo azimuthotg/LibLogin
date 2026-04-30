@@ -45,6 +45,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 editHotspot(id);
             } else if (action === 'delete') {
                 deleteHotspot(id, name);
+            } else if (action === 'generate') {
+                generateLoginPage(id, name);
+            } else if (action === 'download_zip') {
+                downloadLoginZip(id, name);
             }
         });
     }
@@ -91,6 +95,7 @@ function renderHotspots(hotspots) {
         return;
     }
 
+    const isStaff = window.IS_STAFF === true;
     tbody.innerHTML = hotspots.map(hotspot => `
         <tr>
             <td class="text-center">${hotspot.status_icon}</td>
@@ -102,15 +107,25 @@ function renderHotspots(hotspots) {
             </td>
             <td>${formatDateTime(hotspot.last_checked)}</td>
             <td>
-                <button class="btn btn-sm btn-info" data-action="test" data-id="${hotspot.id}" title="Test Connection">
+                <div class="d-flex flex-wrap gap-1">
+                <button class="btn btn-sm btn-info" data-action="test" data-id="${hotspot.id}" title="ตรวจสอบสถานะ">
                     <i class="bi bi-check-circle"></i> Test
                 </button>
-                <button class="btn btn-sm btn-primary" data-action="edit" data-id="${hotspot.id}" title="Edit">
+                ${isStaff ? `
+                <button class="btn btn-sm btn-success" data-action="generate" data-id="${hotspot.id}" data-name="${hotspot.hotspot_name}" title="สร้าง login.html จาก Master Template">
+                    <i class="bi bi-gear"></i> Generate
+                </button>
+                <button class="btn btn-sm btn-secondary" data-action="download_zip" data-id="${hotspot.id}" data-name="${hotspot.hotspot_name}" title="ดาวน์โหลด ZIP สำหรับอัปโหลดไป MikroTik">
+                    <i class="bi bi-file-zip"></i> ZIP
+                </button>
+                <button class="btn btn-sm btn-primary" data-action="edit" data-id="${hotspot.id}" title="แก้ไข">
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-sm btn-danger" data-action="delete" data-id="${hotspot.id}" data-name="${hotspot.display_name}" title="Delete">
+                <button class="btn btn-sm btn-danger" data-action="delete" data-id="${hotspot.id}" data-name="${hotspot.display_name}" title="ลบ">
                     <i class="bi bi-trash"></i>
                 </button>
+                ` : ''}
+                </div>
             </td>
         </tr>
     `).join('');
@@ -151,6 +166,75 @@ function formatDateTime(dateStr) {
     return date.toLocaleString();
 }
 
+// Generate login.html from master template
+function generateLoginPage(hotspotId, hotspotName) {
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    btn.disabled = true;
+
+    fetch((window.BASE_URL || '') + `/api/hotspots/${hotspotId}/generate_login_page/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', `✅ สร้าง login.html สำเร็จสำหรับ <strong>${hotspotName}</strong> — ${data.hotspot.status_icon} ${data.hotspot.status}`);
+            loadHotspots();
+        } else {
+            showAlert('danger', 'เกิดข้อผิดพลาด: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        showAlert('danger', 'Error: ' + error.message);
+    })
+    .finally(() => {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    });
+}
+
+// Download login ZIP for MikroTik upload
+function downloadLoginZip(hotspotId, hotspotName) {
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    btn.disabled = true;
+
+    // Trigger download via anchor element
+    const url = (window.BASE_URL || '') + `/api/hotspots/${hotspotId}/download_login_zip/`;
+    fetch(url, {
+        headers: { 'X-CSRFToken': csrftoken },
+        credentials: 'include'
+    })
+    .then(response => {
+        if (!response.ok) return response.json().then(d => Promise.reject(d.message || 'Error'));
+        return response.blob();
+    })
+    .then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `hotspot_${hotspotName}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        showAlert('success', `📦 ดาวน์โหลด hotspot_${hotspotName}.zip สำเร็จ`);
+    })
+    .catch(error => {
+        showAlert('danger', 'Error downloading ZIP: ' + error);
+    })
+    .finally(() => {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    });
+}
+
 // Test connection
 function testConnection(hotspotId) {
     const btn = event.target.closest('button');
@@ -158,7 +242,7 @@ function testConnection(hotspotId) {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังทดสอบ...';
     btn.disabled = true;
 
-    fetch(`/api/hotspots/${hotspotId}/test_connection/`, {
+    fetch((window.BASE_URL || '') + `/api/hotspots/${hotspotId}/test_connection/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrftoken,
@@ -235,7 +319,7 @@ function addHotspot() {
 
 // Edit hotspot
 function editHotspot(hotspotId) {
-    fetch(`/api/hotspots/${hotspotId}/`, {
+    fetch((window.BASE_URL || '') + `/api/hotspots/${hotspotId}/`, {
         headers: {
             'X-CSRFToken': csrftoken
         },
@@ -268,7 +352,7 @@ function saveHotspot() {
         return;
     }
 
-    fetch(`/api/hotspots/${hotspotId}/`, {
+    fetch((window.BASE_URL || '') + `/api/hotspots/${hotspotId}/`, {
         method: 'PATCH',
         headers: {
             'X-CSRFToken': csrftoken,
@@ -307,7 +391,7 @@ function deleteHotspot(hotspotId, displayName) {
 function confirmDeleteHotspot() {
     const hotspotId = document.getElementById('delete_hotspot_id').value;
 
-    fetch(`/api/hotspots/${hotspotId}/`, {
+    fetch((window.BASE_URL || '') + `/api/hotspots/${hotspotId}/`, {
         method: 'DELETE',
         headers: {
             'X-CSRFToken': csrftoken
