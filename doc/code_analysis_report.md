@@ -13,8 +13,9 @@
 3. [ค่า Hardcoded](#3-ค่า-hardcoded)
 4. [ปัญหาด้าน Security](#4-ปัญหาด้าน-security)
 5. [ฟีเจอร์ที่ขาด (Enterprise Grade)](#5-ฟีเจอร์ที่ขาด)
-6. [สิ่งที่ดีแล้ว](#6-สิ่งที่ดีแล้ว)
-7. [ลำดับความสำคัญในการแก้ไข](#7-ลำดับความสำคัญในการแก้ไข)
+6. [วิเคราะห์: การเชื่อมต่อ Server ↔ login.html (MikroTik)](#6-วิเคราะห์-การเชื่อมต่อ-server--loginhtml-mikrotik)
+7. [สิ่งที่ดีแล้ว](#7-สิ่งที่ดีแล้ว)
+8. [ลำดับความสำคัญในการแก้ไข](#8-ลำดับความสำคัญในการแก้ไข)
 
 ---
 
@@ -401,7 +402,169 @@ def health_check(request):
 
 ---
 
-## 6. สิ่งที่ดีแล้ว
+## 6. วิเคราะห์: การเชื่อมต่อ Server ↔ login.html (MikroTik)
+
+### 6.1 สถาปัตยกรรมการทำงานจริง (End-to-End Flow)
+
+```
+[Client WiFi Device]
+    │
+    │ [1] เชื่อมต่อ WiFi
+    ▼
+[MikroTik Router]
+    │ [2] ดัก HTTP request ที่ไปหา internet (walled garden)
+    │ [3] Redirect → https://lib.npu.ac.th/liblogin/hotspot_xxx/login.html
+    ▼
+[IIS + Django/Waitress — lib.npu.ac.th]
+    │ [4] URL pattern: re_path(r'^(hotspot[^/]*)/(.*)$', serve_hotspot_file)
+    │     Django serve() ไฟล์จาก BASE_DIR/hotspot_xxx/login.html
+    ▼
+[Browser ฝั่ง Client]
+    │ [5] JavaScript ใน login.html ทำ fetch() ไปยัง API:
+    │     GET  /api/login-background/?hotspot_name=hotspot_xxx   → รูปพื้นหลัง
+    │     GET  /api/template-config/?hotspot_name=hotspot_xxx    → Slide/Card content
+    │     GET  /api/landing-url/?hotspot_name=hotspot_xxx        → URL ปลายทาง
+    │     POST /api/track-impression/                            → บันทึก analytics
+    │
+    │ [6] User กรอก Username/Password
+    │ [7] Form POST → $(link-login-only) ← MikroTik template variable
+    ▼
+[MikroTik Router]
+    │ [8] Authenticate user กับ RADIUS / user list
+    │ [9] Redirect → Landing Page URL (จาก API)
+    ▼
+[Internet ✓]
+```
+
+> **สำคัญ:** `$(if chap-id)`, `$(link-login-only)`, `$(mac)` ฯลฯ เป็น **MikroTik template syntax**
+> ไม่ใช่ Django template — ถูก inject โดย MikroTik RouterOS ก่อนส่ง response ให้ client
+> Django เพียงแค่ `serve()` ไฟล์แบบ static โดยไม่ process เนื้อหาไฟล์เลย
+
+---
+
+### 6.2 สิ่งที่หน้า /hotspots/ ตรวจสอบได้และไม่ได้
+
+`HotspotViewSet.test_connection()` ตรวจสอบเฉพาะ **filesystem บนเครื่อง server** เท่านั้น:
+
+| Check | Logic | ผล |
+|---|---|---|
+| `folder_exists` | `os.path.isdir(BASE_DIR/hotspot_xxx)` | ✅ ตรวจได้จริง |
+| `login_file_exists` | `os.path.isfile(.../login.html)` | ✅ ตรวจได้จริง |
+| `config_matched` | regex หา `window.HOTSPOT_NAME = 'xxx'` ใน file | ✅ ตรวจได้จริง |
+| HTTP URL เข้าถึงได้? | ❌ ไม่มี | ❌ ตรวจไม่ได้ |
+| MikroTik redirect ถูกต้อง? | ❌ ไม่มี | ❌ ตรวจไม่ได้ |
+| API reachable จาก client? | ❌ ไม่มี | ❌ ตรวจไม่ได้ |
+| CSS/JS โหลดได้? | ❌ ไม่มี | ❌ ตรวจไม่ได้ |
+
+**สรุป:** Status `🟢 ready` บนหน้า /hotspots/ หมายความว่า **"ไฟล์มีอยู่และ config ตรง"** เท่านั้น
+ไม่ใช่ "hotspot ทำงานปกติ" — ยังอาจมีปัญหา network, CORS, หรือ MikroTik config ก็ได้
+
+---
+
+### 6.3 ปัญหาหลัก: login.html 5 ไฟล์ที่เป็น Copy เดียวกัน
+
+ทุก hotspot มีไฟล์ `login.html` ขนาด 802 บรรทัดที่เหมือนกันทุกประการ ต่างกันเพียง **1 บรรทัด**:
+
+```
+hotspot/login.html        802 บรรทัด  →  window.HOTSPOT_NAME = 'hotspot'
+hotspot_lab/login.html    802 บรรทัด  →  window.HOTSPOT_NAME = 'hotspot_lab'
+hotspot_lan/login.html    802 บรรทัด  →  window.HOTSPOT_NAME = 'hotspot_lan'
+hotspot_office/login.html 802 บรรทัด  →  window.HOTSPOT_NAME = 'hotspot_office'
+hotspot_wifi/login.html   802 บรรทัด  →  window.HOTSPOT_NAME = 'hotspot_wifi'
+```
+
+นอกจากนี้ URL ยังถูก hardcode ซ้ำในทุกไฟล์:
+
+```javascript
+// บรรทัดนี้ปรากฏ 4 ครั้งต่อไฟล์ × 5 ไฟล์ = 20 จุด hardcode
+: 'https://lib.npu.ac.th/liblogin';
+```
+
+รวมถึง CSS และ Logo URL:
+```html
+<link rel="stylesheet" href="https://lib.npu.ac.th/liblogin/static/css/login.css?v=8">
+<img src="https://lib.npu.ac.th/liblogin/static/logo_arc.png" ...>
+```
+
+**ผลกระทบ:**
+- แก้ bug หรือเพิ่มฟีเจอร์ใน login.html → ต้องแก้ 5 ไฟล์ทุกครั้งด้วยมือ
+- ลืมแก้ไฟล์ใดไฟล์หนึ่ง → hotspot นั้นใช้โค้ดเวอร์ชันเก่า
+- เพิ่ม hotspot ใหม่ → ต้อง copy + แก้ชื่อเอง ไม่มี automation
+- อัปเดต server URL (เช่น ย้าย domain) → ต้องแก้ทุกไฟล์
+
+---
+
+### 6.4 ข้อจำกัดของ test_connection ในปัจจุบัน
+
+เนื่องจาก `test_connection` อ่านไฟล์จาก filesystem เท่านั้น สิ่งที่ยังตรวจไม่ได้มีดังนี้:
+
+1. **CORS ทำงานถูกต้อง?**
+   login.html ถูกโหลดจาก MikroTik IP (เช่น `192.168.88.1`) แล้ว JS fetch ไป `lib.npu.ac.th` — CORS ต้องเปิดอยู่ (`CORS_ALLOW_ALL_ORIGINS = True` ตั้งแล้ว แต่ไม่มีการ verify)
+
+2. **CSS และรูปภาพโหลดได้?**
+   login.html โหลด CSS จาก `https://lib.npu.ac.th/liblogin/static/...` — ถ้า static files ไม่ทำงานหน้าเพจจะพังแต่ test_connection จะยัง pass
+
+3. **API endpoints ตอบสนอง?**
+   `/api/login-background/`, `/api/template-config/` ไม่ถูกทดสอบจาก test_connection
+
+4. **version ไฟล์ตรงกับ DB หรือเปล่า?**
+   ถ้ามีคนแก้ login.html บน server โดยตรง (ไม่ผ่าน deployment) อาจมีเวอร์ชันที่ไม่ sync
+
+---
+
+### 6.5 แนวทางพัฒนา Phase ต่อไป
+
+#### Option A: Auto-Deploy Login Page (แนะนำ)
+
+เพิ่ม feature ใหม่ใน Django: เมื่อ Admin สร้าง Hotspot ใหม่ หรือกด "Deploy" — ระบบ generate และเขียนไฟล์อัตโนมัติ
+
+```
+[Admin สร้าง Hotspot 'hotspot_new' ในระบบ]
+            ↓
+Django render template: hotspot_login_template.html
++ inject: window.HOTSPOT_NAME = 'hotspot_new'
+            ↓
+เขียนไฟล์ → BASE_DIR/hotspot_new/login.html
+คัดลอก   → BASE_DIR/hotspot_new/md5.js
+            ↓
+test_connection() verify ผล
+            ↓
+Status: 🟢 Deployed
+```
+
+ไฟล์ที่ต้องสร้าง/แก้ไข:
+- `hotspot/login_template.html` — master template (1 ไฟล์)
+- `api/views.py` → `HotspotViewSet.deploy()` action ใหม่
+- `webapp/templates/webapp/hotspots.html` → ปุ่ม "Deploy" ต่อ hotspot
+
+#### Option B: Enhanced test_connection
+
+เพิ่มการตรวจสอบเพิ่มเติมใน `test_connection`:
+
+```python
+# ตรวจสอบ API endpoints ว่าตอบสนอง
+api_ok = requests.get(f"{base_url}/api/login-background/?hotspot_name={name}", timeout=5).ok
+
+# ตรวจสอบ Static CSS ว่าโหลดได้
+css_ok = requests.get(f"{base_url}/static/css/login.css", timeout=5).ok
+
+# ตรวจสอบ version hash ของ login.html
+file_hash = hashlib.md5(open(login_file_path).read().encode()).hexdigest()
+```
+
+#### สรุปการเปรียบเทียบ
+
+| | ปัจจุบัน | Option A | Option B |
+|---|---|---|---|
+| เพิ่ม hotspot ใหม่ | Copy ไฟล์เอง | อัตโนมัติ ✅ | Copy ไฟล์เอง |
+| แก้ bug ใน login.html | แก้ 5 ไฟล์ | แก้ 1 template ✅ | แก้ 5 ไฟล์ |
+| ตรวจสอบ connectivity | File system only | File system only | HTTP test ✅ |
+| ความยากในการพัฒนา | — | ปานกลาง | ง่าย |
+| **แนะนำ** | — | ✅ Phase ต่อไป | ✅ ทำควบคู่ |
+
+---
+
+## 7. สิ่งที่ดีแล้ว
 
 | รายการ | รายละเอียด |
 |---|---|
@@ -420,7 +583,7 @@ def health_check(request):
 
 ---
 
-## 7. ลำดับความสำคัญในการแก้ไข
+## 8. ลำดับความสำคัญในการแก้ไข
 
 ### 🔴 Priority 1 — Security (ควรแก้ก่อน deploy ต่อไป)
 
@@ -457,10 +620,23 @@ def health_check(request):
 | ประเภท | จำนวน |
 |---|---|
 | โค้ดไม่สอดคล้อง (Inconsistencies) | 6 จุด |
-| ค่า Hardcoded | 4 จุด |
+| ค่า Hardcoded | 4 จุด (+20 จุดใน login.html files) |
 | ปัญหา Security | 5 จุด |
 | ฟีเจอร์ที่ขาด | 7 จุด |
-| **รวม** | **22 จุด** |
+| ปัญหา login.html architecture | 4 จุด |
+| **รวม** | **26 จุด** |
+
+---
+
+## Phase Development Roadmap
+
+| Phase | งาน | ผลลัพธ์ |
+|---|---|---|
+| **Phase 1** (ปัจจุบัน) | Multi-dept access control, Image Library, Date format | เสร็จแล้ว ✅ |
+| **Phase 2** | Priority 1 Security fixes (throttle, logging, session) | ระบบ production-ready |
+| **Phase 3** | Auto-Deploy login.html + Enhanced test_connection | จัดการ hotspot ได้สะดวก |
+| **Phase 4** | Pagination, CardContentViewSet, Health Check | API completeness |
+| **Phase 5** | Audit Log, Brute-force protection | Enterprise security |
 
 ---
 
