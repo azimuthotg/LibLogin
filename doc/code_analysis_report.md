@@ -512,55 +512,122 @@ hotspot_wifi/login.html   802 บรรทัด  →  window.HOTSPOT_NAME = 'ho
 
 ---
 
-### 6.5 แนวทางพัฒนา Phase ต่อไป
+### 6.5 สถาปัตยกรรมที่ชัดเจน: login.html อยู่ที่ไหน?
 
-#### Option A: Auto-Deploy Login Page (แนะนำ)
-
-เพิ่ม feature ใหม่ใน Django: เมื่อ Admin สร้าง Hotspot ใหม่ หรือกด "Deploy" — ระบบ generate และเขียนไฟล์อัตโนมัติ
+ไฟล์ `login.html` มีอยู่ **2 ที่** ที่แตกต่างกัน:
 
 ```
-[Admin สร้าง Hotspot 'hotspot_new' ในระบบ]
-            ↓
-Django render template: hotspot_login_template.html
+[Django Server — lib.npu.ac.th]          [MikroTik Router — ในออฟฟิศ]
+  hotspot_xxx/login.html                   /flash/hotspot/login.html
+  (Source / Master copy)                   (ไฟล์ที่ใช้งานจริง)
+         │                                          │
+         │  Admin ต้อง upload ด้วยมือ              │
+         │  ผ่าน WinBox หรือ FTP                   │
+         └──────────────────────────────────────────┘
+
+MikroTik อ่านไฟล์จาก /flash/hotspot/ แล้ว process $(link-login-only) $(mac) ฯลฯ
+แล้วส่ง HTML ที่ process แล้วให้ client browser
+```
+
+**ปัจจุบัน:** เมื่อแก้ไข login.html บน Django server ต้องทำ 3 ขั้นตอน:
+1. แก้ไขไฟล์บน Django server
+2. เปิด WinBox → connect MikroTik ทีละตัว
+3. อัปโหลดไฟล์ขึ้น MikroTik ด้วยมือ (ทำซ้ำกับทุกตัว)
+
+---
+
+### 6.6 แผน Phase 3: Deploy Login Page
+
+#### Phase 3A — Auto-Generate + Download (ทำได้เลย ✅)
+
+**ปัญหาที่แก้:** ตัดการ copy ไฟล์ด้วยมือและแก้ `window.HOTSPOT_NAME` ให้หมดไป
+
+```
+[Admin สร้าง/กด Deploy Hotspot 'hotspot_new']
+           ↓
+Django render จาก hotspot/login_master.html (1 ไฟล์หลัก)
 + inject: window.HOTSPOT_NAME = 'hotspot_new'
-            ↓
-เขียนไฟล์ → BASE_DIR/hotspot_new/login.html
-คัดลอก   → BASE_DIR/hotspot_new/md5.js
-            ↓
-test_connection() verify ผล
-            ↓
-Status: 🟢 Deployed
++ inject: API_SERVER = settings.API_SERVER_URL
+           ↓
+เขียนไฟล์ → BASE_DIR/hotspot_new/login.html  (อัตโนมัติ)
+คัดลอก   → BASE_DIR/hotspot_new/md5.js       (อัตโนมัติ)
+           ↓
+ปุ่ม "Download ZIP" → Admin download แล้วไป upload MikroTik เอง
+(วิธีเดิม: WinBox หรือ FTP แต่ไฟล์ถูกต้องแน่นอน)
 ```
 
-ไฟล์ที่ต้องสร้าง/แก้ไข:
-- `hotspot/login_template.html` — master template (1 ไฟล์)
-- `api/views.py` → `HotspotViewSet.deploy()` action ใหม่
-- `webapp/templates/webapp/hotspots.html` → ปุ่ม "Deploy" ต่อ hotspot
+**ไฟล์ที่ต้องสร้าง/แก้ไข:**
 
-#### Option B: Enhanced test_connection
+| ไฟล์ | การเปลี่ยนแปลง |
+|---|---|
+| `hotspot/login_master.html` | สร้างใหม่ — master template เดียว แทน 5 copies |
+| `api/views.py` | เพิ่ม `HotspotViewSet.generate_login_page()` action |
+| `api/views.py` | เพิ่ม `HotspotViewSet.download_login_zip()` action |
+| `webapp/templates/webapp/hotspots.html` | เพิ่มปุ่ม "Generate" และ "Download ZIP" |
 
-เพิ่มการตรวจสอบเพิ่มเติมใน `test_connection`:
+**ผลลัพธ์ Phase 3A:**
+- เพิ่ม hotspot ใหม่ → กด Generate → Download ZIP → Upload MT ✅
+- แก้ bug ใน login.html → แก้ที่ `login_master.html` ที่เดียว → Regenerate ทุก hotspot ✅
+- ไม่ต้องแก้ 5 ไฟล์อีกต่อไป ✅
+
+---
+
+#### Phase 3B — Auto-Deploy via FTP (อนาคต)
+
+เพิ่มให้ Django FTP ไฟล์ไป MikroTik อัตโนมัติ โดยไม่ต้อง download แล้วไป upload เอง
+
+**สิ่งที่ต้องเพิ่ม:**
 
 ```python
-# ตรวจสอบ API endpoints ว่าตอบสนอง
-api_ok = requests.get(f"{base_url}/api/login-background/?hotspot_name={name}", timeout=5).ok
-
-# ตรวจสอบ Static CSS ว่าโหลดได้
-css_ok = requests.get(f"{base_url}/static/css/login.css", timeout=5).ok
-
-# ตรวจสอบ version hash ของ login.html
-file_hash = hashlib.md5(open(login_file_path).read().encode()).hexdigest()
+# เพิ่มใน Hotspot model
+mt_ip_address = models.CharField(max_length=50, blank=True)   # เช่น 192.168.88.1
+mt_ftp_username = models.CharField(max_length=50, blank=True) # เช่น admin
+mt_ftp_password = models.CharField(max_length=100, blank=True) # ควร encrypt
+mt_ftp_path = models.CharField(max_length=200, default='/flash/hotspot/')
 ```
 
-#### สรุปการเปรียบเทียบ
+```python
+# HotspotViewSet.deploy_ftp() action
+import ftplib
+ftp = ftplib.FTP(hotspot.mt_ip_address)
+ftp.login(hotspot.mt_ftp_username, hotspot.mt_ftp_password)
+with open(login_file_path, 'rb') as f:
+    ftp.storbinary(f'STOR {hotspot.mt_ftp_path}login.html', f)
+```
 
-| | ปัจจุบัน | Option A | Option B |
-|---|---|---|---|
-| เพิ่ม hotspot ใหม่ | Copy ไฟล์เอง | อัตโนมัติ ✅ | Copy ไฟล์เอง |
-| แก้ bug ใน login.html | แก้ 5 ไฟล์ | แก้ 1 template ✅ | แก้ 5 ไฟล์ |
-| ตรวจสอบ connectivity | File system only | File system only | HTTP test ✅ |
-| ความยากในการพัฒนา | — | ปานกลาง | ง่าย |
-| **แนะนำ** | — | ✅ Phase ต่อไป | ✅ ทำควบคู่ |
+**ข้อจำกัด:** MikroTik ต้องเปิด FTP service ไว้ (ปิดโดย default เพื่อความปลอดภัย) และ Django server ต้องเข้าถึง MikroTik IP ได้ (อาจต้อง VPN หรืออยู่ใน LAN เดียวกัน)
+
+---
+
+#### Phase 3C — MikroTik REST API (อนาคตไกล)
+
+RouterOS v7.1+ มี REST API ในตัว สามารถ upload file ได้โดยไม่ต้องเปิด FTP:
+
+```python
+# ใช้ requests แทน ftplib
+import requests
+response = requests.post(
+    f'https://{hotspot.mt_ip}/rest/file',
+    auth=(hotspot.mt_api_user, hotspot.mt_api_pass),
+    json={'name': 'hotspot/login.html', 'contents': base64_content},
+    verify=False  # MikroTik self-signed cert
+)
+```
+
+**ข้อจำกัด:** ต้องใช้ RouterOS v7+ เท่านั้น และต้องเปิด REST API บน MikroTik
+
+---
+
+#### สรุปเปรียบเทียบ 3 Phase
+
+| | ปัจจุบัน | 3A | 3B | 3C |
+|---|---|---|---|---|
+| เพิ่ม hotspot ใหม่ | Copy + แก้ชื่อเอง | Generate อัตโนมัติ ✅ | Generate + FTP ✅ | Generate + API ✅ |
+| แก้ bug login.html | แก้ 5 ไฟล์ | แก้ 1 ไฟล์ ✅ | แก้ 1 ไฟล์ ✅ | แก้ 1 ไฟล์ ✅ |
+| Upload ไป MikroTik | Manual (WinBox/FTP) | Manual (แต่ไฟล์ถูกต้อง) | อัตโนมัติ ✅ | อัตโนมัติ ✅ |
+| ต้องการ MT config | ไม่ต้อง | ไม่ต้อง ✅ | เปิด FTP | RouterOS v7+ |
+| ความยากพัฒนา | — | ง่าย ✅ | ปานกลาง | ยาก |
+| **สถานะ** | ใช้งานอยู่ | **Phase ถัดไป** | อนาคต | อนาคตไกล |
 
 ---
 
