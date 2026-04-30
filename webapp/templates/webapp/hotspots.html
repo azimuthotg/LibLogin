@@ -288,5 +288,5 @@
     window.HOTSPOT_REFRESH_INTERVAL = {% if settings.hotspot_status_refresh_interval %}{{ settings.hotspot_status_refresh_interval }}{% else %}10{% endif %};
     window.IS_STAFF = {{ request.user.is_staff|yesno:"true,false" }};
 </script>
-<script src="{% static 'webapp/js/hotspot-management.js' %}"></script>
+<script src="{% static 'webapp/js/hotspot-management.js' %}?v=4"></script>
 {% endblock %}
