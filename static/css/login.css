@@ -66,7 +66,13 @@ table td:first-child{font-weight:700}
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden;
+}
+
+/* Prevent scroll on desktop split-screen only */
+@media (min-width: 577px) {
+    body {
+        overflow: hidden;
+    }
 }
 
 /* Dynamic background - Full Screen (Layer 1) */
@@ -452,48 +458,37 @@ body {
     }
 }
 
-/* Mobile Large (576px and below) */
+/* Mobile (576px and below) — Login-first: hide left panel, full-screen login */
 @media (max-width: 576px) {
-    .left-panel,
-    .right-panel {
+    body {
+        overflow-y: auto;
+    }
+
+    .split-container {
+        flex-direction: column;
         height: auto;
-        min-height: 50vh;
-        padding: 30px 25px;
+        min-height: 100vh;
     }
 
-    .slide-content {
-        max-width: 100%;
+    /* Hide promotional content on mobile — user just needs to log in */
+    .left-panel {
+        display: none;
     }
 
-    .slide-icon {
-        font-size: 70px;
-        margin-bottom: 25px;
-    }
-
-    .slide-title {
-        font-size: 26px;
-        margin-bottom: 18px;
-    }
-
-    .slide-description {
-        font-size: 14px;
-        margin-bottom: 20px;
-        line-height: 1.5;
-    }
-
-    .dots {
-        gap: 10px;
-        margin-top: 25px;
-    }
-
-    .dot {
-        width: 10px;
-        height: 10px;
+    .right-panel {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        padding: 30px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .login-card {
         max-width: 100%;
-        padding: 30px 25px;
+        width: 100%;
+        padding: 30px 24px;
         border-radius: 16px;
     }
 
@@ -503,7 +498,7 @@ body {
     }
 
     .login-card form {
-        gap: 18px;
+        gap: 16px;
     }
 
     .login-card label {
@@ -519,14 +514,14 @@ body {
 
     .login-card input[type="text"],
     .login-card input[type="password"] {
-        height: 34px !important;
-        font-size: 14px !important;
+        height: 36px !important;
+        font-size: 16px !important;
     }
 
     .login-card input[type="submit"] {
-        padding: 10px;
-        font-size: 13px;
-        min-height: 44px;
+        padding: 12px;
+        font-size: 14px;
+        min-height: 48px;
     }
 
     .login-card .info {
@@ -537,65 +532,16 @@ body {
     .login-card .info.bt {
         font-size: 11px;
     }
-
-    .card-gallery {
-        grid-template-columns: 1fr;
-        gap: 15px;
-        padding: 15px;
-    }
-
-    .info-card {
-        padding: 25px 18px;
-    }
-
-    .card-icon {
-        font-size: 2.8rem;
-    }
-
-    .card-title {
-        font-size: 17px;
-    }
-
-    .card-description {
-        font-size: 13px;
-    }
 }
 
-/* Mobile Standard (480px and below) */
+/* Mobile Small (480px and below) — tighten login card padding */
 @media (max-width: 480px) {
-    .left-panel,
     .right-panel {
-        padding: 25px 20px;
-        min-height: 45vh;
-    }
-
-    .slide-icon {
-        font-size: 60px;
-        margin-bottom: 20px;
-    }
-
-    .slide-title {
-        font-size: 24px;
-        margin-bottom: 15px;
-    }
-
-    .slide-description {
-        font-size: 13px;
-        margin-bottom: 18px;
-    }
-
-    .dots {
-        gap: 8px;
-        margin-top: 20px;
-    }
-
-    .dot {
-        width: 9px;
-        height: 9px;
+        padding: 24px 16px;
     }
 
     .login-card {
-        padding: 28px 22px;
+        padding: 26px 20px;
         border-radius: 14px;
     }
 
@@ -605,24 +551,11 @@ body {
     }
 
     .login-card form {
-        gap: 16px;
+        gap: 14px;
     }
 
     .login-card label {
-        padding: 0 10px;
         border-radius: 5px;
-    }
-
-    .login-card input[type="text"],
-    .login-card input[type="password"] {
-        height: 32px !important;
-        font-size: 13px !important;
-    }
-
-    .login-card input[type="submit"] {
-        padding: 9px;
-        font-size: 12px;
-        border-radius: 7px;
     }
 
     .login-card .info {
@@ -632,61 +565,16 @@ body {
     .login-card .info.bt {
         font-size: 10px;
     }
-
-    .info-card {
-        padding: 22px 16px;
-    }
-
-    .card-icon {
-        font-size: 2.5rem;
-        margin-bottom: 12px;
-    }
-
-    .card-title {
-        font-size: 16px;
-        margin-bottom: 8px;
-    }
-
-    .card-description {
-        font-size: 12px;
-    }
 }
 
-/* Mobile Small (380px and below) */
+/* Mobile XS (380px and below) */
 @media (max-width: 380px) {
-    .left-panel,
     .right-panel {
-        padding: 20px 15px;
-        min-height: 40vh;
-    }
-
-    .slide-icon {
-        font-size: 50px;
-        margin-bottom: 15px;
-    }
-
-    .slide-title {
-        font-size: 22px;
-        margin-bottom: 12px;
-    }
-
-    .slide-description {
-        font-size: 12px;
-        margin-bottom: 15px;
-    }
-
-    .dots {
-        gap: 7px;
-        margin-top: 18px;
-    }
-
-    .dot {
-        width: 8px;
-        height: 8px;
+        padding: 20px 14px;
     }
 
     .login-card {
-        padding: 25px 20px;
+        padding: 22px 18px;
         border-radius: 12px;
     }
 
@@ -696,34 +584,11 @@ body {
     }
 
     .login-card form {
-        gap: 14px;
-    }
-
-    .login-card input[type="text"],
-    .login-card input[type="password"] {
-        height: 30px !important;
-        font-size: 12px !important;
+        gap: 12px;
     }
 
     .login-card input[type="submit"] {
-        padding: 8px;
-        font-size: 11px;
-    }
-
-    .info-card {
-        padding: 20px 14px;
-    }
-
-    .card-icon {
-        font-size: 2.2rem;
-    }
-
-    .card-title {
-        font-size: 15px;
-    }
-
-    .card-description {
-        font-size: 11px;
+        font-size: 13px;
     }
 }
 
