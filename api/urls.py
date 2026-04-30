@@ -10,6 +10,7 @@ from .views import (
     impression_statistics,
     media_reach_report,
     export_reach_report_pdf,
+    health_check,
     BackgroundImageViewSet,
     SystemSettingsViewSet,
     UserViewSet,
@@ -54,6 +55,9 @@ urlpatterns = [
 
     # Export media reach report as PDF
     path('export-reach-report-pdf/', export_reach_report_pdf, name='export-reach-report-pdf'),
+
+    # Health check (public)
+    path('health/', health_check, name='health-check'),
 
     # Include router URLs
     path('', include(router.urls)),

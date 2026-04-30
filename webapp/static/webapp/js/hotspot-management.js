@@ -106,6 +106,7 @@ function renderHotspots(hotspots) {
                 ${getStatusDetails(hotspot)}
             </td>
             <td>${formatDateTime(hotspot.last_checked)}</td>
+            <td>${formatActivity(hotspot.last_impression_at)}</td>
             <td>
                 <div class="d-flex flex-wrap gap-1">
                 <button class="btn btn-sm btn-info" data-action="test" data-id="${hotspot.id}" title="ตรวจสอบสถานะ">
@@ -142,21 +143,25 @@ function getStatusBadge(status) {
     return badges[status] || '<span class="badge bg-secondary">ไม่ทราบ</span>';
 }
 
-// Get status details HTML
+// Get status details HTML (6 checks)
 function getStatusDetails(hotspot) {
     if (!hotspot.last_checked) return '';
 
-    const checks = [];
-    if (hotspot.folder_exists) checks.push('<i class="bi bi-folder-check text-success" title="Folder exists"></i>');
-    else checks.push('<i class="bi bi-folder-x text-danger" title="Folder not found"></i>');
+    const c = (ok, title) => ok
+        ? `<i class="bi bi-check-circle-fill text-success" title="${title} ✅"></i>`
+        : `<i class="bi bi-x-circle-fill text-danger" title="${title} ❌"></i>`;
+    const w = (ok, title) => ok
+        ? `<i class="bi bi-check-circle-fill text-success" title="${title} ✅"></i>`
+        : `<i class="bi bi-dash-circle text-warning" title="${title} ⚠️ ไม่มี"></i>`;
 
-    if (hotspot.login_file_exists) checks.push('<i class="bi bi-file-check text-success" title="login.html exists"></i>');
-    else checks.push('<i class="bi bi-file-x text-danger" title="login.html not found"></i>');
-
-    if (hotspot.config_matched) checks.push('<i class="bi bi-check-circle text-success" title="Config matched"></i>');
-    else checks.push('<i class="bi bi-x-circle text-warning" title="Config mismatch"></i>');
-
-    return '<br><small>' + checks.join(' ') + '</small>';
+    return '<br><small style="letter-spacing:2px;">' + [
+        c(hotspot.folder_exists,       'Folder'),
+        c(hotspot.login_file_exists,   'login.html'),
+        c(hotspot.config_matched,      'Config'),
+        c(hotspot.has_active_background, 'Background'),
+        c(hotspot.has_active_template,   'Template'),
+        w(hotspot.has_landing_url,       'Landing URL'),
+    ].join(' ') + '</small>';
 }
 
 // Format datetime
@@ -164,6 +169,53 @@ function formatDateTime(dateStr) {
     if (!dateStr) return '<span class="text-muted">ยังไม่ตรวจ</span>';
     const date = new Date(dateStr);
     return date.toLocaleString();
+}
+
+// Format last activity
+function formatActivity(dateStr) {
+    if (!dateStr) return '<span class="text-muted" style="font-size:.8rem;">ยังไม่มี</span>';
+    const date = new Date(dateStr);
+    const diffMs = Date.now() - date.getTime();
+    const diffDays = Math.floor(diffMs / 86400000);
+    const label = diffDays === 0 ? 'วันนี้'
+        : diffDays === 1 ? 'เมื่อวาน'
+        : `${diffDays} วันที่แล้ว`;
+    return `<span style="font-size:.8rem;" title="${date.toLocaleString()}">${label}</span>`;
+}
+
+// Test all hotspots sequentially
+async function testAllHotspots() {
+    const btn = document.getElementById('btnTestAll');
+    const rows = document.querySelectorAll('#hotspotsTableBody tr');
+    const ids = [];
+
+    // Collect hotspot IDs from action buttons
+    document.querySelectorAll('#hotspotsTableBody button[data-action="test"]').forEach(b => {
+        ids.push(parseInt(b.dataset.id));
+    });
+
+    if (ids.length === 0) { showAlert('warning', 'ไม่พบ Hotspot ที่จะตรวจสอบ'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังตรวจ...';
+
+    let done = 0;
+    for (const id of ids) {
+        try {
+            await fetch((window.BASE_URL || '') + `/api/hotspots/${id}/test_connection/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+        } catch (e) { /* continue */ }
+        done++;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> ตรวจ ${done}/${ids.length}...`;
+    }
+
+    btn.innerHTML = '<i class="bi bi-check2-all"></i> ตรวจทั้งหมด';
+    btn.disabled = false;
+    showAlert('success', `✅ ตรวจสอบครบ ${ids.length} Hotspot`);
+    loadHotspots();
 }
 
 // Generate login.html from master template

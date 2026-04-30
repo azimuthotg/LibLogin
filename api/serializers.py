@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent, Hotspot, LandingPageURL
+from .models import BackgroundImage, SystemSettings, TemplateConfig, SlideContent, CardContent, Hotspot, LandingPageURL, PageImpression
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,14 +42,25 @@ class HotspotSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(read_only=True)
     status = serializers.ReadOnlyField()
     status_icon = serializers.ReadOnlyField()
+    last_impression_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Hotspot
         fields = ['id', 'hotspot_name', 'display_name', 'description', 'is_active',
                   'folder_exists', 'login_file_exists', 'config_matched', 'last_checked',
+                  'has_active_background', 'has_active_template', 'has_landing_url',
+                  'last_impression_at',
                   'status', 'status_icon', 'created_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'folder_exists', 'login_file_exists', 'config_matched',
-                            'last_checked', 'created_at', 'updated_at', 'status', 'status_icon']
+                            'last_checked', 'has_active_background', 'has_active_template',
+                            'has_landing_url', 'last_impression_at',
+                            'created_at', 'updated_at', 'status', 'status_icon']
+
+    def get_last_impression_at(self, obj):
+        impression = PageImpression.objects.filter(
+            hotspot_name=obj.hotspot_name
+        ).values('viewed_at').order_by('-viewed_at').first()
+        return impression['viewed_at'] if impression else None
 
 
 class HotspotChoiceSerializer(serializers.Serializer):

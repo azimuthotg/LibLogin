@@ -202,6 +202,20 @@ class Hotspot(models.Model):
         help_text="Last time connection was tested"
     )
 
+    # Content availability (updated by test_connection)
+    has_active_background = models.BooleanField(
+        default=False,
+        help_text="Does this hotspot have an active BackgroundImage (own or default)?"
+    )
+    has_active_template = models.BooleanField(
+        default=False,
+        help_text="Does this hotspot have an active TemplateConfig (own or default)?"
+    )
+    has_landing_url = models.BooleanField(
+        default=False,
+        help_text="Does this hotspot have a LandingPageURL configured (own or default)?"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -224,11 +238,11 @@ class Hotspot(models.Model):
         """Return connection status: ready, warning, error, or unchecked"""
         if not self.last_checked:
             return 'unchecked'
-        if self.folder_exists and self.login_file_exists and self.config_matched:
-            return 'ready'
-        elif self.folder_exists:
+        if not self.folder_exists or not self.login_file_exists:
+            return 'error'
+        if not self.config_matched or not self.has_active_background or not self.has_active_template:
             return 'warning'
-        return 'error'
+        return 'ready'
 
     @property
     def status_icon(self):

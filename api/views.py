@@ -523,13 +523,15 @@ class HotspotViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def test_connection(self, request, pk=None):
         """
-        Test hotspot connection status
-        Checks if folder exists, login.html exists, and config matches
+        Test hotspot health status — checks filesystem + DB content availability.
+        Checks: folder, login.html, config, active background, active template, landing URL.
         """
         import os
         import re
         from django.conf import settings
         from django.utils import timezone
+        from django.db.models import Q
+        from .models import BackgroundImage, TemplateConfig, LandingPageURL
 
         hotspot = self.get_object()
         base_dir = settings.BASE_DIR
@@ -549,34 +551,62 @@ class HotspotViewSet(viewsets.ModelViewSet):
                 try:
                     with open(login_file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                        # Look for window.HOTSPOT_NAME = 'hotspot_xxx';
-                        pattern = r"window\.HOTSPOT_NAME\s*=\s*['\"]([^'\"]+)['\"]"
-                        match = re.search(pattern, content)
-                        if match:
-                            found_name = match.group(1)
-                            config_matched = (found_name == hotspot.hotspot_name)
-                            logger.info(f"[Hotspot Test] Found HOTSPOT_NAME: {found_name}, Expected: {hotspot.hotspot_name}")
+                    pattern = r"window\.HOTSPOT_NAME\s*=\s*['\"]([^'\"]+)['\"]"
+                    match = re.search(pattern, content)
+                    if match:
+                        found_name = match.group(1)
+                        config_matched = (found_name == hotspot.hotspot_name)
+                        logger.info(f"[Hotspot Test] HOTSPOT_NAME found: {found_name}, expected: {hotspot.hotspot_name}")
                 except Exception as e:
                     logger.error(f"[Hotspot Test] Error reading login.html: {str(e)}")
 
-            # Update hotspot status
+            # Check 4: Active Background (own or default)
+            hs = hotspot.hotspot_name
+            has_active_background = BackgroundImage.objects.filter(
+                is_active=True
+            ).filter(
+                Q(hotspot_name=hs) | Q(hotspot_name__isnull=True) | Q(hotspot_name='')
+            ).exists()
+
+            # Check 5: Active Template (own or default)
+            has_active_template = TemplateConfig.objects.filter(
+                is_active=True
+            ).filter(
+                Q(hotspot_name=hs) | Q(hotspot_name__isnull=True) | Q(hotspot_name='')
+            ).exists()
+
+            # Check 6: Landing URL (own or default)
+            has_landing_url = LandingPageURL.objects.filter(
+                Q(hotspot_name=hs) | Q(hotspot_name__isnull=True) | Q(hotspot_name='')
+            ).exists()
+
+            # Save all results
             hotspot.folder_exists = folder_exists
             hotspot.login_file_exists = login_file_exists
             hotspot.config_matched = config_matched
+            hotspot.has_active_background = has_active_background
+            hotspot.has_active_template = has_active_template
+            hotspot.has_landing_url = has_landing_url
             hotspot.last_checked = timezone.now()
             hotspot.save()
 
-            logger.info(f"[Hotspot Test] {hotspot.hotspot_name}: folder={folder_exists}, file={login_file_exists}, config={config_matched}")
+            logger.info(
+                f"[Hotspot Test] {hs}: folder={folder_exists}, file={login_file_exists}, "
+                f"config={config_matched}, bg={has_active_background}, "
+                f"tpl={has_active_template}, landing={has_landing_url} → {hotspot.status}"
+            )
 
             return Response({
                 'success': True,
                 'hotspot': HotspotSerializer(hotspot).data,
                 'details': {
-                    'folder_path': folder_path,
                     'folder_exists': folder_exists,
                     'login_file_exists': login_file_exists,
                     'config_matched': config_matched,
-                    'status': hotspot.status
+                    'has_active_background': has_active_background,
+                    'has_active_template': has_active_template,
+                    'has_landing_url': has_landing_url,
+                    'status': hotspot.status,
                 }
             })
 
@@ -1742,3 +1772,54 @@ def export_reach_report_pdf(request):
     except Exception as e:
         logger.error(f"[PDF Export] Error: {str(e)}", exc_info=True)
         return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+
+
+# ===============================================
+# Health Check API
+# ===============================================
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Server health check endpoint.
+    Returns DB connectivity, hotspot count, and version info.
+    """
+    import os
+    from django.conf import settings
+    from django.utils import timezone
+
+    checks = {}
+    overall = 'ok'
+
+    # DB check
+    try:
+        hotspot_count = Hotspot.objects.count()
+        checks['database'] = {'status': 'ok', 'hotspots': hotspot_count}
+    except Exception as e:
+        checks['database'] = {'status': 'error', 'detail': str(e)}
+        overall = 'error'
+
+    # Disk check (media folder writable)
+    try:
+        media_root = settings.MEDIA_ROOT
+        checks['media'] = {
+            'status': 'ok' if os.path.isdir(media_root) else 'warning',
+            'path': str(media_root),
+        }
+    except Exception as e:
+        checks['media'] = {'status': 'error', 'detail': str(e)}
+
+    # Log folder check
+    try:
+        log_dir = settings.BASE_DIR / 'logs'
+        checks['logs'] = {'status': 'ok' if os.path.isdir(log_dir) else 'warning'}
+    except Exception:
+        checks['logs'] = {'status': 'unknown'}
+
+    return Response({
+        'status': overall,
+        'version': '1.0',
+        'timestamp': timezone.now(),
+        'checks': checks,
+    })
