@@ -133,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'th'
 
 TIME_ZONE = 'Asia/Bangkok'
 
@@ -185,16 +185,55 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/minute',
+        'user': '300/minute',
+    },
 }
 
-# Login settings
+# Login / Session settings
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
+SESSION_COOKIE_AGE = 28800          # 8 hours (seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True   # Reset timeout on each request
+
+# Logging — rotating file log (production)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} [{levelname}] {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'liblogin.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'api':    {'handlers': ['file', 'console'], 'level': 'INFO', 'propagate': False},
+        'webapp': {'handlers': ['file', 'console'], 'level': 'INFO', 'propagate': False},
+    },
+}
+
 # CSRF trusted origins — set CSRF_TRUSTED_ORIGINS in .env for production
-# Default includes ngrok wildcards for development convenience
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv(
-    'CSRF_TRUSTED_ORIGINS',
-    'https://*.ngrok-free.app,https://*.ngrok.io'
+    'CSRF_TRUSTED_ORIGINS', ''
 ).split(',') if o.strip()]
