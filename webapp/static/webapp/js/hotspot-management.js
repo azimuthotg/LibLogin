@@ -508,7 +508,7 @@ function showAlert(type, message) {
         </div>
     `;
 
-    const container = document.querySelector('.container-fluid');
+    const container = document.querySelector('.main-content') || document.querySelector('.container-fluid') || document.body;
     container.insertAdjacentHTML('afterbegin', alertHtml);
 
     // Auto-dismiss after 5 seconds
