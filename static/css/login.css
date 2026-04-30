@@ -372,6 +372,14 @@ body {
         padding: 40px;
     }
 
+    /* Clear visual separator: login section gets dark overlay
+       so bg image is visible ABOVE (left panel) and NOT below */
+    .right-panel {
+        background: rgba(10, 20, 40, 0.60);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
     .slide-icon {
         font-size: 90px;
     }
