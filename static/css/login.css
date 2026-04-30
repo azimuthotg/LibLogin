@@ -66,13 +66,7 @@ table td:first-child{font-weight:700}
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Prevent scroll on desktop split-screen only */
-@media (min-width: 577px) {
-    body {
-        overflow: hidden;
-    }
+    overflow: hidden;
 }
 
 /* Dynamic background - Full Screen (Layer 1) */
@@ -458,133 +452,175 @@ body {
     }
 }
 
-/* Mobile (576px and below) — Login-first: hide left panel, full-screen login */
+/* Mobile (576px and below) — Vertical split: bg preview (top) + compact login (bottom) */
 @media (max-width: 576px) {
-    body {
-        overflow-y: auto;
-    }
-
     .split-container {
         flex-direction: column;
-        height: auto;
-        min-height: 100vh;
+        height: 100vh;
+        overflow: hidden;
     }
 
-    /* Hide promotional content on mobile — user just needs to log in */
+    /* Top section: background image preview + slide content (compact) */
     .left-panel {
+        display: flex;
+        width: 100%;
+        flex: 1;          /* takes all remaining space above login */
+        min-height: 0;    /* allow flex to shrink below content size */
+        padding: 20px 16px 12px;
+        height: auto;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Compact slide content in preview zone */
+    .slide-content {
+        max-width: 100%;
+    }
+
+    .slide-icon {
+        font-size: 52px;
+        margin-bottom: 8px;
+    }
+
+    .slide-title {
+        font-size: 18px;
+        margin-bottom: 0;
+    }
+
+    /* Hide description and dots — keep preview clean */
+    .slide-description {
         display: none;
     }
 
+    .dots {
+        margin-top: 10px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    /* Bottom section: compact login — fixed height, does not grow */
     .right-panel {
         width: 100%;
+        flex-shrink: 0;
         height: auto;
-        min-height: 100vh;
-        padding: 30px 20px;
+        padding: 12px 16px 16px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
+    /* Compact login card */
     .login-card {
         max-width: 100%;
         width: 100%;
-        padding: 30px 24px;
-        border-radius: 16px;
+        padding: 14px 18px 16px;
+        border-radius: 14px;
+    }
+
+    /* Logo — smaller to save vertical space */
+    .login-card img {
+        max-width: 60px !important;
+        margin-bottom: 8px !important;
     }
 
     .login-card h2 {
-        font-size: 20px;
-        margin-bottom: 20px;
+        font-size: 15px;
+        margin-bottom: 10px;
     }
 
     .login-card form {
-        gap: 16px;
+        gap: 10px;
+        margin-bottom: 0;
     }
 
     .login-card label {
         padding: 0 10px;
-        margin-bottom: 6px;
+        margin-bottom: 0;
     }
 
     .login-card .ico {
-        width: 16px;
-        height: 16px;
+        width: 15px;
+        height: 15px;
         margin-right: 8px;
     }
 
+    /* Keep 44px touch target, 16px font to prevent iOS zoom */
     .login-card input[type="text"],
     .login-card input[type="password"] {
-        height: 36px !important;
+        height: 44px !important;
         font-size: 16px !important;
     }
 
     .login-card input[type="submit"] {
-        padding: 12px;
+        padding: 0;
         font-size: 14px;
-        min-height: 48px;
-    }
-
-    .login-card .info {
-        font-size: 13px;
-        margin-top: 12px;
-    }
-
-    .login-card .info.bt {
-        font-size: 11px;
-    }
-}
-
-/* Mobile Small (480px and below) — tighten login card padding */
-@media (max-width: 480px) {
-    .right-panel {
-        padding: 24px 16px;
-    }
-
-    .login-card {
-        padding: 26px 20px;
-        border-radius: 14px;
-    }
-
-    .login-card h2 {
-        font-size: 19px;
-        margin-bottom: 18px;
-    }
-
-    .login-card form {
-        gap: 14px;
-    }
-
-    .login-card label {
-        border-radius: 5px;
+        min-height: 44px;
+        margin-top: 2px;
     }
 
     .login-card .info {
         font-size: 12px;
+        margin-top: 8px;
     }
 
+    /* Hide footer contact text — save space */
     .login-card .info.bt {
-        font-size: 10px;
+        display: none;
+    }
+}
+
+/* Mobile Small (480px and below) — slightly tighter */
+@media (max-width: 480px) {
+    .right-panel {
+        padding: 10px 14px 14px;
+    }
+
+    .login-card {
+        padding: 12px 16px 14px;
+        border-radius: 12px;
+    }
+
+    .login-card img {
+        max-width: 50px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .login-card h2 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .login-card form {
+        gap: 8px;
     }
 }
 
 /* Mobile XS (380px and below) */
 @media (max-width: 380px) {
     .right-panel {
-        padding: 20px 14px;
+        padding: 8px 12px 12px;
     }
 
     .login-card {
-        padding: 22px 18px;
-        border-radius: 12px;
+        padding: 10px 14px 12px;
+        border-radius: 10px;
+    }
+
+    .login-card img {
+        max-width: 44px !important;
+        margin-bottom: 4px !important;
     }
 
     .login-card h2 {
-        font-size: 18px;
-        margin-bottom: 16px;
+        font-size: 13px;
+        margin-bottom: 6px;
     }
 
     .login-card form {
-        gap: 12px;
+        gap: 6px;
     }
 
     .login-card input[type="submit"] {
