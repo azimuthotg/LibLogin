@@ -661,7 +661,7 @@
 function previewTemplate(templateId, hotspotName) {
     try {
         const hotspotPath = hotspotName || 'hotspot';
-        let previewUrl = '/' + hotspotPath + '/login.html?template_id=' + encodeURIComponent(templateId);
+        let previewUrl = (window.BASE_URL || '') + '/' + hotspotPath + '/login.html?template_id=' + encodeURIComponent(templateId);
         const previewWindow = window.open(previewUrl, '_blank');
         if (!previewWindow) {
             showToast('กรุณาอนุญาตให้เปิดหน้าต่างใหม่ในเบราว์เซอร์', 'error');
