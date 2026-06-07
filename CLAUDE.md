@@ -50,6 +50,7 @@ LibLogin/
 
 ## URL Structure
 ```
+/health/        → NMS Agent health check (public, JSON {status,db,db_ms}, 200/503) — แยกจาก /api/health/
 /               → dashboard
 /login/         → admin login
 /logout/        → logout
